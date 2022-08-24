@@ -23,7 +23,7 @@ classifiers = ["Intended Audience :: Developers",
 Source = "https://github.com/gramster/docs2stubs"
 
 [project.scripts]
-ghreport = "ghreport:main"
+docs2stubs = "docs2stubs:main"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
