@@ -1,5 +1,5 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
+requires = ["flit_core >=3.7,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
@@ -9,7 +9,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 dynamic = ["version", "description"]
 dependencies = [
-    "flit_core >=3.7.1",
+    "flit_core >=3.7",
     "docopt",
     "libcst",
 ]
