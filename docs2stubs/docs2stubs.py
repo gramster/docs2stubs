@@ -1,15 +1,16 @@
 import glob
-import importlib
 import inspect
 import os
+from types import ModuleType
 import libcst as cst
+from .basetransformer import BaseTransformer
+from .utils import process_module
 
 
-class StubbingTransformer(cst.CSTTransformer):
+class StubbingTransformer(BaseTransformer):
     def __init__(self, strip_defaults=False):
+        super().__init__()
         self.strip_defaults = strip_defaults
-        self.in_class_count = 0
-        self.in_function_count = 0
         self.method_names = set()
         self.class_names = set()
 
@@ -31,39 +32,44 @@ class StubbingTransformer(cst.CSTTransformer):
                 cst.BaseList: 'list',
                 cst.BaseSlice: 'slice',
                 cst.BaseSet: 'set',
+                # TODO: check the next two
+                cst.Lambda: 'Callable',
+                cst.MatchPattern: 'pattern'
             }.items():
                 if isinstance(node, k):
                     typ = v
                     break
         return typ
 
-    def leave_Assign(
-        self, original_node: cst.Assign, updated_node: cst.Assign
-    ) -> cst.CSTNode:
+    def get_assign_value(self, node: cst.Assign) -> cst.CSTNode:
         # See if this is an alias, in which case we want to
         # preserve the value; else we set the new value to ...
         new_value = None
-        if isinstance(original_node.value, cst.Name) and \
-           self.in_function_count == 0:
+        if isinstance(node.value, cst.Name) and not self.in_function():
             check = set()
-            if self.in_class_count == 0: # Top-level
+            if self.at_top_level():
                 check = self.class_names
-            elif self.in_class_count == 1: # Class level
+            elif self.at_top_level_class_level(): # Class level
                 check = self.method_names
-            if original_node.value.value in check:
-                new_value = updated_node.value
+            if node.value.value in check:
+                new_value = node.value
         if new_value is None:
-            new_value = cst.parse_expression("...")
-            
+            new_value = cst.parse_expression("...")  
+        return new_value
+
+    def leave_Assign(
+        self, original_node: cst.Assign, updated_node: cst.Assign
+    ) -> cst.CSTNode:
         typ = StubbingTransformer.get_value_type(original_node.value)
         # Make sure the assignment was not to a tuple before
         # changing to AnnAssign
         if typ is not None and len(original_node.targets) == 1:
             return cst.AnnAssign(target=original_node.targets[0].target,
                 annotation=cst.Annotation(annotation=cst.Name(typ)),
-                value=new_value)
+                value=cst.parse_expression("..."))
         else:
-            return updated_node.with_changes(value=new_value)
+            return updated_node.with_changes(\
+                value=self.get_assign_value(updated_node))
 
     def leave_AnnAssign(
         self, original_node: cst.Assign, updated_node: cst.Assign
@@ -88,16 +94,13 @@ class StubbingTransformer(cst.CSTTransformer):
 
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
         # Record the names of top-level classes
-        if self.in_class_count == 0:
+        if not self.in_class():
             self.class_names.add(node.name.value)
-
-        self.in_class_count += 1
-        # No point recursing if we are at nested function level
-        return self.in_class_count == 1
+        return super().visit_ClassDef(node)
 
     def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.CSTNode:
-        self.in_class_count -= 1
-        if self.in_class_count == 0:
+        super().leave_ClassDef(original_node, updated_node)
+        if not self.in_class():
             # Clear the method name set
             self.method_names = set()
             return updated_node
@@ -106,24 +109,21 @@ class StubbingTransformer(cst.CSTTransformer):
             return cst.parse_statement('...')
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
-        if self.in_class_count == 1 and self.in_function_count == 0:
+        if self.at_top_level_class_level():
             # Record the method name
             self.method_names.add(node.name.value)
-        self.in_function_count += 1
-        # No point recursing if we are at nested function level
-        return self.in_function_count == 1
+        return super().visit_FunctionDef(node)
 
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
         """Remove function bodies"""
-        self.in_function_count -= 1  
-        if self.in_function_count == 0 or \
-            (self.in_function_count == 1 and self.in_class_count == 1):
-            return updated_node.with_changes(body=cst.parse_statement("..."))
-        else:
+        super().leave_FunctionDef(original_node, updated_node)
+        if self.in_function(): 
             # Nested function; return ...
             return cst.parse_statement('...')
+        # Remove the body only
+        return updated_node.with_changes(body=cst.parse_statement("..."))
 
     def leave_SimpleStatementLine(
         self,
@@ -174,37 +174,12 @@ def patch_source(source: str, strip_defaults: bool = False) -> str|None:
     return modified.code
 
 
+def _stub(mod: ModuleType, fname: str, source: str, **kwargs):
+    return patch_source(source, **kwargs)
+
+def _targeter(fname: str) -> str:
+    return "typings/" + fname[fname.find("/site-packages/") + 15 :] + "i"
+
 def stub_module(m: str, strip_defaults: bool = False):
-    try:
-        mod = importlib.import_module(m)
-        print(f"Imported module {m} for patching")
-    except Exception:
-        print(f"Could not import module {m} for patching")
-        return
-    file = inspect.getfile(mod)
-    if file.endswith("/__init__.py"):
-        # Get the parent directory and all the files in that directory
-        folder = file[:-12]
-        files = glob.glob(folder + "/*.py")
-    else:
-        files = [file]
+    process_module(m, _stub, _targeter, strip_defaults=strip_defaults)
 
-    for file in files:
-        try:
-            with open(file) as f:
-                source = f.read()
-        except Exception as e:
-            print(f"Failed to read {file}: {e}")
-            continue
-
-        modified = patch_source(source)
-        if modified is None:
-            print(f"Failed to parse {file}: {e}")
-            continue
-
-        target = "typings/" + file[file.find("/site-packages/") + 15 :] + "i"
-        folder = target[: target.rfind("/")]
-        os.makedirs(folder, exist_ok=True)
-        with open(target, "w") as f:
-            f.write(modified)
-        print(f"Stubbed file {file}")
