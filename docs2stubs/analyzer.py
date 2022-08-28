@@ -7,30 +7,35 @@ from .basetransformer import BaseTransformer
 from .utils import process_module
 from .parser import NumpyDocstringParser
 
-# I suspect it would be easier to just import the module and
-# recurse through the resuting __dict__ objects than use LibCST here,
-# but I'm having fun with LibCST and this works, so....
 class AnalyzingTransformer(BaseTransformer):
 
-    def __init__(self, mod: ModuleType, fname: str, counter: Counter):
+    def __init__(self, mod: ModuleType, fname: str, counter: Counter, context: dict):
         super().__init__()
         self._mod = mod
-        self._fname = fname
+        i = fname.find('site-packages')
+        if i > 0:
+            # Strip off the irrelevant part of the path
+            self._fname = fname[i+14:]
+        else:
+            self._fname = fname
         self._classname = ''
         self._parser = NumpyDocstringParser()
         self._counter = counter
+        self._context = context
 
-    def _analyze_obj(self, obj):
+    def _analyze_obj(self, obj, context: str):
         doc = None
         if obj:
             doc = inspect.getdoc(obj)
         if not doc:
             return
-        rtn = NumpyDocstringParser().parse(doc)
+        rtn = self._parser.parse(doc)
         for section in rtn:
             if section:
-                for _, typs in section:
+                for _, raw, typs in section:
                     for typ in typs.split('|'):
+                        if typ not in self._context:
+                            self._context[typ] = f'{self._fname}:{context} {raw}'
                         self._counter[typ] += 1
 
     @staticmethod
@@ -49,32 +54,35 @@ class AnalyzingTransformer(BaseTransformer):
         if self.at_top_level():
             self._classname = node.name.value
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
-            self._analyze_obj(obj)
+            self._analyze_obj(obj, self._classname)
         return super().visit_ClassDef(node)
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
         name = node.name.value
         obj = None
+        context = ''
         if self.at_top_level():
+            context = name
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, name)
         elif self.at_top_level_class_level():
+            context = f'{self._classname}.{name}'
             parent = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, self._classname)
             if parent:
                 if name in parent.__dict__:
                     obj = parent.__dict__[name]
                 else:
                     print(f'{self._fname}: Could not get obj for {self._classname}.{name}')
-        self._analyze_obj(obj)
+        self._analyze_obj(obj, context)
         return super().visit_FunctionDef(node)
 
 
-def _analyze(mod: ModuleType, fname: str, source: str, state: Counter, **kwargs):
+def _analyze(mod: ModuleType, fname: str, source: str, state: tuple, **kwargs):
     try:
         cstree = cst.parse_module(source)
     except Exception as e:
         return None
     try:
-        patcher = AnalyzingTransformer(mod, fname, counter=state)
+        patcher = AnalyzingTransformer(mod, fname, counter=state[0], context=state[1])
         cstree.visit(patcher)
     except:  # Exception as e:
         # Note: I know that e is undefined below; this actually lets me
@@ -84,10 +92,12 @@ def _analyze(mod: ModuleType, fname: str, source: str, state: Counter, **kwargs)
         return None
     return state
 
-def _post_process(m: ModuleType, state: Counter):
+def _post_process(m: ModuleType, state: tuple):
     result = ''
-    for typ, cnt in state.most_common():
-        result += f'{cnt}#{typ}#{typ}\n'
+    freq: Counter = state[0]
+    context: dict = state[1]
+    for typ, cnt in freq.most_common():
+        result += f'{cnt}#{context[typ]}#{typ}#{typ}\n'
     return result
 
 
@@ -97,5 +107,6 @@ def _targeter(m: str) -> str:
 
 
 def analyze_module(m: str):
-    process_module(m, _analyze, _targeter, post_processor=_post_process, state=Counter())
+    process_module(m, _analyze, _targeter, post_processor=_post_process, 
+        state=(Counter(), {}))
 

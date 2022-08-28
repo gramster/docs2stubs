@@ -135,19 +135,19 @@ class DocstringParserBase(abc.ABC):
 
     @abc.abstractmethod
     def _consume_field(self, prefer_type: bool = False
-                       ) -> tuple[str, str]: ...
+                       ) -> tuple[str, str, str]: ...
 
     def _consume_fields(self, parse_type: bool = True, prefer_type: bool = False,
-                        multiple: bool = False) -> list[tuple[str, str]]:
+                        multiple: bool = False) -> list[tuple[str, str, str]]:
         self._consume_empty()
         fields = []
         while not self._is_section_break():
-            _name, _type = self._consume_field(prefer_type)
-            if multiple and _name:
-                for name in _name.split(","):
-                    fields.append((name.strip(), _type,))
-            elif _name or _type:
-                fields.append((_name, _type,))
+            name, raw, normalized = self._consume_field(prefer_type)
+            if multiple and name:
+                for n in name.split(","):
+                    fields.append((n.strip(), raw, normalized))
+            elif name or normalized:
+                fields.append((name, raw, normalized))
         return fields
 
     @abc.abstractmethod
@@ -168,7 +168,7 @@ class DocstringParserBase(abc.ABC):
         self._section_indent = 0
         self._lines = Deque(map(str.rstrip, docstring.splitlines()))
 
-    def parse(self, docstring: str) -> tuple[list[tuple[str, str]]|None, ...]:
+    def parse(self, docstring: str) -> tuple[list[tuple[str, str, str]]|None, ...]:
         self._prep_parser(docstring)
         self._consume_to_next_section()
         while self._lines:
@@ -193,7 +193,8 @@ class NumpyDocstringParser(DocstringParserBase):
     _numpy_section_regex = re.compile(r'^[=\-`:\'"~^_*+#<>]{2,}\s*$')
     _remove_default_val = re.compile(r'^(.*),[ \t]*default[ \t]*.*$')
     _restricted_val = re.compile(r'^(.*){(.*)}(.*)$')
-    _tuple = re.compile(r'^(.*)\((.*)\)(.*)$')
+    _tuple1 = re.compile(r'^(.*)\((.*)\)(.*)$')  # using ()
+    _tuple2 = re.compile(r'^(.*)\[(.*)\](.*)$')  # using []
 
     def __init__(self): 
         super().__init__()
@@ -216,7 +217,6 @@ class NumpyDocstringParser(DocstringParserBase):
 
     @staticmethod
     def _normalize(s: str) -> str:
-        print(f'Start {s}')
         # Remove , default ... from end
         m = NumpyDocstringParser._remove_default_val.match(s)
         if m:
@@ -233,7 +233,9 @@ class NumpyDocstringParser(DocstringParserBase):
         # Handle tuples. Right now we can only handle one per line;
         # need to fix that.
 
-        m = NumpyDocstringParser._tuple.match(s)
+        m = NumpyDocstringParser._tuple1.match(s)
+        if not m:
+            m = NumpyDocstringParser._tuple2.match(s)
         t = None
         if m:
             s = m.group(1) + m.group(3)
@@ -264,7 +266,7 @@ class NumpyDocstringParser(DocstringParserBase):
                         if s.startswith('.') or s.startswith('~'):
                             s = s[1:]
                         return 'list[' + s + ']'
-                    if s.startswith('.') or s.startswith('~'):
+                    while s.startswith('.') or s.startswith('~'):
                         s = s[1:]
                     return s
             return 'Literal[' + s + ']'
@@ -284,7 +286,6 @@ class NumpyDocstringParser(DocstringParserBase):
         elif t:
             s = t
 
-        print(f'End {s}')
         return s
 
     def _is_section_header(self) -> bool:
@@ -306,7 +307,7 @@ class NumpyDocstringParser(DocstringParserBase):
                     not self._is_indented(line1, self._section_indent)))
 
     def _consume_field(self, prefer_type: bool = False
-                       ) -> tuple[str, str]:
+                       ) -> tuple[str, str, str]:
         line = self._lines.next()
         
         _name, _, _type = self._partition_field_on_colon(line)
@@ -317,83 +318,8 @@ class NumpyDocstringParser(DocstringParserBase):
 
         # Consume the description
         self._consume_indented_block(self._get_indent(line) + 1)
-        return _name, NumpyDocstringParser._normalize(_type)
+        return _name, _type, NumpyDocstringParser._normalize(_type)
 
     def _parse_returns_section(self, section: str) -> None:
         self._returns = self._consume_fields(prefer_type=True)
-
-
-if __name__ == '__main__':
-    x = """
-            Create legend handles and labels for a PathCollection.
-
-        Each legend handle is a `.Line2D` representing the Path that was drawn,
-        and each label is a string what each Path represents.
-
-        This is useful for obtaining a legend for a `~.Axes.scatter` plot;
-        e.g.::
-
-            scatter = plt.scatter([1, 2, 3],  [4, 5, 6],  c=[7, 2, 3])
-            plt.legend(*scatter.legend_elements())
-
-        creates three legend elements, one for each color with the numerical
-        values passed to *c* as the labels.
-
-        Also see the :ref:`automatedlegendcreation` example.
-
-        Parameters
-        ----------
-        prop : {"colors", "sizes"}, default: "colors"
-            If "colors", the legend handles will show the different colors of
-            the collection. If "sizes", the legend will show the different
-            sizes. To set both, use *kwargs* to directly edit the `.Line2D`
-            properties.
-        num : int, None, "auto" (default), array-like, or `~.ticker.Locator`
-            Target number of elements to create.
-            If None, use all unique elements of the mappable array. If an
-            integer, target to use *num* elements in the normed range.
-            If *"auto"*, try to determine which option better suits the nature
-            of the data.
-            The number of created elements may slightly deviate from *num* due
-            to a `~.ticker.Locator` being used to find useful locations.
-            If a list or array, use exactly those elements for the legend.
-            Finally, a `~.ticker.Locator` can be provided.
-        fmt : str, `~matplotlib.ticker.Formatter`, or None (default)
-            The format or formatter to use for the labels. If a string must be
-            a valid input for a `.StrMethodFormatter`. If None (the default),
-            use a `.ScalarFormatter`.
-        func : function, default: ``lambda x: x``
-            Function to calculate the labels.  Often the size (or color)
-            argument to `~.Axes.scatter` will have been pre-processed by the
-            user using a function ``s = f(x)`` to make the markers visible;
-            e.g. ``size = np.log10(x)``.  Providing the inverse of this
-            function here allows that pre-processing to be inverted, so that
-            the legend labels have the correct values; e.g. ``func = lambda
-            x: 10**x``.
-        **kwargs
-            Allowed keyword arguments are *color* and *size*. E.g. it may be
-            useful to set the color of the markers if *prop="sizes"* is used;
-            similarly to set the size of the markers if *prop="colors"* is
-            used. Any further parameters are passed onto the `.Line2D`
-            instance. This may be useful to e.g. specify a different
-            *markeredgecolor* or *alpha* for the legend handles.
-
-        Returns
-        -------
-        handles : list of `.Line2D`
-            Visual representation of each element of the legend.
-        labels : list of str
-            The string labels for elements of the legend.
-    """
-
-        
-    rtn = NumpyDocstringParser().parse(x)
-    for i, k in enumerate(['Params', 'Returns', 'Attrs']):
-        sec = rtn[i]
-        if sec:
-            print(k)
-            print('-' * len(k))
-            for (n, t) in sec:
-                print(f'  name {n}: type {t}')
-
 
