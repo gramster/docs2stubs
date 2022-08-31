@@ -9,7 +9,8 @@ from .parser import NumpyDocstringParser
 
 class AnalyzingTransformer(BaseTransformer):
 
-    def __init__(self, mod: ModuleType, fname: str, counter: Counter, context: dict):
+    def __init__(self, mod: ModuleType, fname: str, counter: Counter, context: dict,
+            imports: dict):
         super().__init__()
         self._mod = mod
         i = fname.find('site-packages')
@@ -22,6 +23,7 @@ class AnalyzingTransformer(BaseTransformer):
         self._parser = NumpyDocstringParser()
         self._counter = counter
         self._context = context
+        self._imports = imports
 
     def _analyze_obj(self, obj, context: str):
         doc = None
@@ -53,6 +55,7 @@ class AnalyzingTransformer(BaseTransformer):
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
         if self.at_top_level():
             self._classname = node.name.value
+            self._imports[self._classname] = self._fname
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
             self._analyze_obj(obj, self._classname)
         return super().visit_ClassDef(node)
@@ -82,7 +85,10 @@ def _analyze(mod: ModuleType, fname: str, source: str, state: tuple, **kwargs):
     except Exception as e:
         return None
     try:
-        patcher = AnalyzingTransformer(mod, fname, counter=state[0], context=state[1])
+        patcher = AnalyzingTransformer(mod, fname, 
+            counter=state[0], 
+            context=state[1],
+            imports = state[2])
         cstree.visit(patcher)
     except:  # Exception as e:
         # Note: I know that e is undefined below; this actually lets me
@@ -108,5 +114,5 @@ def _targeter(m: str) -> str:
 
 def analyze_module(m: str):
     process_module(m, _analyze, _targeter, post_processor=_post_process, 
-        state=(Counter(), {}))
+        state=(Counter(), {}, {}))
 

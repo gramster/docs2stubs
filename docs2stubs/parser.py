@@ -192,9 +192,12 @@ class NumpyDocstringParser(DocstringParserBase):
 
     _numpy_section_regex = re.compile(r'^[=\-`:\'"~^_*+#<>]{2,}\s*$')
     _remove_default_val = re.compile(r'^(.*),[ \t]*default[ \t]*.*$')
+    _remove_optional = re.compile(r'^(.*),[ \t]*[Oo]ptional$')
     _restricted_val = re.compile(r'^(.*){(.*)}(.*)$')
     _tuple1 = re.compile(r'^(.*)\((.*)\)(.*)$')  # using ()
     _tuple2 = re.compile(r'^(.*)\[(.*)\](.*)$')  # using []
+    _sequence_of = re.compile(r'^(List|list|Sequence|sequence|Array|array) of ([A-Za-z\._~`]+)$')
+    _tuple_of = re.compile(r'^(Tuple|tuple) of ([A-Za-z\._~`]+)$')
 
     def __init__(self): 
         super().__init__()
@@ -217,6 +220,10 @@ class NumpyDocstringParser(DocstringParserBase):
 
     @staticmethod
     def _normalize(s: str) -> str:
+        # Remove , optional ... from end
+        m = NumpyDocstringParser._remove_optional.match(s)
+        if m:
+            s = m.group(1)
         # Remove , default ... from end
         m = NumpyDocstringParser._remove_default_val.match(s)
         if m:
@@ -230,7 +237,7 @@ class NumpyDocstringParser(DocstringParserBase):
             s = m.group(1) + m.group(3)
             l = 'Literal[' + m.group(2) + ']'
 
-        # Handle tuples. Right now we can only handle one per line;
+        # Handle tuples in [] or (). Right now we can only handle one per line;
         # need to fix that.
 
         m = NumpyDocstringParser._tuple1.match(s)
@@ -255,17 +262,19 @@ class NumpyDocstringParser(DocstringParserBase):
             s = s.strip()
             s = s.replace('`', '')  # Removed restructured text junk
 
+            # Handle collections like 'list of...', 'array of ...' ,etc
+            m = NumpyDocstringParser._sequence_of.match(s)
+            if m:
+                return f'Sequence[{normalize_one(m.group(2))}]'
+            m = NumpyDocstringParser._tuple_of.match(s)
+            if m:
+                return f'tuple[{normalize_one(m.group(2))}, ...]'
+
             # Handle literal numbers and strings
             if not (s.startswith('"') or s.startswith("'")):
                 try:
                     float(s)
                 except ValueError:
-                    # Handle lists
-                    if s.startswith('list of '):
-                        s = s[8:]
-                        if s.startswith('.') or s.startswith('~'):
-                            s = s[1:]
-                        return 'list[' + s + ']'
                     while s.startswith('.') or s.startswith('~'):
                         s = s[1:]
                     return s

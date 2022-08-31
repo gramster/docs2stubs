@@ -1,3 +1,10 @@
+
+def test_normalizer():
+    from docs2stubs.parser import NumpyDocstringParser
+    x = 'sequence of `.Artist`, optional'
+    print(NumpyDocstringParser._normalize(x))
+
+
 def test_parser(): 
     from docs2stubs.parser import NumpyDocstringParser
     x = """
