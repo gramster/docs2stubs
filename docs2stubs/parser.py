@@ -4,7 +4,6 @@ import collections
 import re
 from typing import Any, Callable
 
-
 class Deque(collections.deque):
     """
     A subclass of deque that adds `.Deque.get` and `.Deque.next` methods.
@@ -35,6 +34,8 @@ class DocstringParserBase(abc.ABC):
     _xref_or_code_regex = re.compile(
         r'((?::(?:[a-zA-Z0-9]+[\-_+:.])*[a-zA-Z0-9]+:`.+?`)|'
         r'(?:``.+?``))')
+    _remove_default_val = re.compile(r'^(.*),[ \t]*default[ \t]*.*$')
+    _remove_optional = re.compile(r'^(.*),[ \t]*[Oo]ptional$')
 
     def __init__(self):
         self._attributes = None
@@ -135,19 +136,32 @@ class DocstringParserBase(abc.ABC):
 
     @abc.abstractmethod
     def _consume_field(self, prefer_type: bool = False
-                       ) -> tuple[str, str, str]: ...
+                       ) -> tuple[str, str]: ...
 
     def _consume_fields(self, parse_type: bool = True, prefer_type: bool = False,
-                        multiple: bool = False) -> list[tuple[str, str, str]]:
+                        multiple: bool = False) -> list[tuple[str, str]]:
         self._consume_empty()
         fields = []
         while not self._is_section_break():
-            name, raw, normalized = self._consume_field(prefer_type)
+            name, typ = self._consume_field(prefer_type)
+
+            # Remove , optional ... from end
+            m = DocstringParserBase._remove_optional.match(typ)
+            if m:
+                typ = m.group(1)
+            # Remove , default ... from end
+            m = DocstringParserBase._remove_default_val.match(typ)
+            if m:
+                typ = m.group(1)
+
+            # Remove (default) from within
+            typ = typ.replace(' (default)', '')
+
             if multiple and name:
                 for n in name.split(","):
-                    fields.append((n.strip(), raw, normalized))
-            elif name or normalized:
-                fields.append((name, raw, normalized))
+                    fields.append((n.strip(), typ))
+            elif name or typ:
+                fields.append((name, typ))
         return fields
 
     @abc.abstractmethod
@@ -191,13 +205,6 @@ class DocstringParserBase(abc.ABC):
 class NumpyDocstringParser(DocstringParserBase):
 
     _numpy_section_regex = re.compile(r'^[=\-`:\'"~^_*+#<>]{2,}\s*$')
-    _remove_default_val = re.compile(r'^(.*),[ \t]*default[ \t]*.*$')
-    _remove_optional = re.compile(r'^(.*),[ \t]*[Oo]ptional$')
-    _restricted_val = re.compile(r'^(.*){(.*)}(.*)$')
-    _tuple1 = re.compile(r'^(.*)\((.*)\)(.*)$')  # using ()
-    _tuple2 = re.compile(r'^(.*)\[(.*)\](.*)$')  # using []
-    _sequence_of = re.compile(r'^(List|list|Sequence|sequence|Array|array) of ([A-Za-z\._~`]+)$')
-    _tuple_of = re.compile(r'^(Tuple|tuple) of ([A-Za-z\._~`]+)$')
 
     def __init__(self): 
         super().__init__()
@@ -218,84 +225,7 @@ class NumpyDocstringParser(DocstringParserBase):
             'yields': self._skip_section,
         }
 
-    @staticmethod
-    def _normalize(s: str) -> str:
-        # Remove , optional ... from end
-        m = NumpyDocstringParser._remove_optional.match(s)
-        if m:
-            s = m.group(1)
-        # Remove , default ... from end
-        m = NumpyDocstringParser._remove_default_val.match(s)
-        if m:
-            s = m.group(1)
-        # Remove (default) from within
-        s = s.replace('(default)', '')
-        # Handle a restricted value set
-        m = NumpyDocstringParser._restricted_val.match(s)
-        l = None
-        if m:
-            s = m.group(1) + m.group(3)
-            l = 'Literal[' + m.group(2) + ']'
 
-        # Handle tuples in [] or (). Right now we can only handle one per line;
-        # need to fix that.
-
-        m = NumpyDocstringParser._tuple1.match(s)
-        if not m:
-            m = NumpyDocstringParser._tuple2.match(s)
-        t = None
-        if m:
-            s = m.group(1) + m.group(3)
-            t = 'tuple(' + m.group(2) + ')'
-
-        # Now look at list of types. First replace ' or ' with a comma.
-        # This is a bit dangerous as commas may exist elsewhere but 
-        # until we find the failure cases we don't know how to address 
-        # them yet.
-        s = s.replace(' or ', ',')
-
-        # Get the alternatives
-        parts = s.split(',')
-
-        def normalize_one(s):
-            """ Do some normalizing of a single type. """
-            s = s.strip()
-            s = s.replace('`', '')  # Removed restructured text junk
-
-            # Handle collections like 'list of...', 'array of ...' ,etc
-            m = NumpyDocstringParser._sequence_of.match(s)
-            if m:
-                return f'Sequence[{normalize_one(m.group(2))}]'
-            m = NumpyDocstringParser._tuple_of.match(s)
-            if m:
-                return f'tuple[{normalize_one(m.group(2))}, ...]'
-
-            # Handle literal numbers and strings
-            if not (s.startswith('"') or s.startswith("'")):
-                try:
-                    float(s)
-                except ValueError:
-                    while s.startswith('.') or s.startswith('~'):
-                        s = s[1:]
-                    return s
-            return 'Literal[' + s + ']'
-            
-        # Create a union from the normalized alternatives
-        s = '|'.join(normalize_one(p) for p in parts if p.strip())
-
-        # Add back our constrained value literal, if it exists
-        if s and l:
-            s += '|' + l
-        elif l:
-            s = l
-
-        # Add back our tuple, if it exists
-        if s and t:
-            s += '|' + t
-        elif t:
-            s = t
-
-        return s
 
     def _is_section_header(self) -> bool:
         section, underline = self._lines.get(0), self._lines.get(1)
@@ -316,7 +246,7 @@ class NumpyDocstringParser(DocstringParserBase):
                     not self._is_indented(line1, self._section_indent)))
 
     def _consume_field(self, prefer_type: bool = False
-                       ) -> tuple[str, str, str]:
+                       ) -> tuple[str, str]:
         line = self._lines.next()
         
         _name, _, _type = self._partition_field_on_colon(line)
@@ -327,7 +257,7 @@ class NumpyDocstringParser(DocstringParserBase):
 
         # Consume the description
         self._consume_indented_block(self._get_indent(line) + 1)
-        return _name, _type, NumpyDocstringParser._normalize(_type)
+        return _name, _type
 
     def _parse_returns_section(self, section: str) -> None:
         self._returns = self._consume_fields(prefer_type=True)

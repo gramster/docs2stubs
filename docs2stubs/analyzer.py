@@ -6,10 +6,11 @@ import libcst as cst
 from .basetransformer import BaseTransformer
 from .utils import process_module
 from .parser import NumpyDocstringParser
+from .normalize import normalize_type
 
 class AnalyzingTransformer(BaseTransformer):
 
-    def __init__(self, mod: ModuleType, fname: str, counter: Counter, context: dict,
+    def __init__(self, mod: ModuleType, fname: str, counter: Counter,
             imports: dict):
         super().__init__()
         self._mod = mod
@@ -22,7 +23,6 @@ class AnalyzingTransformer(BaseTransformer):
         self._classname = ''
         self._parser = NumpyDocstringParser()
         self._counter = counter
-        self._context = context
         self._imports = imports
 
     def _analyze_obj(self, obj, context: str):
@@ -34,11 +34,8 @@ class AnalyzingTransformer(BaseTransformer):
         rtn = self._parser.parse(doc)
         for section in rtn:
             if section:
-                for _, raw, typs in section:
-                    for typ in typs.split('|'):
-                        if typ not in self._context:
-                            self._context[typ] = f'{self._fname}:{context} {raw}'
-                        self._counter[typ] += 1
+                for _, typ in section:
+                    self._counter[typ] += 1
 
     @staticmethod
     def get_top_level_obj(mod: ModuleType, fname: str, oname: str):
@@ -87,8 +84,7 @@ def _analyze(mod: ModuleType, fname: str, source: str, state: tuple, **kwargs):
     try:
         patcher = AnalyzingTransformer(mod, fname, 
             counter=state[0], 
-            context=state[1],
-            imports = state[2])
+            imports = state[1])
         cstree.visit(patcher)
     except:  # Exception as e:
         # Note: I know that e is undefined below; this actually lets me
@@ -101,9 +97,8 @@ def _analyze(mod: ModuleType, fname: str, source: str, state: tuple, **kwargs):
 def _post_process(m: ModuleType, state: tuple):
     result = ''
     freq: Counter = state[0]
-    context: dict = state[1]
     for typ, cnt in freq.most_common():
-        result += f'{cnt}#{context[typ]}#{typ}#{typ}\n'
+        result += f'{cnt}#{typ}#{normalize_type(typ)}\n'
     return result
 
 

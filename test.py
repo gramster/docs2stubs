@@ -1,8 +1,8 @@
 
 def test_normalizer():
-    from docs2stubs.parser import NumpyDocstringParser
+    from docs2stubs.normalize import normalize_type
     x = 'sequence of `.Artist`, optional'
-    print(NumpyDocstringParser._normalize(x))
+    print(normalize_type(x))
 
 
 def test_parser(): 
