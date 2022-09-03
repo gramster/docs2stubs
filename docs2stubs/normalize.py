@@ -4,8 +4,8 @@ import re
 _restricted_val = re.compile(r'^(.*){(.*)}(.*)$')
 _tuple1 = re.compile(r'^(.*)\((.*)\)(.*)$')  # using ()
 _tuple2 = re.compile(r'^(.*)\[(.*)\](.*)$')  # using []
-_sequence_of = re.compile(r'^(List|list|Sequence|sequence|Array|array) of ([A-Za-z\._~`]+)$')
-_tuple_of = re.compile(r'^(Tuple|tuple) of ([A-Za-z\._~`]+)$')
+_sequence_of = re.compile(r'^(List|list|Sequence|sequence|Array|array) of ([A-Za-z0-9\._~`]+)$')
+_tuple_of = re.compile(r'^(Tuple|tuple) of ([A-Za-z0-9\._~`]+)$')
 
 
 def normalize_type(s: str) -> str:
@@ -25,7 +25,7 @@ def normalize_type(s: str) -> str:
     t = None
     if m:
         s = m.group(1) + m.group(3)
-        t = 'tuple(' + m.group(2) + ')'
+        t = 'tuple[' + m.group(2) + ']'
 
     # Now look at list of types. First replace ' or ' with a comma.
     # This is a bit dangerous as commas may exist elsewhere but 
@@ -37,6 +37,10 @@ def normalize_type(s: str) -> str:
     parts = s.split(',')
 
     def normalize_one(s):
+        remap = {
+            'array-like': 'ArrayLike',
+            'callable': 'Callable',
+        }
         """ Do some normalizing of a single type. """
         s = s.strip()
         s = s.replace('`', '')  # Removed restructured text junk
@@ -56,6 +60,10 @@ def normalize_type(s: str) -> str:
             except ValueError:
                 while s.startswith('.') or s.startswith('~'):
                     s = s[1:]
+
+                if s in remap:
+                    return remap[s]
+
                 return s
         return 'Literal[' + s + ']'
         

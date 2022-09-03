@@ -1,7 +1,9 @@
+import os
+
 
 def test_normalizer():
     from docs2stubs.normalize import normalize_type
-    x = 'sequence of `.Artist`, optional'
+    x = 'list of `.Line2D`'
     print(normalize_type(x))
 
 
@@ -80,12 +82,37 @@ def test_parser():
                 print(f'  name {n}: raw {r}, normalized {t}')
 
 
-def test_analyzer():
+def test_analyzer(m: str = 'matplotlib'):
     from docs2stubs import analyze_module
-    analyze_module('matplotlib.axes')
+    analyze_module(m)
+
+
+def test_stubber(m: str = 'matplotlib'):
+    from docs2stubs import stub_module
+    stub_module(m)
+
+
+def test_get_package_files(m = 'matplotlib'):
+    from docs2stubs.utils import get_module_and_children
+    modules = [m]
+    while modules:
+        m = modules.pop()
+        mod, file, submodules = get_module_and_children(m)
+        if not mod:
+            continue
+        modules.extend(submodules)
+        print(f'\n{m}\n{"="*len(m)}')
+        f = file
+        i = f.find('/site-packages/')
+        if i > 0:
+            f = f[i+15:]
+        print(f)
 
 
 if __name__ == '__main__':
-    test_analyzer()
+    #test_analyzer('matplotlib')
+    #test_normalizer()
+    #test_get_package_files()
+    test_stubber()
 
 

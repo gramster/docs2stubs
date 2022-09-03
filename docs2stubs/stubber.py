@@ -1,0 +1,257 @@
+from __future__ import annotations
+from asyncio.proactor_events import _ProactorBaseWritePipeTransport
+import glob
+import inspect
+import os
+from types import ModuleType
+import libcst as cst
+
+from docs2stubs.analyzer import analyze_module
+from docs2stubs.normalize import normalize_type
+from .basetransformer import BaseTransformer
+from .utils import is_trivial, process_module
+
+
+class StubbingTransformer(BaseTransformer):
+    def __init__(self, modname: str, fname: str, map: dict, imports: dict, docs: dict, 
+        strip_defaults=False, infer_types_from_defaults=False):
+        super().__init__(modname, fname)
+        self._map = map
+        self._imports = imports
+        self._docs = docs[modname]
+        self._strip_defaults = strip_defaults
+        self._infer_types = infer_types_from_defaults
+        self._method_names = set()
+        self._class_names = set()
+        self._need_imports = {}
+
+    @staticmethod
+    def get_value_type(node: cst.CSTNode) -> str|None:
+        typ: str|None= None
+        if isinstance(node, cst.Name):
+            if node.value in [ 'True', 'False']:
+                typ = 'bool'
+            elif node.value == 'None':
+                typ = 'None'
+        else:
+            for k, v in {
+                cst.Integer: 'int',
+                cst.Float: 'float',
+                cst.Imaginary: 'complex',
+                cst.BaseString: 'str',
+                cst.BaseDict: 'dict',
+                cst.BaseList: 'list',
+                cst.BaseSlice: 'slice',
+                cst.BaseSet: 'set',
+                # TODO: check the next two
+                cst.Lambda: 'Callable',
+                cst.MatchPattern: 'pattern'
+            }.items():
+                if isinstance(node, k):
+                    typ = v
+                    break
+        return typ
+
+    def get_assign_value(self, node: cst.Assign) -> cst.CSTNode:
+        # See if this is an alias, in which case we want to
+        # preserve the value; else we set the new value to ...
+        new_value = None
+        if isinstance(node.value, cst.Name) and not self.in_function():
+            check = set()
+            if self.at_top_level():
+                check = self._class_names
+            elif self.at_top_level_class_level(): # Class level
+                check = self._method_names
+            if node.value.value in check:
+                new_value = node.value
+        if new_value is None:
+            new_value = cst.parse_expression("...")  
+        return new_value
+
+    def get_assign_props(self, node: cst.Assign) -> tuple(str|None, cst.CSTNode):
+         typ = StubbingTransformer.get_value_type(node.value)
+         value=self.get_assign_value(node)
+         return typ, value
+
+    def leave_Assign(
+        self, original_node: cst.Assign, updated_node: cst.Assign
+    ) -> cst.CSTNode:
+        typ, value = self.get_assign_props(original_node)
+        typ = StubbingTransformer.get_value_type(original_node.value)
+        # Make sure the assignment was not to a tuple before
+        # changing to AnnAssign
+        # TODO: if this is an attribute, see if it had an annotation in 
+        # the class docstring and use that
+        if typ is not None and len(original_node.targets) == 1:
+            return cst.AnnAssign(target=original_node.targets[0].target,
+                annotation=cst.Annotation(annotation=cst.Name(typ)),
+                value=value)
+        else:
+            return updated_node.with_changes(value=value)
+
+    def leave_AnnAssign(
+        self, original_node: cst.Assign, updated_node: cst.Assign
+    ) -> cst.CSTNode:
+        value=self.get_assign_value(original_node)
+        return updated_node.with_changes(value=value)
+
+    def leave_Param(
+        self, original_node: cst.Param, updated_node: cst.Param
+    ) -> cst.CSTNode:
+        doctyp = self._docs.get(self.context())
+        super().leave_Param(original_node, updated_node)
+        annotation = original_node.annotation
+        default = original_node.default
+        valtyp = None
+        is_optional = False
+
+        if default:
+            valtyp = StubbingTransformer.get_value_type(default) # Inferred type from default
+            if (not valtyp or self._strip_defaults):
+                # Default is something too complex for a stub or should be stripped; replace with '...'
+                default = cst.parse_expression("...")
+
+        if doctyp and not annotation:
+            typ = None
+            if doctyp in self._map:
+                typ = self._map[doctyp]
+            elif is_trivial(doctyp, self._modname, self._imports):
+                typ = normalize_type(doctyp)
+            if typ:
+                if typ.find('list') >= 0:
+                    # Make this more robust
+                    typ = typ.replace('list', 'Sequence')
+                    self._need_imports['Sequence'] = 'typing'
+                # TODO: figure out other needed imports  
+
+                # If the default value is None, make sure we include it in the type
+                is_optional = 'None' in typ.split('|')
+                if not is_optional and valtyp == 'None':
+                    typ = typ + '|None'
+
+                print(f'Annotated {self.context()} with {typ} from {doctyp}')
+                annotation = cst.Annotation(annotation=cst.parse_expression(typ))
+            else:
+                print(f'Could not annotate {self.context()} from {doctyp}')
+
+        if self._infer_types and valtyp and not annotation and valtyp != 'None':
+            # Use the inferred type from default value as long as it is not None
+            annotation = cst.Annotation(annotation=cst.Name(valtyp))
+            
+        return updated_node.with_changes(annotation=annotation, default=default)
+
+    def visit_ClassDef(self, node: cst.ClassDef) -> bool:
+        # Record the names of top-level classes
+        if not self.in_class():
+            self._class_names.add(node.name.value)
+        return super().visit_ClassDef(node)
+
+    def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.CSTNode:
+        super().leave_ClassDef(original_node, updated_node)
+        if not self.in_class():
+            # Clear the method name set
+            self._method_names = set()
+            return updated_node
+        else:
+            # Nested class; return ...
+            return cst.parse_statement('...')
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+        if self.at_top_level_class_level():
+            # Record the method name
+            self._method_names.add(node.name.value)
+        return super().visit_FunctionDef(node)
+
+    def leave_FunctionDef(
+        self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+    ) -> cst.CSTNode:
+        """Remove function bodies"""
+        doctyp = self._docs.get(self.context() + '->')
+        annotation = original_node.returns
+        super().leave_FunctionDef(original_node, updated_node)
+        if self.in_function(): 
+            # Nested function; return ...
+            return cst.parse_statement('...')
+
+        if not annotation and doctyp:
+            if all([t in self._map or is_trivial(t, self._modname, self._imports) for t in doctyp.values()]):
+                v = [self._map[t] if t in self._map else normalize_type(t) for t in doctyp.values()]
+                if len(v) > 1:
+                    rtntyp = 'tuple[' + ', '.join(v) + ']'
+                else:
+                    rtntyp = v[0]
+                print(f'Annotating {self.context()}-> as {rtntyp}')   
+                return updated_node.with_changes(body=cst.parse_statement("..."), 
+                    returns=cst.Annotation(annotation=cst.parse_expression(rtntyp)))    
+            else:
+                print(f'Could not annotate {self.context()}-> from {doctyp}') 
+
+        # Remove the body only
+        return updated_node.with_changes(body=cst.parse_statement("..."))
+
+    def leave_SimpleStatementLine(
+        self,
+        original_node: cst.SimpleStatementLine,
+        updated_node: cst.SimpleStatementLine,
+    ) -> cst.CSTNode:
+        newbody = [
+            node
+            for node in updated_node.body
+            if any(
+                isinstance(node, cls)
+                for cls in [cst.Assign, cst.AnnAssign, cst.Import, cst.ImportFrom]
+            )
+        ]
+        return updated_node.with_changes(body=newbody)
+
+    def leave_Module(
+        self, original_node: cst.Module, updated_node: cst.Module
+    ) -> cst.Module:
+        """Remove everything from the body that is not an import,
+        class def, function def, or assignment.
+        """
+        newbody = [
+            node
+            for node in updated_node.body
+            if any(
+                isinstance(node, cls)
+                for cls in [cst.ClassDef, cst.FunctionDef, cst.SimpleStatementLine]
+            )
+        ]
+        return updated_node.with_changes(body=newbody)
+
+
+def patch_source(m: str, fname: str, source: str, map: dict, imports: dict, docs: dict, strip_defaults: bool = False) -> str|None:
+    try:
+        cstree = cst.parse_module(source)
+    except Exception as e:
+        return None
+
+    patcher = StubbingTransformer(m, fname, map, imports, docs, strip_defaults=strip_defaults)
+    modified = cstree.visit(patcher)
+
+    imports = ''
+    for module in set(patcher._need_imports.values()):
+        typs = []
+        for k, v in patcher._need_imports.items():
+            if v == module:
+                typs.append(k)
+        # TODO: make this a relative import if appropriate
+        imports += f'from {module} import {",".join(typs)}\n'
+    if imports:
+        return imports + '\n\n' + modified.code
+
+    return modified.code
+
+
+def _stub(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **kwargs):
+    return patch_source(m, fname, source, state[0], state[1], state[2], **kwargs)
+
+def _targeter(fname: str) -> str:
+    return "typings/" + fname[fname.find("/site-packages/") + 15 :] + "i"
+
+def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False):
+    map, imports, docs = analyze_module(m, include_submodules=include_submodules)
+    process_module(m, (map, imports, docs), _stub, _targeter, include_submodules=include_submodules,
+        strip_defaults=strip_defaults)
+

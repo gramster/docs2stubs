@@ -139,9 +139,9 @@ class DocstringParserBase(abc.ABC):
                        ) -> tuple[str, str]: ...
 
     def _consume_fields(self, parse_type: bool = True, prefer_type: bool = False,
-                        multiple: bool = False) -> list[tuple[str, str]]:
+                        multiple: bool = False) -> dict[str, str]:
         self._consume_empty()
-        fields = []
+        fields = {}
         while not self._is_section_break():
             name, typ = self._consume_field(prefer_type)
 
@@ -159,9 +159,9 @@ class DocstringParserBase(abc.ABC):
 
             if multiple and name:
                 for n in name.split(","):
-                    fields.append((n.strip(), typ))
+                    fields[n.strip()] = typ
             elif name or typ:
-                fields.append((name, typ))
+                fields[name] = typ
         return fields
 
     @abc.abstractmethod
@@ -182,7 +182,7 @@ class DocstringParserBase(abc.ABC):
         self._section_indent = 0
         self._lines = Deque(map(str.rstrip, docstring.splitlines()))
 
-    def parse(self, docstring: str) -> tuple[list[tuple[str, str, str]]|None, ...]:
+    def parse(self, docstring: str) -> tuple[dict[str, str]|None, ...]:
         self._prep_parser(docstring)
         self._consume_to_next_section()
         while self._lines:
@@ -224,8 +224,6 @@ class NumpyDocstringParser(DocstringParserBase):
             'warns': self._skip_section,
             'yields': self._skip_section,
         }
-
-
 
     def _is_section_header(self) -> bool:
         section, underline = self._lines.get(0), self._lines.get(1)

@@ -37,7 +37,7 @@ value if possible.
 __version__ = '0.1'
 
 from docopt import docopt, DocoptExit
-from .docs2stubs import stub_module
+from .stubber import stub_module
 from .analyzer import analyze_module
 
 
