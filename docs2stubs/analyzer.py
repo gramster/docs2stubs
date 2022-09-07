@@ -18,13 +18,13 @@ class AnalyzingTransformer(BaseTransformer):
             modname: str,
             fname: str, 
             counter: Counter,
-            imports: dict,
+            classes: dict,
             docs: dict):
         super().__init__(modname, fname)
         self._mod = mod
         self._parser = NumpyDocstringParser()
         self._counter = counter
-        self._imports = imports
+        self._classes = classes
         self._docs = {}
         docs[modname] = self._docs
         self._classname = None
@@ -59,7 +59,7 @@ class AnalyzingTransformer(BaseTransformer):
         rtn = super().visit_ClassDef(node)
         if self.at_top_level_class_level():
             self._classname = node.name.value
-            self._imports[self._classname] = self._fname
+            self._classes[self._classname] = self._modname
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
             self._docs[self.context()] = self._analyze_obj(obj, self._classname)
         return rtn
@@ -127,7 +127,7 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **k
     try:
         patcher = AnalyzingTransformer(mod, m, fname, 
             counter=state[0], 
-            imports = state[1],
+            classes = state[1],
             docs = state[2])
         cstree.visit(patcher)
     except:  # Exception as e:
@@ -143,13 +143,12 @@ def _post_process(m: str, state: tuple):
     map = load_map(m)
     result = ''
     freq: Counter = state[0]
-    imports: dict = state[1]
+    classes: dict = state[1]
     docs: dict = state[2]
-    classes: set = set(imports.keys())
     for typ, cnt in freq.most_common():
         if typ not in map and not is_trivial(typ, m, classes):
             result += f'{typ}#{normalize_type(typ)}\n'
-    return result, (map, imports, docs)
+    return result, (map, classes, docs)
 
 
 def _targeter(m: str) -> str:

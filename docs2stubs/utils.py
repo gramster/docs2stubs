@@ -101,7 +101,12 @@ def process_module(m: str,
 _single_restricted = re.compile(r'^{([ ]*[\"\'][A-Za-z0-9\-_]+[\"\'][,]?)+}$') 
 
 
-def is_trivial(s, m: str, classes: set = None):
+def is_trivial(s, m: str, classes: set|dict = None):
+    """
+    s - the type docstring to check
+    m - the module name
+    classes - a set of class names or dictionary keyed on classnames 
+    """
 
     if s.find(' or ') > 0:
         if all([is_trivial(c.strip(), m, classes) for c in s.split(' or ')]):

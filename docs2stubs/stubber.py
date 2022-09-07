@@ -3,6 +3,7 @@ from asyncio.proactor_events import _ProactorBaseWritePipeTransport
 import glob
 import inspect
 import os
+import re
 from types import ModuleType
 import libcst as cst
 
@@ -13,17 +14,18 @@ from .utils import is_trivial, process_module
 
 
 class StubbingTransformer(BaseTransformer):
-    def __init__(self, modname: str, fname: str, map: dict, imports: dict, docs: dict, 
+    def __init__(self, modname: str, fname: str, map: dict, classes: dict, docs: dict, 
         strip_defaults=False, infer_types_from_defaults=False):
         super().__init__(modname, fname)
         self._map = map
-        self._imports = imports
+        self._classes = classes
         self._docs = docs[modname]
         self._strip_defaults = strip_defaults
         self._infer_types = infer_types_from_defaults
         self._method_names = set()
-        self._class_names = set()
+        self._local_class_names = set()
         self._need_imports = {}
+        self._ident_re = re.compile(r'([A-Za-z_][A-Za-z0-9_]*)')
 
     @staticmethod
     def get_value_type(node: cst.CSTNode) -> str|None:
@@ -59,7 +61,7 @@ class StubbingTransformer(BaseTransformer):
         if isinstance(node.value, cst.Name) and not self.in_function():
             check = set()
             if self.at_top_level():
-                check = self._class_names
+                check = self._local_class_names
             elif self.at_top_level_class_level(): # Class level
                 check = self._method_names
             if node.value.value in check:
@@ -115,14 +117,21 @@ class StubbingTransformer(BaseTransformer):
             typ = None
             if doctyp in self._map:
                 typ = self._map[doctyp]
-            elif is_trivial(doctyp, self._modname, self._imports):
+            elif is_trivial(doctyp, self._modname, self._classes):
                 typ = normalize_type(doctyp)
             if typ:
                 if typ.find('list') >= 0:
                     # Make this more robust
                     typ = typ.replace('list', 'Sequence')
                     self._need_imports['Sequence'] = 'typing'
-                # TODO: figure out other needed imports  
+                # Figure out other needed imports. A crude but maybe good
+                # enough approach is to search for identifiers with a regexp, and
+                # then add those if they are in the imports dict.
+                for m in self._ident_re.findall(typ):
+                    if m in ['Any', 'Callable', 'Iterable', 'Literal', 'Sequence']:
+                        self._need_imports[m] = 'typing'
+                    elif m in self._classes and m not in self._local_class_names:
+                        self._need_imports[m] = self._classes[m]
 
                 # If the default value is None, make sure we include it in the type
                 is_optional = 'None' in typ.split('|')
@@ -143,7 +152,7 @@ class StubbingTransformer(BaseTransformer):
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
         # Record the names of top-level classes
         if not self.in_class():
-            self._class_names.add(node.name.value)
+            self._local_class_names.add(node.name.value)
         return super().visit_ClassDef(node)
 
     def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.CSTNode:
@@ -174,7 +183,7 @@ class StubbingTransformer(BaseTransformer):
             return cst.parse_statement('...')
 
         if not annotation and doctyp:
-            if all([t in self._map or is_trivial(t, self._modname, self._imports) for t in doctyp.values()]):
+            if all([t in self._map or is_trivial(t, self._modname, self._classes) for t in doctyp.values()]):
                 v = [self._map[t] if t in self._map else normalize_type(t) for t in doctyp.values()]
                 if len(v) > 1:
                     rtntyp = 'tuple[' + ', '.join(v) + ']'
@@ -236,7 +245,7 @@ def patch_source(m: str, fname: str, source: str, map: dict, imports: dict, docs
         for k, v in patcher._need_imports.items():
             if v == module:
                 typs.append(k)
-        # TODO: make this a relative import if appropriate
+        # TODO: make these relative imports if appropriate
         imports += f'from {module} import {",".join(typs)}\n'
     if imports:
         return imports + '\n\n' + modified.code

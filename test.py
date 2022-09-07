@@ -115,4 +115,4 @@ if __name__ == '__main__':
     #test_get_package_files()
     test_stubber()
 
-
+# TODO: use the stubs created before to extract a map file
