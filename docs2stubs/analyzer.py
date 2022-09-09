@@ -161,11 +161,13 @@ def _post_process(m: str, state: tuple, include_counts: bool = False):
     total_trivial = 0
     total_mapped = 0
     total_missed = 0
+    trivials = {}
     for result, freq, map in zip(results, freqs, maps):
         for typ, cnt in freq.most_common():
             if typ in map:
                 total_mapped += cnt
             elif is_trivial(typ, m, locations):
+                trivials[typ] = normalize_type(typ)
                 total_trivial += cnt
             else:
                 total_missed += cnt
@@ -174,6 +176,10 @@ def _post_process(m: str, state: tuple, include_counts: bool = False):
                 else:
                     result.append(f'{typ}#{normalize_type(typ)}\n')
     print(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
+    print('\nTRIVIALS\n')
+    for k, v in trivials.items():
+        print(f'{k}#{v}')
+
     return Sections(params=''.join(results[0]), 
                     returns=''.join(results[1]),
                     attrs=''.join(results[2])), \
