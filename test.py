@@ -98,7 +98,7 @@ def test_get_package_files(m = 'matplotlib'):
     while modules:
         m = modules.pop()
         mod, file, submodules = get_module_and_children(m)
-        if not mod:
+        if not mod or not file:
             continue
         modules.extend(submodules)
         print(f'\n{m}\n{"="*len(m)}')
@@ -110,9 +110,9 @@ def test_get_package_files(m = 'matplotlib'):
 
 
 if __name__ == '__main__':
-    #test_analyzer('matplotlib')
+    test_analyzer('matplotlib')
     #test_normalizer()
     #test_get_package_files()
-    test_stubber()
+    #test_stubber('sklearn')
 
 # TODO: use the stubs created before to extract a map file

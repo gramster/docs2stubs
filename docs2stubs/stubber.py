@@ -1,30 +1,31 @@
 from __future__ import annotations
 from asyncio.proactor_events import _ProactorBaseWritePipeTransport
-import glob
-import inspect
-import os
 import re
 from types import ModuleType
 import libcst as cst
 
-from docs2stubs.analyzer import analyze_module
-from docs2stubs.normalize import normalize_type
+from .analyzer import analyze_module
+from .normalize import is_trivial, normalize_type
 from .basetransformer import BaseTransformer
-from .utils import is_trivial, process_module
+from .utils import Sections, process_module
 
 
 class StubbingTransformer(BaseTransformer):
-    def __init__(self, modname: str, fname: str, map: dict, classes: dict, docs: dict, 
-        strip_defaults=False, infer_types_from_defaults=False):
+    def __init__(self, modname: str, fname: str, 
+        maps: Sections, 
+        classes: dict, 
+        typs: dict[str, Sections], 
+        strip_defaults=False, 
+        infer_types_from_defaults=False):
         super().__init__(modname, fname)
-        self._map = map
+        self._maps = maps
         self._classes = classes
-        self._docs = docs[modname]
-        self._strip_defaults = strip_defaults
-        self._infer_types = infer_types_from_defaults
+        self._typs: Sections = typs[modname]
+        self._strip_defaults: bool = strip_defaults
+        self._infer_types: bool = infer_types_from_defaults
         self._method_names = set()
         self._local_class_names = set()
-        self._need_imports = {}
+        self._need_imports: dict[str, str] = {}
         self._ident_re = re.compile(r'([A-Za-z_][A-Za-z0-9_]*)')
 
     @staticmethod
@@ -54,7 +55,7 @@ class StubbingTransformer(BaseTransformer):
                     break
         return typ
 
-    def get_assign_value(self, node: cst.Assign) -> cst.CSTNode:
+    def get_assign_value(self, node: cst.Assign) -> cst.BaseExpression:
         # See if this is an alias, in which case we want to
         # preserve the value; else we set the new value to ...
         new_value = None
@@ -70,7 +71,7 @@ class StubbingTransformer(BaseTransformer):
             new_value = cst.parse_expression("...")  
         return new_value
 
-    def get_assign_props(self, node: cst.Assign) -> tuple(str|None, cst.CSTNode):
+    def get_assign_props(self, node: cst.Assign) -> tuple[str|None, cst.BaseExpression]:
          typ = StubbingTransformer.get_value_type(node.value)
          value=self.get_assign_value(node)
          return typ, value
@@ -100,7 +101,7 @@ class StubbingTransformer(BaseTransformer):
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
     ) -> cst.CSTNode:
-        doctyp = self._docs.get(self.context())
+        doctyp = self._typs.params.get(self.context())
         super().leave_Param(original_node, updated_node)
         annotation = original_node.annotation
         default = original_node.default
@@ -115,8 +116,8 @@ class StubbingTransformer(BaseTransformer):
 
         if doctyp and not annotation:
             typ = None
-            if doctyp in self._map:
-                typ = self._map[doctyp]
+            if doctyp in self._maps.params:
+                typ = self._maps.params[doctyp]
             elif is_trivial(doctyp, self._modname, self._classes):
                 typ = normalize_type(doctyp)
             if typ:
@@ -174,8 +175,8 @@ class StubbingTransformer(BaseTransformer):
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
-        """Remove function bodies"""
-        doctyp = self._docs.get(self.context() + '->')
+        """Remove function bodies and add return type annotations """
+        doctyp = self._typs.returns.get(self.context())
         annotation = original_node.returns
         super().leave_FunctionDef(original_node, updated_node)
         if self.in_function(): 
@@ -183,8 +184,9 @@ class StubbingTransformer(BaseTransformer):
             return cst.parse_statement('...')
 
         if not annotation and doctyp:
-            if all([t in self._map or is_trivial(t, self._modname, self._classes) for t in doctyp.values()]):
-                v = [self._map[t] if t in self._map else normalize_type(t) for t in doctyp.values()]
+            map = self._maps.returns
+            if all([t in map or is_trivial(t, self._modname, self._classes) for t in doctyp.values()]):
+                v = [map[t] if t in map else normalize_type(t) for t in doctyp.values()]
                 if len(v) > 1:
                     rtntyp = 'tuple[' + ', '.join(v) + ']'
                 else:
@@ -230,37 +232,40 @@ class StubbingTransformer(BaseTransformer):
         return updated_node.with_changes(body=newbody)
 
 
-def patch_source(m: str, fname: str, source: str, map: dict, imports: dict, docs: dict, strip_defaults: bool = False) -> str|None:
+def patch_source(m: str, fname: str, source: str, maps: Sections, imports: dict, typs: dict, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
     except Exception as e:
         return None
 
-    patcher = StubbingTransformer(m, fname, map, imports, docs, strip_defaults=strip_defaults)
+    patcher = StubbingTransformer(m, fname, maps, imports, typs, strip_defaults=strip_defaults)
     modified = cstree.visit(patcher)
 
-    imports = ''
+    import_statements = ''
     for module in set(patcher._need_imports.values()):
-        typs = []
+        ityps = []
         for k, v in patcher._need_imports.items():
             if v == module:
-                typs.append(k)
+                ityps.append(k)
         # TODO: make these relative imports if appropriate
-        imports += f'from {module} import {",".join(typs)}\n'
+        import_statements += f'from {module} import {",".join(ityps)}\n'
     if imports:
-        return imports + '\n\n' + modified.code
+        return import_statements + '\n\n' + modified.code
 
     return modified.code
 
 
-def _stub(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **kwargs):
+def _stub(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **kwargs) -> str|None:
     return patch_source(m, fname, source, state[0], state[1], state[2], **kwargs)
+
 
 def _targeter(fname: str) -> str:
     return "typings/" + fname[fname.find("/site-packages/") + 15 :] + "i"
 
+
 def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False):
-    map, imports, docs = analyze_module(m, include_submodules=include_submodules)
-    process_module(m, (map, imports, docs), _stub, _targeter, include_submodules=include_submodules,
-        strip_defaults=strip_defaults)
+    rtn = analyze_module(m, include_submodules=include_submodules)
+    if rtn is not None:
+        process_module(m, rtn, _stub, _targeter, include_submodules=include_submodules,
+            strip_defaults=strip_defaults)
 

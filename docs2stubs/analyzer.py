@@ -1,15 +1,12 @@
-from ast import Num
 from collections import Counter
 import inspect
-import json
-import os
 from types import ModuleType
-from xml.etree.ElementInclude import include
+from typing import Any
 import libcst as cst
 from .basetransformer import BaseTransformer
-from .utils import process_module, is_trivial, load_map
+from .utils import Sections, process_module, load_maps
 from .parser import NumpyDocstringParser
-from .normalize import normalize_type
+from .normalize import is_trivial, normalize_type
 
 class AnalyzingTransformer(BaseTransformer):
 
@@ -17,30 +14,48 @@ class AnalyzingTransformer(BaseTransformer):
             mod: ModuleType, 
             modname: str,
             fname: str, 
-            counter: Counter,
+            counters: Sections,
             classes: dict,
-            docs: dict):
+            typs: dict[str, Sections])-> None:
+        """
+        Params:
+          mod - the module object. Used to get docstrings.
+          modname - the module name.
+          fname - the file name.
+          counters - used to collect types and frequencies
+          classes - used to collect names of classes defined in the module(s)
+          typs,... - used to collect the types from docstrings
+
+        Several of these are passed in so that they can be shared by all modules
+        in a package.
+        """
         super().__init__(modname, fname)
         self._mod = mod
         self._parser = NumpyDocstringParser()
-        self._counter = counter
+        self._counters = counters
         self._classes = classes
-        self._docs = {}
-        docs[modname] = self._docs
+        self._docs: dict[str, Sections|None] = {}
+        self._attrtyps: dict[str, str] = {}
+        self._paramtyps: dict[str, str] = {}
+        self._returntyps: dict[str, str] = {}
+        typs[modname] = Sections(
+            params=self._paramtyps,
+            returns=self._returntyps,
+            attrs=self._attrtyps)
         self._classname = None
         
 
-    def _analyze_obj(self, obj, context: str) -> tuple[dict[str, str]|None, ...]:
+    def _analyze_obj(self, obj, context: str) -> Sections:
         doc = None
+        rtn = Sections(params=None, returns=None, attrs=None)
         if obj:
             doc = inspect.getdoc(obj)
-        if not doc:
-            return
-        rtn = self._parser.parse(doc)
-        for section in rtn:
+            if doc:
+                rtn = self._parser.parse(doc)
+        for section, counter in zip(rtn, self._counters):
             if section:
                 for typ in section.values():
-                    self._counter[typ] += 1
+                    counter[typ] += 1
         return rtn
 
     @staticmethod
@@ -73,7 +88,7 @@ class AnalyzingTransformer(BaseTransformer):
         if self.at_top_level_function_level():
             #context = name
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, name)
-        elif self.at_top_level_class_method_level():
+        elif self._classname and self.at_top_level_class_method_level():
             #context = f'{self._classname}.{name}'
             parent = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, self._classname)
             if parent:
@@ -86,10 +101,10 @@ class AnalyzingTransformer(BaseTransformer):
 
         if name == '__init__':
             # If we actually had a docstring with params section, we're done
-            if docs and docs[0]:
+            if docs and docs.params:
                 return rtn
             # Else use the class docstring for __init__
-            self._docs[context] = self._docs.get(outer_context)
+            self._docs[context] = self._docs.get(outer_context) 
 
         return rtn
 
@@ -98,22 +113,22 @@ class AnalyzingTransformer(BaseTransformer):
     ) -> cst.CSTNode:
         # Add a special entry for the return type
         context = self.context()
-        doc = self._docs[context]
+        doc = self._docs.get(context)
         if doc:
-            self._docs[context + '->'] = doc[1]
+            self._returntyps[context] = doc.returns
         return super().leave_FunctionDef(original_node, updated_node)
 
     def visit_Param(self, node: cst.Param) -> bool:
         parent_context = self.context()
         parent_doc = self._docs.get(parent_context)
         rtn = super().visit_Param(node)
-        if parent_doc and not isinstance(parent_doc, str):
-             # The string check makes sure it's not a parameter of a lambda or function that was 
+        if parent_doc: # and isinstance(parent_doc, DocTypes):
+             # The isinstance check makes sure it's not a parameter of a lambda or function that was 
              # assigned as a default value of some other parameter
-            param_docs = parent_doc[0]
+            param_docs = parent_doc.params
             if param_docs:
                 try:
-                    self._docs[self.context()] = param_docs.get(node.name.value)
+                    self._paramtyps[self.context()] = param_docs.get(node.name.value)
                 except Exception as e:
                     print(e)
         return rtn
@@ -126,37 +141,56 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **k
         return None
     try:
         patcher = AnalyzingTransformer(mod, m, fname, 
-            counter=state[0], 
+            counters=state[0], 
             classes = state[1],
-            docs = state[2])
+            typs = state[2],
+            )
         cstree.visit(patcher)
-    except:  # Exception as e:
-        # Note: I know that e is undefined below; this actually lets me
-        # successfully see the stack trace from the original excception
-        # as traceback.print_exc() was not working for me.
-        print(f"Failed to analyze file: {e}")
+    except Exception as e:
+        print(f"Failed to analyze file: {fname}: {e}")
         return None
     return state
 
 
-def _post_process(m: str, state: tuple):
-    map = load_map(m)
-    result = ''
-    freq: Counter = state[0]
+def _post_process(m: str, state: tuple, include_counts: bool = False):
+    maps = load_maps(m)
+    results = [[], [], []]
+    freqs: Sections = state[0]
     classes: dict = state[1]
-    docs: dict = state[2]
-    for typ, cnt in freq.most_common():
-        if typ not in map and not is_trivial(typ, m, classes):
-            result += f'{typ}#{normalize_type(typ)}\n'
-    return result, (map, classes, docs)
+    typs: dict = state[2]
+    total_trivial = 0
+    total_mapped = 0
+    total_missed = 0
+    for result, freq, map in zip(results, freqs, maps):
+        for typ, cnt in freq.most_common():
+            if typ in map:
+                total_mapped += cnt
+            elif is_trivial(typ, m, classes):
+                total_trivial += cnt
+            else:
+                total_missed += cnt
+                if include_counts:
+                    result.append(f'{cnt}#{typ}#{normalize_type(typ)}\n')
+                else:
+                    result.append(f'{typ}#{normalize_type(typ)}\n')
+    print(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
+    return Sections(params=''.join(results[0]), 
+                    returns=''.join(results[1]),
+                    attrs=''.join(results[2])), \
+           (maps, classes, typs)
 
 
-def _targeter(m: str) -> str:
+def _targeter(m: str, suffix: str) -> str:
     """ Turn module name into map file name """
-    return f"analysis/{m}.map.missing"
+    return f"analysis/{m}.{suffix}.map.missing"
 
 
-def analyze_module(m: str, include_submodules: bool = True):
-    return process_module(m, (Counter(), {}, {}), _analyze, _targeter, post_processor=_post_process,
-        include_submodules=include_submodules)
+def analyze_module(m: str, include_submodules: bool = True, include_counts = False) -> None|tuple:
+    return process_module(m, (
+        Sections(params=Counter(), returns=Counter(), attrs=Counter()),
+        {}, {}), 
+        _analyze, _targeter, post_processor=_post_process,
+        include_submodules=include_submodules,
+        include_counts=include_counts)
+
 

@@ -1,8 +1,9 @@
 import abc
-from ast import Num
 import collections
 import re
 from typing import Any, Callable
+from .utils import Sections
+
 
 class Deque(collections.deque):
     """
@@ -182,7 +183,7 @@ class DocstringParserBase(abc.ABC):
         self._section_indent = 0
         self._lines = Deque(map(str.rstrip, docstring.splitlines()))
 
-    def parse(self, docstring: str) -> tuple[dict[str, str]|None, ...]:
+    def parse(self, docstring: str) -> Sections:
         self._prep_parser(docstring)
         self._consume_to_next_section()
         while self._lines:
@@ -199,7 +200,9 @@ class DocstringParserBase(abc.ABC):
             self._is_in_section = False
             self._section_indent = 0
 
-        return self._parameters, self._returns, self._attributes
+        return Sections(params=self._parameters, 
+                        returns=self._returns,
+                        attrs=self._attributes)
 
 
 class NumpyDocstringParser(DocstringParserBase):
