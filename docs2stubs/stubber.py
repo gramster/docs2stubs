@@ -7,19 +7,19 @@ import libcst as cst
 from .analyzer import analyze_module
 from .normalize import is_trivial, normalize_type
 from .basetransformer import BaseTransformer
-from .utils import Sections, process_module
+from .utils import Sections, load_map, load_type_maps, process_module
 
 
 class StubbingTransformer(BaseTransformer):
     def __init__(self, modname: str, fname: str, 
         maps: Sections, 
-        classes: dict, 
+        locations: dict[str, str], 
         typs: dict[str, Sections], 
         strip_defaults=False, 
         infer_types_from_defaults=False):
         super().__init__(modname, fname)
         self._maps = maps
-        self._classes = classes
+        self._locations = locations
         self._typs: Sections = typs[modname]
         self._strip_defaults: bool = strip_defaults
         self._infer_types: bool = infer_types_from_defaults
@@ -118,7 +118,7 @@ class StubbingTransformer(BaseTransformer):
             typ = None
             if doctyp in self._maps.params:
                 typ = self._maps.params[doctyp]
-            elif is_trivial(doctyp, self._modname, self._classes):
+            elif is_trivial(doctyp, self._modname, self._locations):
                 typ = normalize_type(doctyp)
             if typ:
                 if typ.find('list') >= 0:
@@ -131,8 +131,8 @@ class StubbingTransformer(BaseTransformer):
                 for m in self._ident_re.findall(typ):
                     if m in ['Any', 'Callable', 'Iterable', 'Literal', 'Sequence']:
                         self._need_imports[m] = 'typing'
-                    elif m in self._classes and m not in self._local_class_names:
-                        self._need_imports[m] = self._classes[m]
+                    elif m in self._locations and m not in self._local_class_names:
+                        self._need_imports[m] = self._locations[m]
 
                 # If the default value is None, make sure we include it in the type
                 is_optional = 'None' in typ.split('|')
@@ -185,7 +185,7 @@ class StubbingTransformer(BaseTransformer):
 
         if not annotation and doctyp:
             map = self._maps.returns
-            if all([t in map or is_trivial(t, self._modname, self._classes) for t in doctyp.values()]):
+            if all([t in map or is_trivial(t, self._modname, self._locations) for t in doctyp.values()]):
                 v = [map[t] if t in map else normalize_type(t) for t in doctyp.values()]
                 if len(v) > 1:
                     rtntyp = 'tuple[' + ', '.join(v) + ']'
@@ -263,9 +263,15 @@ def _targeter(fname: str) -> str:
     return "typings/" + fname[fname.find("/site-packages/") + 15 :] + "i"
 
 
-def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False):
+def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False):
+    imports = load_map(m, 'imports')
     rtn = analyze_module(m, include_submodules=include_submodules)
     if rtn is not None:
+        if imports:
+            # Add any extra imports paths found in the imports file
+            for k, v in imports.items():
+                if k not in rtn[1]:
+                    rtn[1][k] = v
         process_module(m, rtn, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
 

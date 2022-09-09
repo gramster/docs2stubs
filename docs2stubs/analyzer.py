@@ -4,7 +4,7 @@ from types import ModuleType
 from typing import Any
 import libcst as cst
 from .basetransformer import BaseTransformer
-from .utils import Sections, process_module, load_maps
+from .utils import Sections, process_module, load_type_maps, save_result
 from .parser import NumpyDocstringParser
 from .normalize import is_trivial, normalize_type
 
@@ -15,7 +15,7 @@ class AnalyzingTransformer(BaseTransformer):
             modname: str,
             fname: str, 
             counters: Sections,
-            classes: dict,
+            locations: dict,
             typs: dict[str, Sections])-> None:
         """
         Params:
@@ -23,7 +23,7 @@ class AnalyzingTransformer(BaseTransformer):
           modname - the module name.
           fname - the file name.
           counters - used to collect types and frequencies
-          classes - used to collect names of classes defined in the module(s)
+          locations - used to collect names of classes defined in the module(s)
           typs,... - used to collect the types from docstrings
 
         Several of these are passed in so that they can be shared by all modules
@@ -33,7 +33,7 @@ class AnalyzingTransformer(BaseTransformer):
         self._mod = mod
         self._parser = NumpyDocstringParser()
         self._counters = counters
-        self._classes = classes
+        self._locations = locations
         self._docs: dict[str, Sections|None] = {}
         self._attrtyps: dict[str, str] = {}
         self._paramtyps: dict[str, str] = {}
@@ -74,7 +74,7 @@ class AnalyzingTransformer(BaseTransformer):
         rtn = super().visit_ClassDef(node)
         if self.at_top_level_class_level():
             self._classname = node.name.value
-            self._classes[self._classname] = self._modname
+            self._locations[self._classname] = self._modname
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
             self._docs[self.context()] = self._analyze_obj(obj, self._classname)
         return rtn
@@ -142,7 +142,7 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **k
     try:
         patcher = AnalyzingTransformer(mod, m, fname, 
             counters=state[0], 
-            classes = state[1],
+            locations = state[1],
             typs = state[2],
             )
         cstree.visit(patcher)
@@ -153,10 +153,10 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **k
 
 
 def _post_process(m: str, state: tuple, include_counts: bool = False):
-    maps = load_maps(m)
+    maps = load_type_maps(m)
     results = [[], [], []]
     freqs: Sections = state[0]
-    classes: dict = state[1]
+    locations: dict = state[1]
     typs: dict = state[2]
     total_trivial = 0
     total_mapped = 0
@@ -165,7 +165,7 @@ def _post_process(m: str, state: tuple, include_counts: bool = False):
         for typ, cnt in freq.most_common():
             if typ in map:
                 total_mapped += cnt
-            elif is_trivial(typ, m, classes):
+            elif is_trivial(typ, m, locations):
                 total_trivial += cnt
             else:
                 total_missed += cnt
@@ -177,7 +177,7 @@ def _post_process(m: str, state: tuple, include_counts: bool = False):
     return Sections(params=''.join(results[0]), 
                     returns=''.join(results[1]),
                     attrs=''.join(results[2])), \
-           (maps, classes, typs)
+           (maps, locations, typs)
 
 
 def _targeter(m: str, suffix: str) -> str:
@@ -186,11 +186,17 @@ def _targeter(m: str, suffix: str) -> str:
 
 
 def analyze_module(m: str, include_submodules: bool = True, include_counts = False) -> None|tuple:
-    return process_module(m, (
+    rtn = process_module(m, (
         Sections(params=Counter(), returns=Counter(), attrs=Counter()),
         {}, {}), 
         _analyze, _targeter, post_processor=_post_process,
         include_submodules=include_submodules,
         include_counts=include_counts)
+    # Save imports and type contexts too
+    imports= rtn
+    if rtn:
+        save_result(f"analysis/{m}.imports.map",
+            ''.join([f"{k}#{v}\n" for k, v in rtn[1].items()]))
+    return rtn
 
 

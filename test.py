@@ -2,9 +2,9 @@ import os
 
 
 def test_normalizer():
-    from docs2stubs.normalize import normalize_type
+    from docs2stubs.normalize import test_normalizer
     x = 'list of `.Line2D`'
-    print(normalize_type(x))
+    test_normalizer('matplotlib', x)
 
 
 def test_parser(): 

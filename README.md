@@ -12,6 +12,7 @@ python -m pip install docs2stubs
 Usage:
   docs2stubs analyze (package|module) [--include-counts] <name>...
   docs2stubs stub (package|module) [--strip-defaults] <name>...
+  docs2stubs test [<name>] <typestring>
   docs2stubs -h | --help
   docs2stubs --version
 
@@ -27,7 +28,10 @@ and produces files 'analysis/<name>.<what>.map.missing' which lists the
 non-trivial discovered types in order of frequency, along with a normalized version
 (separated by ':'). The normalized version is a 'best-effort' corrected
 version of the type suitable for re-insertion in type stubs. The fields
-are separated by '#'.
+are separated by '#'. The analysis phase also outputs a `.imports.map`
+file enumerating the discovered classes and their modules; this file can
+be augmented with additional class names and owner modules which will 
+be used when stubbing to determine what imports might need to be added.
 
 Separate files are generated for each of parameters, return types, or
 attributes (the <what> in the filenames above).
@@ -58,8 +62,17 @@ determine types, and for assignments or default parameter values with
 no normalized type available, will infer the type from the assigned
 value if possible.
 
+Parameter default values are usually preserved in the stubs if they are
+scalars, but if you specifiy --strip-defaults they will all be removed
+and replaced with '...'.
 
-## Adding a `_typing.py` file
+The `test` command can be used to test how a type string will be 
+normalized by the program. A module or package name can optionally
+be specified in which case the `.imports.map` file for that module
+or package will be used (if it exists) to decide what are valid classnames.
+
+
+## Adding a Supplementary Typing Module
 
 There are some types that don't exist in Python typing that are used 
 in several Scientific Python libraries. To support these, you should 

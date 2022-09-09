@@ -1,4 +1,5 @@
 import re
+from .utils import load_map
 
 
 _ident = re.compile(r'^[A-Za-z_][A-Za-z_0-9\.]*$')
@@ -21,11 +22,17 @@ _single_restricted = re.compile(r'^{([ ]*[\"\'][A-Za-z0-9\-_]+[\"\'][,]?)+}$')
 _basic_types = {
   # Key: lower() version of type
   'float': 'float',
+  'floats': 'float',
   'int': 'int',
+  'ints': 'int',
   'complex': 'complex',
   'bool': 'bool',
+  'bools': 'bool',
   'boolean': 'bool',
+  'booleans': 'bool',
   'str': 'str',
+  'string': 'str',
+  'strings': 'str',
   'set': 'set',
   'frozenset': 'frozenset',
   'range': 'range',
@@ -33,8 +40,12 @@ _basic_types = {
   'memoryview': 'memoryview',
   'list': 'list',
   'dict': 'dict',
+  'dictionary': 'dict',
+  'dictionaries': 'dict',
   'tuple': 'tuple',
+  'tuples': 'tuple',
   'object': 'Any',
+  'objects': 'Any',
   'any': 'Any', 
   'callable': 'Callable',
   'iterable': 'Iterable',
@@ -192,3 +203,14 @@ def normalize_type(s: str) -> str:
         s = t
 
     return s + ornone
+
+
+def test_normalizer(m: str|None, typ: str):
+    classes = set()
+    if m:
+        classes = load_map(f'analysis/{m}.imports.map')
+    else:
+        m = ''
+    trivial = is_trivial(typ, m, classes)
+    normalized = normalize_type(typ)
+    print(f"{'(Trivial)' if trivial else '(Non-Trivial)'} {normalized}")

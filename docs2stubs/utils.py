@@ -27,7 +27,7 @@ def load_map(m: str, suffix: str|None = None) -> dict[str, str]:
     return map
 
 
-def load_maps(m: str) -> Sections:
+def load_type_maps(m: str) -> Sections:
     return Sections(params=load_map(m, 'params'),
                     returns=load_map(m, 'returns'),
                     attrs=load_map(m, 'attrs'))
