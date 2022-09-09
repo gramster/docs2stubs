@@ -1,8 +1,9 @@
-from __future__ import annotations
 from asyncio.proactor_events import _ProactorBaseWritePipeTransport
 import re
 from types import ModuleType
 import libcst as cst
+from black import format_str
+from black.mode import Mode
 
 from .analyzer import analyze_module
 from .normalize import is_trivial, normalize_type
@@ -249,10 +250,9 @@ def patch_source(m: str, fname: str, source: str, maps: Sections, imports: dict,
                 ityps.append(k)
         # TODO: make these relative imports if appropriate
         import_statements += f'from {module} import {",".join(ityps)}\n'
-    if imports:
-        return import_statements + '\n\n' + modified.code
 
-    return modified.code
+    code = import_statements + modified.code
+    return format_str(code, mode=Mode()) 
 
 
 def _stub(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **kwargs) -> str|None:

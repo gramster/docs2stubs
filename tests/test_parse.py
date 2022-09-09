@@ -1,14 +1,12 @@
-import os
+#import os
+import pytest
+from docs2stubs.parser import NumpyDocstringParser 
+#import tempfile
+from hamcrest import assert_that, equal_to
 
-
-def test_normalize():
-    from docs2stubs.normalize import check_normalizer
-    x = 'list of `.Line2D`'
-    print(check_normalizer(x, 'matplotlib'))
 
 
 def test_parser(): 
-    from docs2stubs.parser import NumpyDocstringParser
     x = """
             Create legend handles and labels for a PathCollection.
 
@@ -71,48 +69,19 @@ def test_parser():
             The string labels for elements of the legend.
     """
 
-        
     rtn = NumpyDocstringParser().parse(x)
-    for i, k in enumerate(['Params', 'Returns', 'Attrs']):
-        sec = rtn[i]
-        if sec:
-            print(k)
-            print('-' * len(k))
-            for (n, r, t) in sec:
-                print(f'  name {n}: raw {r}, normalized {t}')
+    assert_that(rtn.params, equal_to(
+         {'prop': '{"colors", "sizes"}', 
+          'num': 'int, None, "auto", array-like, or `~.ticker.Locator`', 
+          'fmt': 'str, `~matplotlib.ticker.Formatter`, or None', 
+          'func': 'function', 
+          '**kwargs': ''
+          }
+    ))
+    assert_that(rtn.returns, equal_to(
+        {'handles': 'list of `.Line2D`',
+         'labels': 'list of str'
+        }
+    ))
+    assert_that(rtn.attrs, equal_to(None))
 
-
-def test_analyzer(m: str = 'matplotlib'):
-    from docs2stubs import analyze_module
-    analyze_module(m)
-
-
-def test_stubber(m: str = 'matplotlib'):
-    from docs2stubs import stub_module
-    stub_module(m)
-
-
-def test_get_package_files(m = 'matplotlib'):
-    from docs2stubs.utils import get_module_and_children
-    modules = [m]
-    while modules:
-        m = modules.pop()
-        mod, file, submodules = get_module_and_children(m)
-        if not mod or not file:
-            continue
-        modules.extend(submodules)
-        print(f'\n{m}\n{"="*len(m)}')
-        f = file
-        i = f.find('/site-packages/')
-        if i > 0:
-            f = f[i+15:]
-        print(f)
-
-
-if __name__ == '__main__':
-    test_analyzer('matplotlib')
-    #test_normalize()
-    #test_get_package_files()
-    #test_stubber('sklearn')
-
-# TODO: use the stubs created before to extract a map file

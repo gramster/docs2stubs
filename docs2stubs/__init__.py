@@ -71,7 +71,7 @@ from docopt import docopt, DocoptExit
 from .stubber import stub_module
 from .analyzer import analyze_module
 from .utils import load_map
-from .normalize import is_trivial, normalize_type, test_normalizer
+from .normalize import is_trivial, normalize_type, check_normalizer
 
 
 def main():
@@ -88,6 +88,6 @@ def main():
         stub_module(n, include_submodules=include_submodules, \
             strip_defaults=strip_defaults, skip_analysis=skip_analysis)
       elif arguments['test']:
-        test_normalizer(name, arguments["<typestring>"])
+        print(check_normalizer(arguments["<typestring>"], name))
 
     

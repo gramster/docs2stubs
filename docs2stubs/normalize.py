@@ -21,6 +21,7 @@ _single_restricted = re.compile(r'^{([ ]*[\"\'][A-Za-z0-9\-_]+[\"\'][,]?)+}$')
 
 _basic_types = {
   # Key: lower() version of type
+  'none': 'None',
   'float': 'float',
   'floats': 'float',
   'int': 'int',
@@ -205,7 +206,7 @@ def normalize_type(s: str) -> str:
     return s + ornone
 
 
-def test_normalizer(m: str|None, typ: str):
+def check_normalizer(typ: str, m: str|None=None):
     classes = set()
     if m:
         classes = load_map(f'analysis/{m}.imports.map')
@@ -213,4 +214,4 @@ def test_normalizer(m: str|None, typ: str):
         m = ''
     trivial = is_trivial(typ, m, classes)
     normalized = normalize_type(typ)
-    print(f"{'(Trivial)' if trivial else '(Non-Trivial)'} {normalized}")
+    return f"{'(Trivial)' if trivial else '(Non-Trivial)'} {normalized}"
