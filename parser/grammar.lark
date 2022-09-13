@@ -1,0 +1,194 @@
+start: type_line [_NEWLINE type_line]*
+type_line: type_list [OR NONE] [_PERIOD]
+type_list: type ((_COMMA|OR|_COMMA OR) type)*
+type: basic_type [TYPE] 
+    | alt_type 
+    | array_type 
+    | restricted_type 
+    | tuple_type 
+    | class_type 
+    | dict_type 
+    | list_type 
+    | generator_type 
+    | union_type 
+    | optional_type 
+    | literal_type 
+    | callable_type 
+    | iterable_type
+    | filelike_type
+    | _LESSTHAN type _GRTRTHAN
+alt_type: _LBRACE array_kind (_COMMA array_kind)* _RBRACE [_COMMA] ([shape_qualifier] | [shape]) [type_qualifier]
+array_type: [dimension] (arraylike | ndarraylike | basic_type array_type) 
+          | shape array_kind [type_qualifier]
+          | array_kind [_COMMA] dimension
+          | dimension array_kind
+          | basic_type array_kind
+          | array_kind _LPAREN type _RPAREN
+dimension: _DIM ((OR | _SLASH) _DIM)* 
+        | (NUMBER|NAME) _X (NUMBER|NAME) 
+        | _LPAREN (NUMBER|NAME) _COMMA [NUMBER|NAME] [_COMMA [NUMBER|NAME]] _RPAREN
+        | ONED
+        | TWOD
+        | THREED
+ndarraylike: ndarray_kind [shape_qualifier [[_COMMA] type_qualifier]] 
+           | ndarray_kind [_COMMA] type_qualifier [[_COMMA] shape_qualifier] 
+           | ndarray_kind _LBRACKET basic_type _RBRACKET
+array_kind: ndarray_kind 
+          | arraylike_kind
+ndarray_kind: NDARRAY 
+            | MATRIX 
+            | ARRAY 
+            | ARRAYS 
+            | (NDARRAY|NUMPY) [basic_type] ARRAY 
+            | basic_type [_DASH] NDARRAY
+arraylike: arraylike_kind [ [_COMMA] shape_qualifier [ [_COMMA] type_qualifier]]
+arraylike_kind: ARRAYLIKE | ARRAY
+shape_qualifier: ([_COMMA] [OF] SHAPE [_EQUALS|OF] shape_specifier (OR shape_specifier)*) 
+               | SHAPE _COLON shape_specifier 
+               | [_COMMA] [WITH [SHAPE]] [OF] (SIZE|LENGTH) [_LPAREN] (QUALNAME|NUMBER) [_COMMA] [_RPAREN]
+               | [_COMMA] [WITH [SHAPE]] [OF] shape_specifier 
+               | [_COMMA] [WITH [SHAPE]] [OF] dimension
+               | _LPAREN LENGTH (QUALNAME|NUMBER) _RPAREN
+               | [_COMMA] SAME SHAPE AS QUALNAME
+shape_specifier: shape | NAME (_PERIOD NAME)*
+shape: ((_LPAREN|_LBRACKET) (QUALNAME|NUMBER) (_COMMA (QUALNAME|NUMBER))* _COMMA? (_RPAREN|_RBRACKET))
+type_qualifier: OF (ARRAYS | array_type | basic_type (OBJECT)?)
+              | [OF] DTYPE [_EQUALS] dtype
+              | _LBRACKET type _RBRACKET
+dtype: dtype_type 
+     | _LBRACE dtype_type (_COMMA dtype_type)* [_COMMA] _RBRACE
+dtype_type: basic_type [TYPE] | QUALNAME
+basic_type: ANY 
+            | [POSITIVE|NEGATIVE] INT 
+            | STR 
+            | [POSITIVE|NEGATIVE] FLOAT [IN range] 
+            | BOOL
+            | SCALAR [VALUE]
+            | COMPLEX
+restricted_type: [ONE OF] _LBRACE (literal_type|STR) (_COMMA (literal_type|STR))* _RBRACE
+tuple_type: TUPLE 
+          | TUPLE (OF|WITH) [NUMBER] type (OR type)*
+          | [TUPLE] _LPAREN type (_COMMA type)* _RPAREN
+          | [TUPLE] _LBRACKET type (_COMMA type)* _RBRACKET
+          | [TUPLE] _LBRACE type (_COMMA type)* _RBRACE
+dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|QUALNAME) [TO (basic_type | QUALNAME | ANY)] 
+         | DICT _LBRACKET type _COMMA type _RBRACKET
+class_type: [CLASSMARKER] [_A|_AN] class_specifier [INSTANCE|OBJECT]
+class_specifier: [INSTANCE|SUBCLASS] OF QUALNAME 
+               | QUALNAME [_COMMA|_LPAREN] OR [_A] SUBCLASS [OF QUALNAME][_RPAREN]
+               | QUALNAME [_COLON QUALNAME] [CLASS|SUBCLASS]
+               | QUALNAME _DASH LIKE 
+list_type: (LIST|SEQUENCE) _LBRACKET type _RBRACKET
+         | [_A] (LIST|SEQUENCE) [OF] type shape_qualifier
+         | type SEQUENCE
+         | [_A] (LIST|SEQUENCE) OF type (OR type)*
+generator_type: GENERATOR [OF type]
+iterable_type: ITERABLE [OF type]
+range: _LBRACKET NUMBER _COMMA NUMBER _RBRACKET
+union_type: UNION _LBRACKET type (_COMMA type)* _RBRACKET | type (AND type)+
+optional_type: OPTIONAL [_LBRACKET type _RBRACKET]
+literal_type: STRING | NUMBER | NONE | TRUE | FALSE
+callable_type: CALLABLE [_LBRACKET _LBRACKET type_list _RBRACKET _COMMA type _RBRACKET]
+filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE]
+
+
+AND:       "and"i
+ANY:       "any"i
+ARRAYLIKE: "arraylike"i | "array-like"i | "array like"i | "array_like"i | "list"i
+ARRAY:     "array"i
+ARRAYS:    "arrays"i
+AS:        "as"i
+BOOL:      "bool"i | "bools"i | "boolean"i | "booleans"i
+CALLABLE:  "callable"i | "function"i
+CLASS:     "class"i
+CLASSMARKER:":class:"
+COMPLEX:   "complex"i
+DICT:      "dict"i | "dictionary"i
+DTYPE:     "dtype"i
+FALSE:     "false"i
+FILELIKE:  "file-like"i | "filelike"i
+FLOAT:     "float" | "floats" | "float32"i | "float64"i
+FROM:      "from"i
+GENERATOR: "generator"i
+IN:        "in"i
+INSTANCE:  "instance"i
+INT:       "int"| "ints"|  "integer" | "integers" | "int32" | "int64"
+ITERABLE:  "iterable"i | "iterator"i
+LENGTH:    "length"i
+LIKE:      "like"i
+LIST:      "list"i
+MAPPING:   "mapping"i
+MATRIX:    "matrix"i | "sparse matrix"i | "sparse-matrix"i
+NDARRAY:   "ndarray"i | "nd-array"i | "numpy array"i | "np.array"i
+NEGATIVE:  "negative"i
+NONE:      "none"i
+NUMPY:     "numpy"i
+OBJECT:    "object"i | "objects"i
+OF:        "of"i
+ONE:       "one"i
+ONED:      "1-d"i | "1d"i
+OPTIONAL:  "optional"i
+OR:        "or"i
+POSITIVE:  "positive"i | "non-negative"i
+READABLE:  "readable"i | "readonly"i | "read-only"i
+SAME:      "same"i
+SCALAR:     "scalar"i
+SEQUENCE:  "sequence"i
+SHAPE:     "shape"i
+SIZE:      "size"i
+SORTED:    "sorted"i
+STR:       "str"i | "string"i | "strings"i | "python string"i
+SUBCLASS:  "subclass"i
+THEREOF:   "thereof"i
+THREED:    "3-d"i | "3d"i
+TO:        "to"i
+TRUE:      "true"i
+TUPLE:     "tuple"i | "2-tuple"i | "2 tuple"i | "3-tuple"i | "3 tuple"i | "4-tuple" | "4 tuple"
+TWOD:      "2-d"i | "2d"i
+TYPE:      "type"i
+UNION:     "union"i
+VALUE:     "value"i
+WITH:      "with"i
+WRITABLE:  "writeable"i | "writable"i
+
+_A:         "a"i
+_AN:        "an"i
+_ASTERISK:  "*"
+_BACKTICK:  "`"
+_COLON:    ":"
+_COMMA:    ","
+_DASH:     "-"
+_DIM:      "0-d"i | "1-d"i | "2-d"i | "3-d"i | "1d"i | "2d"i | "3d"i
+_EQUALS:   "="
+_GRTRTHAN:  ">"
+_LBRACE:   "{"
+_LBRACKET:  "["
+_LESSTHAN:  "<"
+_LPAREN:    "("
+_NEWLINE:   "\n"
+_PLURAL:    "\\s"
+_PERIOD:   "."
+_RBRACE:   "}"
+_RBRACKET:  "]"
+_RPAREN:    ")"
+_SLASH:     "/"
+_TILDE:     "~"
+_X:         "x"
+
+
+NAME:      /[A-Za-z_][A-Za-z0-9_\-]*/
+NUMBER:    /-?[0-9][0-9\.]*/
+QUALNAME:  /\.?[A-Za-z_][A-Za-z_0-9\-]*(\.[A-Za-z_.][A-Za-z0-9_\-]*)*/
+STRINGSQ:  /\'[^\']*\'/
+STRINGDQ:  /\"[^\"]*\"/
+STRING:    STRINGSQ | STRINGDQ
+
+%import common.WS
+%ignore WS
+%ignore _BACKTICK
+%ignore _TILDE
+%ignore _ASTERISK
+%ignore _PLURAL
+%ignore THEREOF
+%ignore SORTED
+

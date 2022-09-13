@@ -110,9 +110,11 @@ def test_get_package_files(m = 'matplotlib'):
 
 
 if __name__ == '__main__':
-    test_analyzer('matplotlib')
+    test_analyzer('sklearn')
     #test_normalize()
     #test_get_package_files()
     #test_stubber('sklearn')
+    #from docs2stubs.normalize import _is_string
+    #print(_is_string("'balanced'"))
 
 # TODO: use the stubs created before to extract a map file

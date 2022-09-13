@@ -51,7 +51,9 @@ def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str
                 continue
             if f.endswith('.py'):
                 submodules.append(f'{m}.{f[f.rfind("/")+1:-3]}')
-            elif os.path.isdir(f) and not f.endswith('__pycache__'):
+            # TODO: make this configureable. Right now it is geared 
+            # to drop tests from sklearn.
+            elif os.path.isdir(f) and not f.endswith('__pycache__') and not f.endswith('/tests'):
                 submodules.append(f'{m}.{f[f.rfind("/")+1:]}')
     return mod, file, submodules
 

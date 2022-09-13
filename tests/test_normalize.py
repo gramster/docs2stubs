@@ -3,12 +3,12 @@ from docs2stubs.normalize import check_normalizer
 from hamcrest import assert_that, equal_to
 
 
-def tcheck(input: str, output: str):
-      assert_that(check_normalizer(input), equal_to(f'(Trivial) {output}'))    
+def tcheck(input: str, output: str, modname: str|None=None):
+      assert_that(check_normalizer(input, modname), equal_to(f'(Trivial) {output}'))    
 
 
-def ntcheck(input: str, output: str):
-      assert_that(check_normalizer(input), equal_to(f'(Non-trivial) {output}'))  
+def ntcheck(input: str, output: str, modname: str|None=None):
+      assert_that(check_normalizer(input, modname), equal_to(f'(Non-trivial) {output}'))  
 
 
 def test_simple_normalizations():
@@ -62,5 +62,5 @@ def test_lists():
 
 
 def test_classes():
-    tcheck(':class:`~sklearn.utils.Bunch`', 'Bunch')
-    tcheck('list of `~matplotlib.axes.Axes`', 'Sequence[Axes]')
+    tcheck(':class:`~sklearn.utils.Bunch`', 'Bunch', 'sklearn')
+    tcheck('list of `~matplotlib.axes.Axes`', 'Sequence[Axes]', 'matplotlib')

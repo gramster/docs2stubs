@@ -2,7 +2,7 @@
 docs2stubs.
 
 Usage:
-  docs2stubs analyze (package|module) [--include-counts] <name>...
+  docs2stubs analyze (package|module) [--include-counts] [--dump-all] <name>...
   docs2stubs stub (package|module) [--strip-defaults] <name>...
   docs2stubs test [<name>] <typestring>
   docs2stubs -h | --help
@@ -81,7 +81,8 @@ def main():
     for n in name:
       if arguments['analyze']:
         include_counts = arguments['--include-counts']
-        analyze_module(n, include_submodules=include_submodules, include_counts=include_counts)
+        dump_all = arguments['--dump-all']
+        analyze_module(n, include_submodules=include_submodules, include_counts=include_counts, dump_all=dump_all)
       elif arguments['stub']:
         strip_defaults = arguments['--strip-defaults']
         skip_analysis = arguments['--skip-analysis']

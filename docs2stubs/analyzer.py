@@ -6,7 +6,7 @@ import libcst as cst
 from .basetransformer import BaseTransformer
 from .utils import Sections, process_module, load_type_maps, save_result
 from .parser import NumpyDocstringParser
-from .normalize import is_trivial, normalize_type
+from .normalize import is_trivial, normalize_type, print_norm1
 
 class AnalyzingTransformer(BaseTransformer):
 
@@ -152,7 +152,7 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **k
     return state
 
 
-def _post_process(m: str, state: tuple, include_counts: bool = False):
+def _post_process(m: str, state: tuple, include_counts: bool = False, dump_all = False):
     maps = load_type_maps(m)
     results = [[], [], []]
     freqs: Sections = state[0]
@@ -166,7 +166,7 @@ def _post_process(m: str, state: tuple, include_counts: bool = False):
         for typ, cnt in freq.most_common():
             if typ in map:
                 total_mapped += cnt
-            elif is_trivial(typ, m, locations):
+            elif not dump_all and is_trivial(typ, m, locations):
                 trivials[typ] = normalize_type(typ)
                 total_trivial += cnt
             else:
@@ -180,6 +180,8 @@ def _post_process(m: str, state: tuple, include_counts: bool = False):
     for k, v in trivials.items():
         print(f'{k}#{v}')
 
+    print_norm1()
+
     return Sections(params=''.join(results[0]), 
                     returns=''.join(results[1]),
                     attrs=''.join(results[2])), \
@@ -191,13 +193,14 @@ def _targeter(m: str, suffix: str) -> str:
     return f"analysis/{m}.{suffix}.map.missing"
 
 
-def analyze_module(m: str, include_submodules: bool = True, include_counts = False) -> None|tuple:
+def analyze_module(m: str, include_submodules: bool = True, include_counts = False, dump_all = False) -> None|tuple:
     rtn = process_module(m, (
         Sections(params=Counter(), returns=Counter(), attrs=Counter()),
         {}, {}), 
         _analyze, _targeter, post_processor=_post_process,
         include_submodules=include_submodules,
-        include_counts=include_counts)
+        include_counts=include_counts,
+        dump_all=dump_all)
     # Save imports and type contexts too
     imports= rtn
     if rtn:
