@@ -191,4 +191,3 @@ STRING:    STRINGSQ | STRINGDQ
 %ignore _PLURAL
 %ignore THEREOF
 %ignore SORTED
-

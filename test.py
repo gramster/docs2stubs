@@ -1,4 +1,5 @@
 import os
+from typing_extensions import reveal_type
 
 
 def test_normalize():
@@ -116,5 +117,3 @@ if __name__ == '__main__':
     #test_stubber('sklearn')
     #from docs2stubs.normalize import _is_string
     #print(_is_string("'balanced'"))
-
-# TODO: use the stubs created before to extract a map file

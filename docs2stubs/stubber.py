@@ -1,4 +1,3 @@
-from asyncio.proactor_events import _ProactorBaseWritePipeTransport
 import re
 from types import ModuleType
 import libcst as cst
