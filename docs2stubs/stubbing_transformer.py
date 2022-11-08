@@ -4,9 +4,9 @@ import libcst as cst
 from black import format_str
 from black.mode import Mode
 
-from .analyzer import analyze_module
-from .normalize import is_trivial, normalize_type
-from .basetransformer import BaseTransformer
+from .analyzing_transformer import analyze_module
+from .type_normalizer import is_trivial, normalize_type
+from .base_transformer import BaseTransformer
 from .utils import Sections, load_map, load_type_maps, process_module
 
 

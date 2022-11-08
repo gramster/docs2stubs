@@ -3,10 +3,10 @@ import inspect
 from types import ModuleType
 from typing import Any
 import libcst as cst
-from .basetransformer import BaseTransformer
+from .base_transformer import BaseTransformer
 from .utils import Sections, process_module, load_type_maps, save_result
-from .parser import NumpyDocstringParser
-from .normalize import is_trivial, normalize_type, print_norm1
+from .docstring_parser import NumpyDocstringParser
+from .type_normalizer import is_trivial, normalize_type, print_norm1
 
 class AnalyzingTransformer(BaseTransformer):
 

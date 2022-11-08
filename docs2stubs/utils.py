@@ -59,13 +59,18 @@ def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str
 
 
 def save_result(target: str, result: str) -> None:
+    """ Write `result` into file `target`. Creates intermediate
+        directories if needed.
+    """
     folder = target[: target.rfind("/")]
     os.makedirs(folder, exist_ok=True)
     with open(target, "w") as f:
         f.write(result)
 
 # Returns None is no post-processor, else whatever tuple
-# the post-processor returns
+# the post-processor returns. I think this wrapper turned 
+# out to be a case of DRY-gone-wild and probably should
+# be replaced.
 
 def process_module(m: str, 
         state: tuple,

@@ -1,6 +1,6 @@
 #import os
 import pytest
-from docs2stubs.parser import NumpyDocstringParser 
+from docs2stubs.docstring_parser import NumpyDocstringParser 
 #import tempfile
 from hamcrest import assert_that, equal_to
 

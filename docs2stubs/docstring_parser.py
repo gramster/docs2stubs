@@ -29,7 +29,7 @@ class Deque(collections.deque):
 class DocstringParserBase(abc.ABC):
     """ Methods that are the same in Napoleon for Google format
         and Numpydoc format I put in this class. That will make 
-        it easier eventually to add Google format support.
+        it easier eventually to add Google format support if desired.
     """
     _single_colon_regex = re.compile(r'(?<!:):(?!:)')
     _xref_or_code_regex = re.compile(

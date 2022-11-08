@@ -1,21 +1,7 @@
 import re
+from .type_parser import parse_type
 from .utils import load_map
 
-"""
-TYPEDOC = TYPEPREFIX | TYPEPREFIX or None
-TYPEPREFIX = TYPE | TYPE or TYPEPREFIX | TYPE, TYPEPREFIX
-TYPE = ALTTYPE | ARRAYLIKE | BASICTYPE | RESTRICTED
-ALTTYPE='{' ARRAYKIND [',' ARRAYKIND]* '}' ARRAYQUALIFIER
-
-
-ARRAYLIKE=ARRAYKIND ARRAYQUALIFIER
-ARRAYKIND = (ndarray|matrix|sparse matrix) 
-ARRAYQUALIFIER = SHAPEWUALIFIER | TYPEQUALIFIER
-SHAPEQUALIFIER = of shape '(' <id> [',' <id>]* ')'
-TYPEQUALIFIER = of BASICTYPE
-BASICTYPE=int|str|float|
-RESTRICTED = '{' STRING [',' STRING]* '}'
-"""
 
 _ident = re.compile(r'^[A-Za-z_][A-Za-z_0-9\.]*$')
 _restricted_val = re.compile(r'^(.*){(.*)}(.*)$')
@@ -36,63 +22,132 @@ _single_restricted = re.compile(r'^{([ ]*[\"\'][A-Za-z0-9\-_]+[\"\'][,]?)+}$')
 
 
 _basic_types = {
-  # Key: lower() version of type
-  'none': 'None',
-  'float': 'float',
-  'floats': 'float',
-  'int': 'int',
-  'ints': 'int',
-  'complex': 'complex',
-  'bool': 'bool',
-  'bools': 'bool',
-  'boolean': 'bool',
-  'booleans': 'bool',
-  'str': 'str',
-  'string': 'str',
-  'strings': 'str',
-  'set': 'set',
-  'frozenset': 'frozenset',
-  'range': 'range',
-  'bytearray': 'bytearray',
-  'memoryview': 'memoryview',
-  'list': 'list',
-  'dict': 'dict',
-  'dictionary': 'dict',
-  'dictionaries': 'dict',
-  'tuple': 'tuple',
-  'tuples': 'tuple',
-  'object': 'Any',
-  'objects': 'Any',
-  'any': 'Any', 
-  'callable': 'Callable',
-  'iterable': 'Iterable',
-  'scalar': 'Scalar',
-  'arraylike': 'ArrayLike',
-  'filelike': 'FileLike',
-  'pathlike': 'PathLike',
-  'sequence': 'Sequence',
-
-  'ndarray': 'np.ndarray',
-  'sparse matrix': 'np.ndarray',
+    # Key: lower() version of type
+    'any': 'Any', 
+    'array': 'NDArray',
+    'arraylike': 'NDArray',
+    'array-like': 'NDArray',
+    'bool': 'bool',
+    'bools': 'bool',
+    'boolean': 'bool',
+    'booleans': 'bool',
+    'bytearray': 'bytearray',
+    'callable': 'Callable',
+    'complex': 'complex',
+    'dict': 'dict',
+    'dictionary': 'dict',
+    'dictionaries': 'dict',
+    'filelike': 'FileLike',
+    'file-like': 'FileLike',
+    'float': 'float',
+    'floats': 'float',
+    'frozenset': 'frozenset',
+    'int': 'int',
+    'ints': 'int',
+    'iterable': 'Iterable',
+    'list': 'list',
+    'memoryview': 'memoryview',
+    'ndarray': 'np.ndarray',
+    'none': 'None',
+    'object': 'Any',
+    'objects': 'Any',
+    'pathlike': 'PathLike',
+    'path-like': 'PathLike',
+    'range': 'range',
+    'scalar': 'Scalar',
+    'sequence': 'Sequence',
+    'set': 'set',
+    'str': 'str',
+    'string': 'str',
+    'strings': 'str',
+    'tuple': 'tuple',
+    'tuples': 'tuple',
 }
 
 
 def is_trivial(s, modname: str, classes: set|dict|None = None):
     """
+    Returns true if the docstring is trivially and unambiguously convertible to a 
+    type annotation, and thus need not be written to the map file for further
+    tweaking.
+
+    TODO: this is probably too generous and matplotlib-specific. I think it needs to
+    be tightened to a smaller set. Because of that I am temporarily inserting a 
+    return False at the start and will then revisit the rest.
+
     s - the type docstring to check
     modname - the module name
     classes - a set of class names or dictionary keyed on classnames 
     """
-    s = s.lower()
-    if s.endswith(' or none'):
-        s = s[:-7]
+    s = s.strip()
+    sl = s.lower()
+    if sl in _basic_types:
+        return True
+
+    # Check if its a string
+
+    if sl and sl[0] == sl[-1] and (sl[0] == '"' or sl[0] =="'"):
+        return True
+
+    if classes:
+        if s in classes or (_ident.match(s) and s.startswith(modname + '.')):
+            return True
+
+    # We have to watch out for ambiguous things like 'list of str or bool'.
+    # This is just a kludge to look for both 'of' and 'or' in the type and
+    # reject it.
+    x1 = sl.find(' of ')
+    x2 = sl.find(' or ')
+    if x1 >= 0 and x2 > x1:
+        return False
+    
+    # Handle tuples
+    if sl.startswith('tuple'):
+        sx = s[5:].strip()
+        if not sx:
+            return True
+        if sx[0] in '({[' and sx[-1] in '})]':
+            # TODO We should make sure there are no other occurences of these
+            # A lot of this is getting to where we should go back to regexps.
+            return is_trivial(sx[1:-1], modname, classes)
+        
+        # Strip off leading OF or WITH
+        if sx.startswith ('of ') or sx.startswith('with '):
+            x = sx.find(' ')
+            sx = sx[x+1:].strip()
+        
+        # Strip off a number
+        if sx and sx[0].isdigit():
+            x = sx.find(' ')
+            sx = sx[x+1:]
+
+        if is_trivial(sx, modname, classes):
+            return True
+        
+    for s1 in [s, s.replace(',', ' or ')]:
+        for splitter in [' or ', '|']:
+            if s1.find(splitter) > 0:
+                if all([len(c.strip())==0 or is_trivial(c.strip(), modname, classes) \
+                        for c in s1.split(splitter)]):
+                    return True
+        
+    if s.find(' of ') > 0:
+        # Things like sequence of int, set of str, etc
+        parts = s.split(' of ')
+        if len(parts) == 2 and is_trivial(parts[0], modname, None) and is_trivial(parts[1], modname, classes):
+            return True
+        
+    # Handle restricted values in {}
+    if s.startswith('{') and s.endswith('}'):
+        parts = s[1:-1].split(',')
+        parts = [p.strip() for p in parts]
+        return all([is_trivial(p, modname, None) for p in parts])
+    
+    return False
+
 
     if m:=_shaped.match(s):
         s = m.group(1)
-
-    if s.find(' or ') > 0:
-        if all([is_trivial(c.strip(), modname, classes) for c in s.split(' or ')]):
-            return True
 
     if _single_restricted.match(s):
         return True
@@ -100,32 +155,10 @@ def is_trivial(s, modname: str, classes: set|dict|None = None):
     if _ndarray.match(s) or _arraylike.match(s):
         return True
 
-    for r in [_sequence_of, _set_of, _tuple_of]:
-        match = r.match(s)
-        if match:
-            return is_trivial(match.group(2), modname, classes)
-
-    match = _dict_of.match(s)
-    if match:
-        return is_trivial(match.group(2), modname, classes) and \
-            is_trivial(match.group(3), modname, classes)
-
     nt = normalize_type(s)
 
     if nt.lower() in _basic_types:
         return True
-
-    if classes:
-        # Check unqualified classname
-
-        if nt in classes: # 
-            return True
-
-        # Check full qualified classname
-        if _ident.match(nt) and nt.startswith(modname + '.'):
-            return True
-            #if nt[nt.rfind('.')+1:] in classes:
-            #    return True
 
     return False
 
@@ -150,7 +183,14 @@ def _is_string(s) -> bool:
     return True
 
 
-def normalize_type(s: str, modname: str|None = None) -> str:
+def normalize_type(s: str, modname: str|None = None) -> tuple[str, dict|None]:
+    try:
+        return parse_type(s, modname)
+    except Exception as e:
+        return str(e), None
+    
+
+def normalize_type_old(s: str, modname: str|None = None) -> str:
 
     s = s.strip()
     sl = s.lower()
@@ -173,10 +213,10 @@ def normalize_type(s: str, modname: str|None = None) -> str:
         s = 'ArrayLike'
 
     def recombine(t1, t2, t3) -> str:
-        t1 = normalize_type(t1)
+        t1 = normalize_type_old(t1)
         if t1:
             t1 += '|'
-        t3 = normalize_type(t3)
+        t3 = normalize_type_old(t3)
         if t3:
             t3 += '|'
         return t1 + t2 + t3
@@ -277,4 +317,5 @@ def check_normalizer(typ: str, m: str|None=None):
         m = ''
     trivial = is_trivial(typ, m, classes)
     normalized = normalize_type(typ, m)
-    return f"{'(Trivial)' if trivial else '(Non-Trivial)'} {normalized}"
+
+    return trivial, normalized[0], normalized[1]

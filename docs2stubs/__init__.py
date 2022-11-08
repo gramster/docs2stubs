@@ -68,10 +68,10 @@ __version__ = '0.1'
 
 from xml.etree.ElementInclude import include
 from docopt import docopt, DocoptExit
-from .stubber import stub_module
-from .analyzer import analyze_module
+from .stubbing_transformer import stub_module
+from .analyzing_transformer import analyze_module
 from .utils import load_map
-from .normalize import is_trivial, normalize_type, check_normalizer
+from .type_normalizer import is_trivial, normalize_type, check_normalizer
 
 
 def main():
