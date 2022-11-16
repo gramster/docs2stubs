@@ -5,10 +5,9 @@ from lark.visitors import Interpreter
 
 
 _grammar = r"""
-start: type_list [_PERIOD]
-type_list: type ((_COMMA|OR|_COMMA OR) type)*
-type: alt_type 
-    | array_type 
+start: type_list
+type_list: [RETURNS] type ((_COMMA|OR|_COMMA OR) type)* [_PERIOD|_COMMA] [[_LPAREN] DEFAULT [_EQUALS|_COLON] literal_type [_RPAREN] [_PERIOD]]
+type: array_type 
     | basic_type [TYPE]
     | callable_type 
     | class_type 
@@ -23,18 +22,21 @@ type: alt_type
     | tuple_type 
     | union_type 
     | _LESSTHAN type _GRTRTHAN
-alt_type: _LBRACE array_kind (_COMMA array_kind)* _RBRACE [_COMMA] [shape_qualifier] [type_qualifier]
-array_type: [NDARRAY|NUMPY] basic_type [_DASH] array_kind [[_COMMA] (dimension | shape_qualifier)]
-          | array_kind [_COMMA] shape_qualifier [[_COMMA] type_qualifier] 
-          | array_kind [_COMMA] type_qualifier [[_COMMA] shape_qualifier] 
-          | (dimension | shape) array_kind [type_qualifier]
-          | array_kind
-array_kind: ARRAYLIKE 
+array_type: [NDARRAY|NUMPY] basic_type [_MINUS] array_kind [[_COMMA] (dimension | shape_qualifier)]
+          | [dimension] array_kinds [_COMMA] shape_qualifier [[_COMMA] type_qualifier] 
+          | [dimension] array_kinds [_COMMA] type_qualifier [[_COMMA] shape_qualifier] 
+          | shape basic_type array_kind
+          | dimension basic_type array_kind
+          | shape_qualifier array_kind [type_qualifier]
+          | type_qualifier array_kind [shape_qualifier]
+          | [dimension] array_kind
+array_kinds: array_kind | _LBRACE array_kind [ _COMMA array_kind]* _RBRACE
+array_kind: [SPARSE | _LPAREN SPARSE _RPAREN] ARRAYLIKE
           | LIST
           | NDARRAY 
-          | MATRIX 
+          | [SPARSE | _LPAREN SPARSE _RPAREN] MATRIX 
           | SEQUENCE
-          | ARRAY 
+          | [SPARSE | _LPAREN SPARSE _RPAREN] ARRAY 
           | ARRAYS 
 dimension: _DIM ((OR | _SLASH) _DIM)* 
         | (NUMBER|NAME) _X (NUMBER|NAME) 
@@ -45,60 +47,67 @@ dimension: _DIM ((OR | _SLASH) _DIM)*
 shape_qualifier: [[WITH|OF] SHAPE] [_EQUALS|OF] (SIZE|LENGTH) (QUALNAME|NUMBER|shape)
                | [[WITH|OF] SHAPE] [_EQUALS|OF] shape (OR shape)* [dimension]
                | SAME SHAPE AS QUALNAME
-shape: (_LPAREN|_LBRACKET) (QUALNAME|NUMBER) (_COMMA (QUALNAME|NUMBER))* _COMMA? (_RPAREN|_RBRACKET)
-type_qualifier: OF ARRAYS
-              | OF type 
+               | OF SHAPE QUALNAME
+shape: (_LPAREN|_LBRACKET) shape_element (_COMMA shape_element)* _COMMA? (_RPAREN|_RBRACKET)
+shape_element: (QUALNAME|NUMBER|_ELLIPSIS) [[_MINUS|_PLUS] NUMBER]
+type_qualifier: OF (ARRAYS|ARRAYLIKE)
+              | OF [NUMBER] type 
               | [OF] DTYPE [_EQUALS] (basic_type | QUALNAME) [TYPE]
               | _LBRACKET type _RBRACKET
               | _LPAREN type _RPAREN
 basic_type: ANY 
-            | [POSITIVE|NEGATIVE] INT 
+            | [POSITIVE|NEGATIVE] INT [_GRTRTHAN NUMBER]
             | STR 
-            | [POSITIVE|NEGATIVE] FLOAT [IN _LBRACKET NUMBER _COMMA NUMBER _RBRACKET] 
+            | [POSITIVE|NEGATIVE] FLOAT [IN _LBRACKET NUMBER _COMMA NUMBER _RBRACKET] [_GRTRTHAN NUMBER]
             | BOOL
             | SCALAR [VALUE]
-            | COMPLEX
+            | COMPLEX [SCALAR]
             | OBJECT
             | FILELIKE
             | PATHLIKE
-callable_type: CALLABLE [_LBRACKET _LBRACKET type_list _RBRACKET _COMMA type _RBRACKET]
+            | NUMPY DTYPE
+callable_type: CALLABLE [_LBRACKET [_LBRACKET type_list _RBRACKET _COMMA] type _RBRACKET]
 class_type: [CLASSMARKER] class_specifier [INSTANCE|OBJECT]
-        | class_specifier [_COMMA|_LPAREN] OR [_A] SUBCLASS [_RPAREN]
+        | class_specifier [_COMMA|_LPAREN] OR SUBCLASS [_RPAREN]
         | class_specifier [_COMMA|_LPAREN] OR class_specifier[_RPAREN]
-class_specifier: [_A|_AN] (INSTANCE|CLASS|SUBCLASS) OF QUALNAME 
-        | [_A|_AN] QUALNAME (INSTANCE|CLASS|SUBCLASS)
-        | [_A|_AN] QUALNAME [_COMMA|_LPAREN] OR [_A|_AN] SUBCLASS [OF QUALNAME][_RPAREN]
-        | [_A|_AN] QUALNAME [_COLON QUALNAME] [_DASH LIKE]
-dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|QUALNAME) [TO (basic_type | QUALNAME | ANY)] 
+class_specifier: (INSTANCE|CLASS|SUBCLASS) OF QUALNAME 
+        | QUALNAME (INSTANCE|CLASS|SUBCLASS)
+        | QUALNAME [_COMMA|_LPAREN] OR [ANOTHER] SUBCLASS [OF QUALNAME][_RPAREN]
+        | QUALNAME [_COLON QUALNAME] [_MINUS LIKE]
+dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|QUALNAME) [(TO|_ARROW) (basic_type | QUALNAME | ANY)] 
          | (MAPPING|DICT) [_LBRACKET type _COMMA type _RBRACKET]
 filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE]
 generator_type: GENERATOR [OF type]
-iterable_type: ITERABLE [OF type]
+iterable_type: ITERABLE [(OF|OVER) type]
 literal_type: STRING | NUMBER | NONE | TRUE | FALSE
 optional_type: OPTIONAL [_LBRACKET type _RBRACKET]
-restricted_type: [ONE OF] _LBRACE (literal_type|STR) (_COMMA (literal_type|STR))* _RBRACE
+restricted_type: [(ONE OF)| STR] _LBRACE (literal_type|STR) ((_COMMA|OR) (literal_type|STR|_ELLIPSIS))* _RBRACE [INT|BOOL]
 set_type: (FROZENSET|SET) _LBRACKET type _RBRACKET
-         | [_A] (FROZENSET|SET) [OF type_list]
-tuple_type: TUPLE 
-          | TUPLE (OF|WITH) [NUMBER] type (OR type)*
-          | [TUPLE] _LPAREN type (_COMMA type)* _RPAREN
+         | (FROZENSET|SET) [OF type_list]
+tuple_type: [shape] TUPLE [(OF|WITH) [NUMBER] type (OR type)*]
+          | [TUPLE] _LPAREN type (_COMMA type)* _RPAREN [PAIRS]
           | [TUPLE] _LBRACKET type (_COMMA type)* _RBRACKET
+union_type: UNION _LBRACKET type (_COMMA type)* _RBRACKET 
+          | type (AND type)+
           | [TUPLE] _LBRACE type (_COMMA type)* _RBRACE
-union_type: UNION _LBRACKET type (_COMMA type)* _RBRACKET | type (AND type)+
           | type (_PIPE type)*
 
 
 AND.2:       "and"i
+ANOTHER.2:   "another"i
 ANY.2:       "any"i
-ARRAYLIKE.2: "arraylike"i | "array-like"i | "array like"i | "array_like"i
+ARRAYLIKE.2: "arraylike"i | "array-like"i | "array like"i | "array_like"i | "masked array"i
 ARRAY.2:     "array"i
 ARRAYS.2:    "arrays"i
 AS.2:        "as"i
+AXES.2:      "axes"i
 BOOL.2:      "bool"i | "bools"i | "boolean"i | "booleans"i
 CALLABLE.2:  "callable"i | "function"i
 CLASS.2:     "class"i
 CLASSMARKER.2:":class:"
+COLOR.2:     "color"i | "colors"i
 COMPLEX.2:   "complex"i
+DEFAULT.2:   "default"i
 DICT.2:      "dict"i | "dictionary"i | "dictionaries"i
 DTYPE.2:     "dtype"i
 FALSE.2:     "false"i
@@ -109,41 +118,45 @@ FROZENSET.2: "frozenset"i
 GENERATOR.2: "generator"i
 IN.2:        "in"i
 INSTANCE.2:  "instance"i
-INT.2:       "int"| "ints"|  "integer" | "integers" | "int32" | "int64"
+INT.2:       "int"| "ints"|  "integer" | "integers" | "int8" | "int16" | "int32" | "int64" | "uint8"| "uint16" | "uint32" | "uint64"
 ITERABLE.2:  "iterable"i | "iterator"i
 LENGTH.2:    "length"i
 LIKE.2:      "like"i
-LIST.2:      "list"i
+LIST.2:      "list"i | "list thereof"i
 MAPPING.2:   "mapping"i
-MATRIX.2:    "matrix"i | "sparse matrix"i | "sparse-matrix"i
-NDARRAY.2:   "ndarray"i | "nd-array"i | "numpy array"i | "np.array"i
+MATPLOTLIB:  "matplotlib"i
+MATRIX.2:    "matrix"i | "sparse-matrix"i
+NDARRAY.2:   "ndarray"i | "ndarrays"i | "nd-array"i | "numpy array"i | "np.array"i | "numpy.ndarray"i
 NEGATIVE.2:  "negative"i
 NONE.2:      "none"i
 NUMPY.2:     "numpy"i
 OBJECT.2:    "object"i | "objects"i
 OF.2:        "of"i
 ONE.2:       "one"i
-ONED.2:      "1-d"i | "1d"i
+ONED.2:      "1-d"i | "1d"i | "one-dimensional"i
 OPTIONAL.2:  "optional"i
 OR.2:        "or"i
+OVER.2:      "over"i
+PAIRS.2:     "pairs"i
 PATHLIKE.2:  "path-like"i | "pathlike"i
-POSITIVE.2:  "positive"i | "non-negative"i
+POSITIVE.2:  "positive"i | "non-negative"i | "nonnegative"i
+PRIVATE.2:   "private"i
 READABLE.2:  "readable"i | "readonly"i | "read-only"i
+RETURNS.2:   "returns"i
 SAME.2:      "same"i
 SCALAR.2:     "scalar"i
-SEQUENCE.2:  "sequence"i
+SEQUENCE.2:  "sequence"i | "sequence thereof"i
 SET.2:       "set"i
 SHAPE.2:     "shape"i
 SIZE.2:      "size"i
-SORTED.2:    "sorted"i
-STR.2:       "str"i | "string"i | "strings"i | "python string"i
-SUBCLASS.2:  "subclass"i
-THEREOF.2:   "thereof"i
-THREED.2:    "3-d"i | "3d"i
+SPARSE.2:    "sparse"i
+STR.2:       "str"i | "string"i | "strings"i | "python string"i | "python str"i
+SUBCLASS.2:  "subclass"i | "subclass thereof"i
+THREED.2:    "3-d"i | "3d"i | "three-dimensional"i
 TO.2:        "to"i
 TRUE.2:      "true"i
-TUPLE.2:     "tuple"i | "2-tuple"i | "2 tuple"i | "3-tuple"i | "3 tuple"i | "4-tuple" | "4 tuple"
-TWOD.2:      "2-d"i | "2d"i
+TUPLE.2:     "tuple"i | "2-tuple"i | "2 tuple"i | "3-tuple"i | "3 tuple"i | "4-tuple" | "4 tuple" | "tuple thereof"i
+TWOD.2:      "2-d"i | "2d"i | "two-dimensional"i
 TYPE.2:      "type"i
 UNION.2:     "union"i
 VALUE.2:     "value"i
@@ -152,45 +165,59 @@ WRITABLE.2:  "writeable"i | "writable"i
 
 _A:         "a"i
 _AN:        "an"i
+_ARROW:     "->"
 _ASTERISK:  "*"
 _BACKTICK:  "`"
+_C_CONTIGUOUS: "C-contiguous"i
 _COLON:    ":"
 _COMMA:    ","
-_DASH:     "-"
 _DIM:      "0-d"i | "1-d"i | "2-d"i | "3-d"i | "1d"i | "2d"i | "3d"i
+_ELLIPSIS: "..."
 _EQUALS:   "="
 _GRTRTHAN:  ">"
 _LBRACE:   "{"
 _LBRACKET:  "["
 _LESSTHAN:  "<"
 _LPAREN:    "("
+_MINUS:     "-"
 _NEWLINE:   "\n"
 _PIPE:      "|"
 _PLURAL:    "\\s"
+_PLUS:      "+"
 _PERIOD:   "."
+_PRIVATE:  "private"
 _RBRACE:   "}"
 _RBRACKET:  "]"
 _RPAREN:    ")"
 _SLASH:     "/"
+_SPARSE:    "sparse"i
+_STRIDED:   "strided"i
+_SUCH:      "such"
 _TILDE:     "~"
 _X:         "x"
 
 
 NAME:      /[A-Za-z_][A-Za-z0-9_\-]*/
-NUMBER:    /-?[0-9][0-9\.]*/
-QUALNAME:  /\.?[A-Za-z_][A-Za-z_0-9\-]*(\.[A-Za-z_.][A-Za-z0-9_\-]*)*/
+NUMBER:    /-?[0-9][0-9\.]*e?\-?[0-9]*/
+QNAME:  /\.?[A-Za-z_][A-Za-z_0-9\-]*(\.[A-Za-z_.][A-Za-z0-9_\-]*)*/
+QUALNAME:  QNAME | MATPLOTLIB AXES | MATPLOTLIB COLOR
 STRINGSQ:  /\'[^\']*\'/
 STRINGDQ:  /\"[^\"]*\"/
 STRING:    STRINGSQ | STRINGDQ
 
 %import common.WS
 %ignore WS
-%ignore _BACKTICK
-%ignore _TILDE
+%ignore _A
+%ignore _AN
 %ignore _ASTERISK
+%ignore _BACKTICK
+%ignore _C_CONTIGUOUS
 %ignore _PLURAL
-%ignore THEREOF
-%ignore SORTED
+%ignore _PRIVATE
+%ignore _SPARSE
+%ignore _STRIDED
+%ignore _SUCH
+%ignore _TILDE
 """
 
 class Normalizer(Interpreter):
@@ -260,7 +287,7 @@ class Normalizer(Interpreter):
             | _LESSTHAN type _GRTRTHAN
         """
         for child in tree.children:
-            print(child)
+            #print(child)
             if isinstance(child, Tree):
                 result = self._visit_tree(child)
                 if result:
@@ -280,39 +307,49 @@ class Normalizer(Interpreter):
         'FILELIKE': 'FileLike'
     }
 
-    def alt_type(self, tree):
-        """
-        alt_type: _LBRACE array_kind (_COMMA array_kind)* _RBRACE [_COMMA] ([shape_qualifier] | [shape]) [type_qualifier]
-        """
-        pass
-
     def array_type(self, tree):
         """
-        array_type: [NDARRAY|NUMPY] basic_type [_DASH] array_kind [[_COMMA] (dimension | shape_qualifier)]
+        array_type: [NDARRAY|NUMPY] basic_type [_MINUS] array_kind [[_COMMA] (dimension | shape_qualifier)]
                 | array_kind [_COMMA] shape_qualifier [[_COMMA] type_qualifier] 
                 | array_kind [_COMMA] type_qualifier [[_COMMA] shape_qualifier] 
                 | (dimension | shape) array_kind [type_qualifier]
                 | array_kind
         """
-        arr_type = ''
+        arr_types = set()
         elt_type = None
         imports = set()
         for child in tree.children:
             if isinstance(child, Token) and (child.type == 'NDARRAY' or child.type == 'NUMPY'):
-                arr_type = 'NDArray'
+                arr_types.add('NDArray')
                 imports.add(('NDArray', 'numpy.typing'))
             if isinstance(child, Tree) and isinstance(child.data, Token):
                 tok = child.data
                 subrule = tok.value
-                if subrule == 'array_kind':
-                    arr_type, imp = self._visit_tree(child)
+                if subrule == 'array_kinds':
+                    types, imp = self._visit_tree(child)
+                    arr_types.update(types)
+                    imports.update(imp)
+                elif subrule == 'array_kind':
+                    type, imp = self._visit_tree(child)
+                    arr_types.add(type)
                     imports.update(imp)
                 elif subrule == 'basic_type' or subrule == 'type_qualifier':
                     elt_type, imp = self._visit_tree(child)
                     imports.update(imp)
-        if elt_type and arr_type != 'ArrayLike':
-            arr_type += f'[{elt_type}]'
-        return arr_type, imports
+        if elt_type:
+            return '|'.join([f'{typ}[{elt_type}]' for typ in arr_types]), imports
+        else:
+            return '|'.join(arr_types), imports
+
+    def array_kinds(self, tree):
+        imports = set()
+        types = set()
+        for child in tree.children:
+            if isinstance(child, Tree):
+                type, imp = self._visit_tree(child)
+                imports.update(imp)
+                types.add(type)
+        return types, imports
 
     def array_kind(self, tree):
         """
@@ -414,7 +451,7 @@ class Normalizer(Interpreter):
         class_specifier: (INSTANCE|SUBCLASS) OF QUALNAME 
                | QUALNAME [_COMMA|_LPAREN] OR [_A] SUBCLASS [OF QUALNAME][_RPAREN]
                | QUALNAME [_COLON QUALNAME] (CLASS|SUBCLASS)
-               | QUALNAME _DASH LIKE 
+               | QUALNAME _MINUS LIKE 
                | QUALNAME
         """
         imp = set()
@@ -469,11 +506,13 @@ class Normalizer(Interpreter):
 
     def generator_type(self, tree):
         """ generator_type: GENERATOR [OF type] """
-        pass
+        # TODO
+        return 'generator', set()
 
     def iterable_type(self, tree):
         """ iterable_type: ITERABLE [OF type] """
-        pass
+        # TODO
+        return 'Iterable', set()
     
     def literal_type(self, tree)-> tuple[str, set[str]|None]:
         """ literal_type: STRING | NUMBER | NONE | TRUE | FALSE """
@@ -499,7 +538,7 @@ class Normalizer(Interpreter):
                 type, imports = self._visit_tree(child)
                 type += '|None'
                 return type, imports
-        assert(False)
+        return 'None', set()
 
     def restricted_type(self, tree):
         """ 
@@ -547,8 +586,7 @@ class Normalizer(Interpreter):
 
     def tuple_type(self, tree):
         """
-        tuple_type: TUPLE 
-          | TUPLE (OF|WITH) [NUMBER] type (OR type)*
+        tuple_type: [shape] TUPLE (OF|WITH) [NUMBER] type (OR type)*
           | [TUPLE] _LPAREN type (_COMMA type)* _RPAREN
           | [TUPLE] _LBRACKET type (_COMMA type)* _RBRACKET
           | [TUPLE] _LBRACE type (_COMMA type)* _RBRACE
@@ -557,15 +595,21 @@ class Normalizer(Interpreter):
         imp = set()
         repeating = False
         count = 1
+        has_shape = False
         for child in tree.children:
             if isinstance(child, Tree):
                 type, imports = self._visit_tree(child)
-                types.append(type)
-                imp.update(imports)
+                if type is None:
+                    has_shape = True
+                else:
+                    types.append(type)
+                    imp.update(imports)
             elif isinstance(child, Token) and child.type in ['OF', 'WITH']:
                 repeating = True
             elif isinstance(child, Token) and child.type == 'NUMBER':
                 count = int(child.value)
+        if has_shape:
+            return 'tuple', None
         if types:
             if repeating:
                 if count > 1:
@@ -587,7 +631,10 @@ class Normalizer(Interpreter):
                 imports.update(imp)
         return '|'.join(types), imports
     
+    def shape(self, tree):
+        return None, None
     
+
 _lark = Lark(_grammar)
 _norm = Normalizer('tlmod', 'mod')
 
@@ -599,7 +646,7 @@ def parse_type(s: str, modname: str|None = None) -> tuple[str, dict[str, list[st
     #try:
     if True:
         tree = _lark.parse(s)
-        tree.pretty() # TODO: remove
+        #tree.pretty() # TODO: remove
         n = _norm.visit(tree)
         imps = None
         if n[1]:

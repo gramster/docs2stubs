@@ -1,0 +1,8 @@
+- [ ] complete generator and iterator types in the parser
+- [ ] add support for missing types (slices, anything else?)
+- [ ] update the class type handler to do better class name normalization and import generation
+- [ ] use gentests.py to generate more test cases, including of the above
+- [ ] expand the logic in is_trivial to cover more cases
+- [ ] incorporate this into stubber
+- [ ] generate stubs and see how well they work
+

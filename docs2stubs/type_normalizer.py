@@ -184,10 +184,11 @@ def _is_string(s) -> bool:
 
 
 def normalize_type(s: str, modname: str|None = None) -> tuple[str, dict|None]:
-    try:
+    #try:
+    if True:
         return parse_type(s, modname)
-    except Exception as e:
-        return str(e), None
+    #except Exception as e:
+    #    return str(e), None
     
 
 def normalize_type_old(s: str, modname: str|None = None) -> str:

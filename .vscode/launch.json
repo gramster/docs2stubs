@@ -11,6 +11,15 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Python: Test Normalizer",
+            "type": "python",
+            "request": "launch",
+            "program": "test.py",
+            "cwd": "${workspaceFolder}/parser",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

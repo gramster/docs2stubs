@@ -10,6 +10,7 @@ def tcheck(input: str, expected_type: str, expected_imports: dict|None, \
       assert_that(type, equal_to(expected_type))
       assert_that(imports, equal_to(expected_imports))
 
+      
 def ntcheck(input: str, expected_type: str, expected_imports: dict|None, \
         modname: str|None=None):
       trivial, type, imports = check_normalizer(input, modname)
@@ -17,18 +18,24 @@ def ntcheck(input: str, expected_type: str, expected_imports: dict|None, \
       assert_that(type, equal_to(expected_type))
       assert_that(imports, equal_to(expected_imports))
 
-
+      
 def test_simple_normalizations():
     for typ in ['int', 'float', 'complex', 'bool', 'str', 'set', 'frozenset', 'dict', 'list', 'None']:
         tcheck(typ, typ, None)
-    tcheck('object', 'Any', None)
+    ntcheck("Any", "Any", {'typing': ['Any']})
+    tcheck('object', 'Any', {'typing': ['Any']})
     tcheck('array', "NDArray", {'numpy.typing': ['NDArray']})
+    tcheck("function", "Callable", {'typing': ['Callable']})
+    tcheck("list of tuple", "list[tuple]", None)
+    tcheck("slice", "slice", None)
+    tcheck("None, `numpy.ndarray`", "NDArray|None", {'numpy.typing': ['NDArray']})
 
 
 def test_restricted_values():
     tcheck("{'lar', 'lasso'}", "Literal['lar','lasso']",  {'typing': ['Literal']})
     tcheck("{'linear', 'poly'} or callable", "Literal['linear','poly']|Callable", {'typing': ['Callable', 'Literal']})
     tcheck("float or {'scale', 'auto'}", "float|Literal['scale','auto']", {'typing': ['Literal']})
+    tcheck("'all' or 'wcs'", "Literal['all','wcs']", None)
 
 
 def test_unions():
@@ -58,6 +65,8 @@ def test_tuples():
     ntcheck('tuple of float or int', 'tuple[float, ...]|int', None)
     tcheck('tuple of 2 float', 'tuple[float,float]', None)
     tcheck('tuple (float, int)', 'tuple[float,int]', None)
+    tcheck("tuple of ints", "tuple[int, ...]", None)
+    tcheck("(float, float, int)", "tuple[float, float, int]", None)
 
 
 def test_lists():
@@ -76,3 +85,5 @@ def test_lists():
 def test_classes():
     ntcheck(':class:`~sklearn.utils.Bunch`', 'Bunch', {'sklearn.utils': ['Bunch']}, 'sklearn')
     ntcheck('list of `~matplotlib.axes.Axes`', 'list[Axes]', {'matplotlib.axes': ['Axes']}, 'matplotlib')
+
+    
