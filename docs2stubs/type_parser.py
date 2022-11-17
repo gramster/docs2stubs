@@ -31,13 +31,14 @@ array_type: [NDARRAY|NUMPY] basic_type [_MINUS] array_kind [[_COMMA] (dimension 
           | type_qualifier array_kind [shape_qualifier]
           | [dimension] array_kind
 array_kinds: array_kind | _LBRACE array_kind [ _COMMA array_kind]* _RBRACE
-array_kind: [SPARSE | _LPAREN SPARSE _RPAREN] ARRAYLIKE
-          | LIST
-          | NDARRAY 
-          | [SPARSE | _LPAREN SPARSE _RPAREN] MATRIX 
-          | SEQUENCE
-          | [SPARSE | _LPAREN SPARSE _RPAREN] ARRAY 
+array_kind: [A|AN] [SPARSE | _LPAREN SPARSE _RPAREN] ARRAYLIKE
+          | [A] LIST
+          | [A|AN] NDARRAY 
+          | [A] [SPARSE | _LPAREN SPARSE _RPAREN] MATRIX [CLASS]
+          | [A] SEQUENCE
+          | [A|AN] [SPARSE | _LPAREN SPARSE _RPAREN] ARRAY 
           | ARRAYS 
+          | SPARSE
 dimension: _DIM ((OR | _SLASH) _DIM)* 
         | (NUMBER|NAME) _X (NUMBER|NAME) 
         | _LPAREN (NUMBER|NAME) _COMMA [NUMBER|NAME] [_COMMA [NUMBER|NAME]] _RPAREN
@@ -60,20 +61,20 @@ basic_type: ANY
             | STR 
             | [POSITIVE|NEGATIVE] FLOAT [IN _LBRACKET NUMBER _COMMA NUMBER _RBRACKET] [_GRTRTHAN NUMBER]
             | BOOL
-            | SCALAR [VALUE]
+            | [NUMPY] SCALAR [VALUE]
             | COMPLEX [SCALAR]
             | OBJECT
             | FILELIKE
             | PATHLIKE
-            | NUMPY DTYPE
+            | [NUMPY] DTYPE
 callable_type: CALLABLE [_LBRACKET [_LBRACKET type_list _RBRACKET _COMMA] type _RBRACKET]
 class_type: [CLASSMARKER] class_specifier [INSTANCE|OBJECT]
         | class_specifier [_COMMA|_LPAREN] OR SUBCLASS [_RPAREN]
         | class_specifier [_COMMA|_LPAREN] OR class_specifier[_RPAREN]
-class_specifier: (INSTANCE|CLASS|SUBCLASS) OF QUALNAME 
-        | QUALNAME (INSTANCE|CLASS|SUBCLASS)
-        | QUALNAME [_COMMA|_LPAREN] OR [ANOTHER] SUBCLASS [OF QUALNAME][_RPAREN]
-        | QUALNAME [_COLON QUALNAME] [_MINUS LIKE]
+class_specifier: [A|AN] (INSTANCE|CLASS|SUBCLASS) OF QUALNAME 
+        | [A|AN] QUALNAME (INSTANCE|CLASS|SUBCLASS)
+        | [A|AN] QUALNAME [_COMMA|_LPAREN] OR [A|AN|ANOTHER] SUBCLASS [OF QUALNAME][_RPAREN]
+        | [A|AN] QUALNAME [_COLON QUALNAME] [_MINUS LIKE]
 dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|QUALNAME) [(TO|_ARROW) (basic_type | QUALNAME | ANY)] 
          | (MAPPING|DICT) [_LBRACKET type _COMMA type _RBRACKET]
 filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE]
@@ -93,6 +94,8 @@ union_type: UNION _LBRACKET type (_COMMA type)* _RBRACKET
           | type (_PIPE type)*
 
 
+A.2:         "a"i
+AN.2:        "an"i
 AND.2:       "and"i
 ANOTHER.2:   "another"i
 ANY.2:       "any"i
@@ -163,8 +166,7 @@ VALUE.2:     "value"i
 WITH.2:      "with"i
 WRITABLE.2:  "writeable"i | "writable"i
 
-_A:         "a"i
-_AN:        "an"i
+
 _ARROW:     "->"
 _ASTERISK:  "*"
 _BACKTICK:  "`"
@@ -190,7 +192,6 @@ _RBRACE:   "}"
 _RBRACKET:  "]"
 _RPAREN:    ")"
 _SLASH:     "/"
-_SPARSE:    "sparse"i
 _STRIDED:   "strided"i
 _SUCH:      "such"
 _TILDE:     "~"
@@ -207,23 +208,28 @@ STRING:    STRINGSQ | STRINGDQ
 
 %import common.WS
 %ignore WS
-%ignore _A
-%ignore _AN
+
 %ignore _ASTERISK
 %ignore _BACKTICK
 %ignore _C_CONTIGUOUS
 %ignore _PLURAL
 %ignore _PRIVATE
-%ignore _SPARSE
 %ignore _STRIDED
 %ignore _SUCH
 %ignore _TILDE
 """
 
 class Normalizer(Interpreter):
-    def __init__(self, tlmodule: str, module:str):
-        self._tlmodule = module  # top-level module
+    def configure(self, module:str|None, classes: dict|None):
+        if module is None:
+            module = ''
+        x = module.find('.')
+        if x >= 0:
+            self._tlmodule = module[:x]  # top-level module
+        else:
+            self._tlmodule = module
         self._module = module
+        self._classes = classes
 
     def handle_qualname(self, name: str, imports: set) -> str:
         return name
@@ -464,6 +470,9 @@ class Normalizer(Interpreter):
         if x > 0:
             imp.add((cname[x+1:], cname[:x]))
             cname = cname[x+1:]
+        elif self._classes and cname in self._classes:
+            imp.add((cname, self._classes[cname]))
+
         return cname, imp ## FOR NOW, BUT WE NEED TO FIGURE OUT THE IMPORT      
 
     def dict_type(self, tree):
@@ -636,10 +645,10 @@ class Normalizer(Interpreter):
     
 
 _lark = Lark(_grammar)
-_norm = Normalizer('tlmod', 'mod')
+_norm =  _norm = Normalizer()
 
-
-def parse_type(s: str, modname: str|None = None) -> tuple[str, dict[str, list[str]]|None]:
+    
+def parse_type(s: str, modname: str|None = None, classes: dict|None = None) -> tuple[str, dict[str, list[str]]|None]:
     """ Parse a type description from a docstring, returning the normalized
         type and the set of required imports, or None if no imports are needed.
     """
@@ -647,6 +656,7 @@ def parse_type(s: str, modname: str|None = None) -> tuple[str, dict[str, list[st
     if True:
         tree = _lark.parse(s)
         #tree.pretty() # TODO: remove
+        _norm.configure(modname, classes)
         n = _norm.visit(tree)
         imps = None
         if n[1]:

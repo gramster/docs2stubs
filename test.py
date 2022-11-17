@@ -3,13 +3,14 @@ from typing_extensions import reveal_type
 
 
 def test_normalize():
-    from docs2stubs.normalize import check_normalizer
-    x = 'list of `.Line2D`'
-    print(check_normalizer(x, 'matplotlib'))
+    from docs2stubs.type_normalizer import check_normalizer, load_map
+    #classes = load_map('sklearn')
+    x = 'A DecisionTreeRegressor object.'
+    print(check_normalizer(x, 'sklearn'))
 
 
 def test_parser(): 
-    from docs2stubs.parser import NumpyDocstringParser
+    from docs2stubs.docstring_parser import NumpyDocstringParser
     x = """
             Create legend handles and labels for a PathCollection.
 
@@ -111,8 +112,8 @@ def test_get_package_files(m = 'matplotlib'):
 
 
 if __name__ == '__main__':
-    test_analyzer('sklearn')
-    #test_normalize()
+    #test_analyzer('sklearn')
+    test_normalize()
     #test_get_package_files()
     #test_stubber('sklearn')
     #from docs2stubs.normalize import _is_string

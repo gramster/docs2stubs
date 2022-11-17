@@ -15,7 +15,7 @@ _ndarray = re.compile(r'^ndarray(( of|,) (shape|[a-z]+)[ ]*\([^)]*\))?(, dtype=[
 _arraylike = re.compile(r'^array(\-)?(like)? ?(( of|,) shape[ ]*\([^)]*\))?$')
 _filelike = re.compile(r'^file(-)?like$')
 _pathlike = re.compile(r'^path(-)?like$')
-_shaped = re.compile(r'^(.*)( of shape |, shape )\([^\)]*\)( or \([^\)]*\))*$')
+_shaped = re.compile(r'^(.*)( shape)([ =][\[\(])([^\]\)]*)([\]\)])([ ]*or[ ]*\([^\)]*\))*(.*)$', flags=re.IGNORECASE)
 
 # Start with {, end with }, comma-separated quoted words
 _single_restricted = re.compile(r'^{([ ]*[\"\'][A-Za-z0-9\-_]+[\"\'][,]?)+}$') 
@@ -65,6 +65,21 @@ _basic_types = {
 }
 
 
+def remove_shape(s: str) -> str:
+    if m:=_shaped.match(s):
+        # Drop group 6 and everything except commas from group 4
+        # This will change:
+        #    {ndarray, sparse matrix} of shape (n_samples, n_classes) or (M, N)
+        # to:
+        #    {ndarray, sparse matrix} of shape (,)
+        first_shape = m.group(4)
+        parts = first_shape.split(',')
+        first_shape = ','.join('N' * len(parts))
+        return m.group(1) + m.group(2) + ' (' + first_shape + ')' + m.group(7)
+    else:
+        return s
+
+
 def is_trivial(s, modname: str, classes: set|dict|None = None):
     """
     Returns true if the docstring is trivially and unambiguously convertible to a 
@@ -80,11 +95,22 @@ def is_trivial(s, modname: str, classes: set|dict|None = None):
     classes - a set of class names or dictionary keyed on classnames 
     """
     s = s.strip()
-    sl = s.lower()
+    sl = remove_shape(s.lower())
+    if sl.endswith(" objects"):
+        sl = sl[:-8]
+
     if sl in _basic_types:
         return True
 
-    # Check if its a string
+    # Handle things of form "basic_type or ..."
+    #parts = sl.split(' or ') 
+    #if parts[0] in _basic_types:
+    #    return is_trivial(' or '.join(parts[1:]), modname, classes)  
+
+    #if sl.startswith("ndarray of"):
+    #    return is_trivial(s[11:], modname, classes) 
+
+    # Check if it's a string
 
     if sl and sl[0] == sl[-1] and (sl[0] == '"' or sl[0] =="'"):
         return True
@@ -146,23 +172,6 @@ def is_trivial(s, modname: str, classes: set|dict|None = None):
     return False
 
 
-    if m:=_shaped.match(s):
-        s = m.group(1)
-
-    if _single_restricted.match(s):
-        return True
-        
-    if _ndarray.match(s) or _arraylike.match(s):
-        return True
-
-    nt = normalize_type(s)
-
-    if nt.lower() in _basic_types:
-        return True
-
-    return False
-
-
 _norm1 = {}
 
 
@@ -183,10 +192,10 @@ def _is_string(s) -> bool:
     return True
 
 
-def normalize_type(s: str, modname: str|None = None) -> tuple[str, dict|None]:
+def normalize_type(s: str, modname: str|None = None, classes: dict|None = None) -> tuple[str, dict|None]:
     #try:
     if True:
-        return parse_type(s, modname)
+        return parse_type(remove_shape(s), modname, classes)
     #except Exception as e:
     #    return str(e), None
     
@@ -310,13 +319,15 @@ def normalize_type_old(s: str, modname: str|None = None) -> str:
     return s + ornone
 
 
-def check_normalizer(typ: str, m: str|None=None):
-    classes = set()
-    if m:
-        classes = load_map(f'analysis/{m}.imports.map')
-    else:
+def check_normalizer(typ: str, m: str|None=None, classes: dict|None = None):
+    if m is None:
         m = ''
+    if classes is None:
+        classes = {}
+        if m:
+            classes = load_map(m, 'imports')
+
     trivial = is_trivial(typ, m, classes)
-    normalized = normalize_type(typ, m)
+    normalized = normalize_type(typ, m, classes)
 
     return trivial, normalized[0], normalized[1]
