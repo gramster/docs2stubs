@@ -1,0 +1,18 @@
+2-tuple#tuple
+dtype#DType
+float ndarray#NDArray[float]
+ndarray, shape (m,)#NDArray
+tuple of ndarrays#tuple[NDArray, ...]
+ndarray, shape (n,)#NDArray
+ndarray, shape (4, n-1, ...)#NDArray
+namedtuple#namedtuple
+ndarray, shape (n,m)#NDArray
+positive int#int
+double array of shape (npoints, ndim)#NDArray
+double#float
+double array of shape (ndim,)#NDArray
+double array of shape (nvertices, ndim)#NDArray
+list of list of integers of shape (npoints, _ )#list[list[int]]
+internal property, do not use#
+float or ``None``#float|None
+{VectorFunction, LinearVectorFunction, IdentityVectorFunction}#LinearVectorFunction|VectorFunction|IdentityVectorFunction

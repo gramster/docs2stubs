@@ -1,0 +1,154 @@
+34#1-D array#NDArray
+18#`~matplotlib.lines.Line2D`#Line2D
+13#list of `.Line2D`#list[Line2D]
+7#(M, N, 4) uint8 array#NDArray[int]
+7#`~.axes.Axes`#Axes
+6#(float, float)#tuple[float,float]
+5#`numpy.array`#NDArray
+5#text#
+5#`.PolyCollection`#PolyCollection
+5#`.Bbox`#Bbox
+4#`~matplotlib.legend.Legend`#Legend
+4#list of `.lines.Line2D`#list[Line2D]
+4#list of `.text.Text`#list[Text]
+4#`~matplotlib.image.AxesImage`#AxesImage
+4#array (length ``2*maxlags+1``)#ArrayLike
+4#array  (length ``2*maxlags+1``)#ArrayLike
+4#`.LineCollection` or `.Line2D`#LineCollection|Line2D
+4#`.Line2D` or None#Line2D|None
+4#`~matplotlib.patches.Polygon`#Polygon
+4#`.BarContainer`#BarContainer
+4#`~.contour.QuadContourSet`#QuadContourSet
+4#2D array#NDArray
+4#1D array#NDArray
+4#`~matplotlib.collections.LineCollection`#LineCollection
+4#`.Text`#Text
+4#`~matplotlib.tri.TriContourSet`#TriContourSet
+4#list of (xoffset, yoffset) pairs#list[tuple[float,float]]
+4#Points converted to pixels#
+4#np.ma.array#NDArray
+4#int array#NDArray[int]
+3#`.Figure`#Figure
+3#labels#
+3#list of `.Artist`#list[Artist]
+3#cid#
+3#`.axes.SubplotBase`, or another subclass of `~.axes.Axes`#SubplotBase
+3#`.Annotation`#Annotation
+3#`~matplotlib.quiver.Barbs`#Barbs
+3#`~matplotlib.quiver.Quiver`#Quiver
+3#1-d array#NDArray
+2#masked array#NDArray
+2#(..., 3) ndarray#NDArray
+2#list[str]#list[str]
+2#length-N bool array#NDArray
+2#`~.axes.Axes`, or a subclass of `~.axes.Axes`#Axes
+2#`~.axes.Axes` or array of Axes#Axes|NDArray[Axes]
+2#dict[label, Axes]#dict[Label,Axes]
+2#left, right#tuple
+2#`~matplotlib.colorbar.Colorbar`#Colorbar
+2#`matplotlib.image.FigureImage`#FigureImage
+2#`~.text.Text`#Text
+2#`.FancyArrow`#FancyArrow
+2#`.Line2D`#Line2D
+2#list of `.Text`#list[Text]
+2#`~.collections.BrokenBarHCollection`#BrokenBarHCollection
+2#`.ErrorbarContainer`#ErrorbarContainer
+2#list of `.EventCollection`#list[EventCollection]
+2#list of `~matplotlib.patches.Polygon`#list[Polygon]
+2#`~matplotlib.collections.PolyCollection`#PolyCollection
+2#array or list of arrays#NDArray|list[ArrayLike]
+2#`.BarContainer` or list of a single `.Polygon` or list of such objects#BarContainer|list[Polygon]
+2#`matplotlib.patches.StepPatch`#StepPatch
+2#`~.matplotlib.collections.QuadMesh`#QuadMesh
+2#`matplotlib.collections.Collection`#Collection
+2#`matplotlib.collections.QuadMesh`#QuadMesh
+2#`~matplotlib.collections.PathCollection`#PathCollection
+2#`.AxesImage`#AxesImage
+2#`~matplotlib.image.AxesImage` or `.Line2D`#AxesImage|Line2D
+2#list of `.PolyCollection`#list[PolyCollection]
+2#`.StemContainer`#StemContainer
+2#`~matplotlib.table.Table`#Table
+2#offsets#
+2#`.BboxBase`#BboxBase
+2#`FontEntry`#FontEntry
+2#`.patches.Rectangle`#Rectangle
+2#4-tuple of `.patches.ConnectionPatch`#tuple[ConnectionPatch, ...]
+2#axes._secondary_axes.SecondaryAxis#SecondaryAxis
+2#`~matplotlib.tri.Triangulation`#Triangulation
+1#RGBA values with a shape of ``X.shape + (4, )``.#
+1#`~matplotlib.colors.Normalize`#Normalize
+1#`~matplotlib.colors.Colormap`#Colormap
+1#private debugging structure#
+1#float or ndarray[float]#float|NDArray[float]
+1#`~matplotlib.units.AxisInfo`#AxisInfo
+1#`.UnitData`#UnitData
+1#uint8 array (M, N, 4)#NDArray[int]
+1#numpy.array#NDArray
+1#(int, int)#tuple[int,int]
+1#list[`.Artist`]#list[Artist]
+1#`.Collection`#Collection
+1#None, int, (int, int), slice, float, (float, float), or list[int]#int|tuple[int,int]|slice|float|tuple[float,float]|list[int]|None
+1#Cycler#Cycler
+1#`Type1Font`#Type1Font
+1#`~matplotlib.figure.Figure`#Figure
+1#`.FigureManagerBase` or backend-dependent subclass thereof#FigureManagerBase
+1#`matplotlib.widgets.SubplotTool`#SubplotTool
+1#bottom, top#tuple
+1#`.Cell`#Cell
+1#`~datetime.datetime` or sequence of `~datetime.datetime`#datetime|Sequence[datetime]
+1#`datetime.timedelta` or list[`datetime.timedelta`]#timedelta|list[timedelta]
+1#`Transform`#Transform
+1#(bool, empty dict)#tuple[bool, dict]
+1#(N, 2) numpy array#NDArray
+1#event#
+1#original_position, modified_position#tuple
+1#index of the handle and its distance from#
+1#`.GridSpecFromSubplotSpec`#GridSpecFromSubplotSpec
+1#bool, {}#tuple[bool, dict]
+1#`~matplotlib.artist.Artist`#Artist
+1#`.GridSpec`#GridSpec
+1#`.SubFigure`#SubFigure
+1#private debugging object#
+1#`.DraggableLegend` or *None*#DraggableLegend|None
+1#ColorMap or None#ColorMap|None
+1#(k, d) array#NDArray
+1#(n+1, d) array#NDArray
+1#is_parallel#bool
+1#`set`#set
+1#`.ft2font.FT2Font`#FT2Font
+1#An element identifier.#
+1#dict[str, Union[str, datetime, Name]]#dict[str, Name|str|datetime]
+1#`.ToolBase` or None#ToolBase|None
+1#Optional[str]#str|None
+1#ndarray, shape (2*(M - 1) + 2*(N - 1),)#NDArray
+1#ndarray, shape (N_1, ..., 1 + (N_axis-size)/step, ..., N_k, size)#NDArray
+1#ndarray, shape (N/rstride * M/cstride, 2 * (rstride + cstride))#NDArray
+1#`~.axes.SubplotBase`#SubplotBase
+1#result#
+1#The limit value after call to convert(), or None if limit is None.#
+1#ax#Axes
+1#edgecolors#
+1#array(N, 4) or None#NDArray|None
+1#`.AxesImage` or `.PcolorImage` or `.QuadMesh`#AxesImage|PcolorImage
+1#list of arrays#list[ArrayLike]
+1#array-like, shape (npts, 2)#ArrayLike
+1#array of dim 2 (shape (nx, 3))#NDArray
+1#array of dim 3 (shape (nx, 2, 2))#NDArray
+1#(nx, 3))#
+1#Returns the N-array of interpolated function values.#NDArray
+1#shape (N x 2 x 1).#NDArray
+1#as a column-matrices of shape (N x 3 x 1).#
+1#expressed in covariant coordinates in first apex basis.#
+1#tri_J is needed to rotate dofs from local basis to global basis#
+1#if *return_area* is True, returns also the triangle area (0.5*det(J))#
+1#(row, col) entries must be summed.#
+1#force vector - dim npts * 3#
+1#shape (9,) array#NDArray
+1#np.array of shape (sh, nrow, ncols)#NDArray
+1#1D array of length: *refi_tri* node count.#NDArray
+1#tuple or `None`#tuple|None
+1#`~matplotlib.axes.Axes` or None#Axes|None
+1#list of arrays of vertices#list[NDArray]
+1#(N,) array#NDArray
+1#`Transform` subclass#Transform
+1#subplotspec or None#SubplotSpec|None

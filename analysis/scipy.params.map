@@ -1,0 +1,594 @@
+1146#array_like#ArrayLike
+71#(N,) array_like#ArrayLike
+50#1-D array#ArrayLike
+48#{None, int, `numpy.random.Generator`,#None|numpy.random.Generator
+35#integer#int
+31#2-D array#ArrayLike
+30#dtype#DType
+30#array or dtype#ArrayLike|DType
+29#array_like, shape (n,)#ArrayLike
+28#(N, N) array_like#ArrayLike
+26#(M, M) array_like#ArrayLike
+22#int or array_like of ints or None#int|ArrayLike[int]|None
+20#function#Callable
+20#ndarray, shape (n,)#ArrayLike
+18#{None, int, np.random.RandomState, np.random.Generator}#np.random.RandomState|None|np.random.Generator|int
+18#callable f(v)#Callable
+18#callable f(V)#Callable
+17#(M, N) array_like#ArrayLike
+16#(N,) array_like, bool#ArrayLike|bool
+16#{1, 2, 3, 4}#Literal[1,2,3,4]
+15#{sparse matrix, ndarray, LinearOperator}#ArrayLike|LinearOperator
+13#number#int|float
+12#float and array_like#ArrayLike|float
+12#bool (default: False)#bool|Literal[False]
+10#{None, int, `numpy.random.Generator`}#None|np.random.Generator|int
+10#str {'full', 'valid', 'same'}#str|Literal['full','valid','same']
+10#str or tuple or array_like#str|tuple|ArrayLike
+10#ndarray, shape (n, 3)#ArrayLike
+10#callable f(x,*args)#Callable
+10#:class:`numpy.ndarray`#NDArray
+9#(bool, bool)#tuple[bool,bool]
+9#bool (default: True)#bool|Literal[True]
+8#array_like of ints#ArrayLike[int]
+8#array_like, shape (m,)#ArrayLike
+8#None or array_like#ArrayLike|None
+7#{True, False}#bool
+7#None or (lower limit, upper limit)#None|tuple[float,float]
+7#int or map-like callable#int|Callable
+7#integer or iterable of integers#int|Iterable[int]
+7#str or function or `False`#str|Callable|Literal[False]
+7#None, 0, or 1#Literal[0,1]|None
+6#tuple of array_like#tuple[ArrayLike, ...]
+6#array_like (n, d)#ArrayLike
+6#array_like or None#ArrayLike|None
+6#float or array_like#float|ArrayLike
+6#{(bool, bool) tuple}#tuple[bool,bool]
+6#number or ndarray or sequence#int|float|ArrayLike
+6#{None, int, array_like}#ArrayLike|None|int
+6#{0, 1, 2}#Literal[0,1,2]
+6#(int, int)#tuple[int,int]
+6#{-2, -1, 0, 1, None} optional#Literal[-2, -1, 0, 1]|None
+6#hashable object#hashable
+6#tuple and dict#tuple|dict
+6#2-D array, square#ArrayLike
+6#sequence or `Bounds`#ArrayLike|Bounds
+6#double (default: 1e-07)#double
+6#bool (default = False)#bool
+6#(M,) or (M, K) array_like#ArrayLike
+5#array_like (d,)#ArrayLike
+5#array_like, 1-D#ArrayLike
+5#str or function#str|Callable
+5#ndarray, 2-D#NDArray
+5#ndarray or other linear operator#NDArray|LinearOperator
+5#ndarray, sparse matrix or LinearOperator#ArrayLike|LinearOperator
+5#A `scipy.optimize._linprog_util._LPProblem` consisting of the following fields:#scipy.optimize._linprog_util._LPProblem
+5#bool (default = True)#bool
+5#int (cast to 0 or 1)#int
+4#1D array_like#ArrayLike
+4#{False, True}#bool
+4#array_like of float#ArrayLike[float]
+4#positive int#int
+4#1d ndarray#ArrayLike
+4#np.ndarray#NDArray
+4#1d array_like#ArrayLike
+4#an instance of the LTI class or a tuple of array_like#LTI|tuple[ArrayLike]
+4#(M, K) array_like#ArrayLike
+4#np.matrix#np.matrix
+4#{True, False, "u", "vh"}#bool|Literal["u","vh"]
+4#{matrix, ndarray}#ArrayLike
+4#array_like (..., n)#ArrayLike
+4#int, array_like#int|ArrayLike
+4#complex or float, array_like#complex|float|ArrayLike
+4#mapping#Mapping
+4#{None, array_like, sparse matrix}#ArrayLike|None
+4#function or float#Callable|float
+4#{callable, scipy.LowLevelCallable}#LowLevelCallable|Callable
+4#2-tuple of array_like#tuple[ArrayLike, ...]
+4#callable ``f(x, *args)``#Callable
+4#array_like, shape (n, )#ArrayLike
+4#bool (default: ``False``)#bool
+4#np.array.#ArrayLike
+4#str (default = 'MMD_AT_PLUS_A')#str
+4#array_like, up to 2-D#ArrayLike
+4#(min, max)#tuple[float,float]
+4#int32 ndarray#ArrayLike[int]
+3#str or stats.distributions instance#str|stats.distributions
+3#sequence of 1-D array_like#ArrayLike[ArrayLike]
+3#int or array_like#int|ArrayLike
+3#2-D ndarray#ArrayLike
+3#integer, array_like#int|ArrayLike
+3#float, array_like#float|ArrayLike
+3#tuple (lower, upper)#tuple[float,float]
+3#(N,) array_like or list of (N,) array_like#ArrayLike
+3#data-type#DType
+3#an instance of the LTI class or a tuple describing the system.#LTI|tuple
+3#matplotlib.axes.Axes instance#Axes
+3#double#double
+3#(N, K) array_like#ArrayLike
+3#float, 1 <= p <= infinity#float
+3#nonnegative float#float
+3#dense or sparse matrix#dense|ArrayLike
+3#str or file-like object#str|FileLike
+3#length-2 tuple of ints#tuple[int,int]
+3#sparse matrix#ArrayLike
+3#transposable linear operator#LinearOperator
+3#sparse matrix or LinearOperator#ArrayLike|LinearOperator
+3#(2,) array_like#ArrayLike
+3#bool or (bool, bool)#bool|tuple[bool,bool]
+3#ndarray, size (k, m, ...)#ArrayLike
+3#ndarray, size (m,)#ArrayLike
+3#ndarray of type int#NDArray[int]
+3#``VarHeader4`` instance#VarHeader4
+3#Python string or unicode#str
+3#ndarray, shape (n, n)#ArrayLike
+3#str in {'faq', '2opt'} (default: 'faq')#Literal['faq','2opt']
+3#2-D array of integers, optional (default: None)#ArrayLike[int]|None
+3#array_like of bool#ArrayLike[bool]
+3#callable `f(x,*args)`#Callable
+3#bool (default: ``True``)#bool
+3#sequence of ndarrays#ArrayLike[NDArray]
+3#str or dtype#str|DType
+3#array_like or tuple of (array_like, array_like)#ArrayLike|tuple[ArrayLike,ArrayLike]
+3#:class:`scipy.sparse.linalg.LinearOperator`#LinearOperator
+3#array_like (cast to booleans)#ArrayLike
+3#scalar or sequence of scalars#Scalar|Sequence[Scalar]
+3#`numpy.random.Generator` or `numpy.random.RandomState`#np.random.Generator|np.random.RandomState
+2#2-tuple#tuple
+2#str, optional, deprecated#str|None
+2#array_like, int#ArrayLike|int
+2#sequences#sequence
+2#{1, 2}#Literal[1,2]
+2#1D or 2D array_like, y is optional#ArrayLike
+2#array_like of bools#ArrayLike[bool]
+2#str, as documented in stats.kstest#str
+2#{0,integer}#int
+2#(float or None, float or None)#tuple[float,float]
+2#nonnegative int#int
+2#int or array_like of ints#int|ArrayLike[int]
+2#1D or 2D array_like, b is optional#ArrayLike
+2#array_like, 1-Dimensional#ArrayLike
+2#Optional[int]#int|None
+2#None or number or ndarray#int|float|ArrayLike|None
+2#1-D sequence#ArrayLike
+2#float or array like, shape (2,)#float|ArrayLike
+2#str {'auto', 'direct', 'fft'}#Literal['auto','direct','fft']
+2#str {'fill', 'wrap', 'symm'}#Literal['fill','wrap','symm']
+2#array_like (1-D)#ArrayLike
+2#scalar or 1-D ndarray#Scalar|ArrayLike
+2#an instance of the `lti` class or a tuple describing the system.#LTI|tuple
+2#array_like (1D or 2D)#ArrayLike
+2#1-D array_like#ArrayLike
+2#tuple of array_like or instance of `dlti`#tuple[ArrayLike, ...]|dlti
+2#ndarray, shape (n, 3, 3)#ArrayLike
+2#(n_dimensions, ) array-like#ArrayLike
+2#hyperrectangle#hyperrectangle
+2#float, 1<=p<=infinity#float
+2#positive float#float
+2#integer : optional#int|None
+2#sequence of int or an int#Sequence[int]|int
+2#real#float
+2#ndarray or sparse matrix#NDArray
+2#(M, M) sparse matrix#ArrayLike
+2#(M,) or (M, N) array_like#ArrayLike
+2#{int, 2-tuple of ints, None}#None|tuple[int,int]|int
+2#2d ndarray#ArrayLike
+2#linear operator#LinearOperator
+2#ndarray, float32 or float64#ArrayLike|float
+2#{dense matrix, sparse matrix, LinearOperator}#NDArray|LinearOperator
+2#string or numpy dtype#str|DType
+2#{-2, -1, 0, 1, None}#None|Literal[-2,-1,0,1]
+2#{pypocketfft.dct, pypocketfft.dst}#pypocketfft.dct|pypocketfft.dst
+2#{1, 0, -1}#Literal[1,0,-1]
+2#BSpline instance or a tuple of (t, c, k)#BSpline|tuple
+2#tuple of (t, c, k)#tuple
+2#ndarray, shape (k, m, ...)#ArrayLike
+2#ndarray, shape (m+1,)#ArrayLike
+2#ndim-tuple of int#tuple[int]
+2#2-D array, shape(bs, bs)#ArrayLike
+2#1-D array, shape (n,)#ArrayLike
+2#scalar or array_like#Scalar|ArrayLike
+2#(P, N) float ndarray#NDArray[float]
+2#tuple of ndarray of float, with shapes (m1, ), ..., (mn, )#tuple[NDArray[float]]
+2#array_like, shape (m1, ..., mn, ...)#ArrayLike
+2#ndarray of shape (..., ndim)#ArrayLike
+2#float (>=0)#float
+2#{1, -1}#Literal[1,-1]
+2#{None, True, False}#None|bool
+2#array like#ArrayLike
+2#float or array_like with shape (n_points,)#float|ArrayLike
+2#ndarray, shape (n_stages,)#NDArray
+2#{None, array_like, sparse_matrix, callable}#ArrayLike|None|NDArray|Callable
+2#ndarray, shape (n_events,)#ArrayLike
+2#array_like, shape (n_events,)#ArrayLike
+2#callable(y, t, ...) or callable(t, y, ...)#Callable
+2#callable ``f(t, y, *f_args)``#Callable
+2#callable ``jac(t, y, *jac_args)``#Callable
+2#iterable object#Iterable
+2#np.dtype#DType
+2#array_like of shape (n,) or float#ArrayLike|float
+2#2-D sparse matrix#ArrayLike
+2#callable, `callback(xk, convergence=val)`#Callable
+2#{NonLinearConstraint, LinearConstraint, Bounds}#Bounds|LinearConstraint|NonLinearConstraint
+2#LinearOperator (or sparse matrix or ndarray), shape (n, n)#LinearOperator|NDArray
+2#None or ndarray with shape (n,)#ArrayLike|None
+2#{callable, '2-point', '3-point', 'cs', HessianUpdateStrategy}#Literal['2-point','3-point','cs']|HessianUpdateStrategy|Callable
+2#callable phi(alpha)#Callable
+2#callable phi'(alpha)#Callable
+2#A `scipy.optimize.OptimizeResult` consisting of the following fields:#OptimizeResult
+2#array_like, shape=(n_corr, n)#ArrayLike
+2#double (default: ``1e-08``)#double
+2#str (default: None)#str|None
+2#int (default: 5000)#int
+2#float (default: 1e-12)#float
+2#callable func(x,*args)#Callable
+2#float or array scalar#float|ArrayLike
+2#Vertex object#Vertex
+2#{True, False, 'preferred'}#bool|Literal['preferred']
+2#(integer, integer)#tuple[int,int]
+2#2-D array_like#ArrayLike
+2#:class:`numpy.ndarray` or :class:`scipy.sparse.linalg.LinearOperator`#NDArray|LinearOperator
+2#tuple (lo, hi)#tuple
+2#(u+1, M) array_like#ArrayLike
+2#ndarray, shape (ndim,)#ArrayLike
+2#ndarray, shape (ndim-1,)#ArrayLike
+2#(N, N) array_like upper triangular#ArrayLike
+2#tuple, (array, bool)#tuple[ArrayLike,bool]
+2#tuple, (ndarray, bool)#tuple[NDArray,bool]
+2#ClusterNode instance#ClusterNode
+2#scipy.cluster.linkage array#Linkage
+2#{0, 1, 2} int#Literal[0,1,2]
+2#{0, 1} int#Literal[0,1]
+1#int, {1, 2, 3, 4}#Literal[1,2,3,4]
+1#int, {1, 2}#Literal[1,2]
+1#str or stats.distributions instance.#str|stats.Distributions
+1#2-tuple, optional#tuple|None
+1#matplotlib.axes.Axes#Axes
+1#`scipy.stats.rv_continuous` or `scipy.stats.rv_discrete`#rv_continuous|rv_discrete
+1#dict or array_like#dict|ArrayLike
+1#{"cramer", "tschuprow", "pearson"} (default = "cramer")#Literal["cramer","tschuprow","pearson"]
+1#(2,) tuple of boolean#tuple[bool,...]
+1#array_like, optional (continuous RVs only)#ArrayLike|None
+1#array_like, optional  (continuous distributions only).#ArrayLike|None
+1#int, order >= 1#int
+1#tuple of two array_like#tuple[ArrayLike,ArrayLike]
+1#tuple of integers#tuple[int, ...]
+1#tuple of integers or integer#tuple[int, ...]|int
+1#class#
+1#(# of dimensions, # of points)-array#ArrayLike
+1#aray_like#ArrayLike
+1#gaussian_kde instance#
+1#array_like (1, d)#ArrayLike
+1#array_like (d, d)#ArrayLike
+1#array_like (d, d')#ArrayLike
+1#array_like (k,)#ArrayLike
+1#str, callable or array_like#str|Callable|ArrayLike
+1#(bool, bool) tuple#tuple
+1#{(True,True) tuple}#tuple[bool,bool]
+1#{(0.1,0.1), tuple of float}#tuple[float,float]
+1#{(bool, bool) tuple} optional#None|tuple[bool,bool]
+1#{(True, True) tuple}#tuple[bool,bool]
+1#int or np.inf#int
+1#float, optional.#float|None
+1#Two-element sequence containing floats in range of [0,100] optional#Sequence[float]
+1#array_like of ints or bool#ArrayLike[int]|bool
+1#non-negative int, np.inf, or None#int|None
+1#str, array_like, or callable#str|ArrayLike|Callable
+1#str, array_like or callable#str|ArrayLike|Callable
+1#int or sequence of scalars#int|ArrayLike[Scalar]
+1#(float, float) or [(float, float)]#tuple[float,float]|Sequence[tuple[float,float]]
+1#int or [int, int] or array_like or [array, array]#int|tuple[int,int]|ArrayLike|tuple[ArrayLike,ArrayLike]
+1#(2,2) array_like#ArrayLike
+1#sequence or positive int#ArrayLike|int
+1#binnedStatisticddResult#binnedStatisticddResult
+1#iterable of numbers#Iterable[int|float]
+1#Random state.#
+1#Optional[float]#float|None
+1#{2, 'approximate', 'subsample'} | None#Literal[2,'approximate','subsample']|None
+1#float or 1-D array_like#float|ArrayLike
+1#string or tuple of string and parameter values#str|tuple
+1#{True, False, 'bandpass', 'lowpass', 'highpass', 'bandstop'}#Literal[True,False,'bandpass','lowpass','highpass','bandstop']
+1#string or (string, float) or float, or None#str|tuple[str,float]|float|None
+1#a tuple describing the system or an instance of `lti`#lti|tuple
+1#float within [0, 1]#float
+1#str {'ba', 'zp'}#str|Literal['ba','zp']
+1#tuple of array_like (b, a)#tuple[ArrayLike, ...]
+1#int, {0, 1}#int|Literal[0,1]
+1#complex scalar#complex
+1#numpy.ndarray#ArrayLike
+1#array or list of arrays#ArrayLike|ArrayLike[ArrayLike]
+1#string-like#str
+1#int or tuple of two ints#inti|tuple[int,int]
+1#array_like, callable, string, float, or tuple#ArrayLike|Callable|str|float|tuple
+1#string, tuple, or array_like#str|tuple|ArrayLike
+1#str {'iir', 'fir'} or ``dlti`` instance#str|Literal['iir','fir']|dlti
+1#ndarray or the string 'cutoff'#NDArray|Literal['cutoff']
+1#1-D array_like or instance of numpy.poly1d#ArrayLike|np.poly1d
+1#(N,) ndarray#ArrayLike
+1#(M,) sequence#ArrayLike
+1#str {'psd', 'stft'}#str|Literal['psd','stft']
+1#`TransferFunction`#TransferFunction
+1#instance of `ZerosPolesGain`#ZerosPolesGain
+1#instance of `StateSpace`#StateSpace
+1#array_like (1D)#ArrayLike
+1#an instance of the `dlti` class or a tuple describing the system.#tuple|dlti
+1#ndarray, shape (n + 1,)#ArrayLike
+1#array_like, shape (N,)#ArrayLike
+1#`Rotation` instance#Rotation
+1#scipy.spatial.Delaunay instance#Delaunay
+1#scipy.spatial.ConvexHull instance#ConvexHull
+1#scipy.spatial.Voronoi instance#Voronoi
+1#float or (n_points,) 1D array-like#float|ArrayLike
+1#(M,N) array_like#ArrayLike
+1#(O,N) array_like#ArrayLike
+1#array_like, shape (n,m)#ArrayLike
+1#array_like or scalar#ArrayLike|Scalar
+1#array_like, last dimension self.m#ArrayLike
+1#int or Sequence[int]#int|Sequence[int]
+1#array_like, shape tuple + (self.m,)#ArrayLike
+1#array_like, float#ArrayLike|float
+1#KDTree instance#KDTree
+1#float or one-dimensional array of floats#float|Sequencefloat]
+1#tuple, array_like, or None#tuple|ArrayLike|None
+1#ndarray of floats, shape (npoints, ndim)#NDArray[float]
+1#ndarray of floats, shape (ndim,)#NDArray[float]
+1#sequence of array_like#Sequence[ArrayLike]
+1#{"dia", "csr", "csc", "lil", ...}#Literal["dia","csr","csc","lil"]
+1#sequence of matrices#Sequence[matrices]
+1#dtype specifier#
+1#spmatrix (format: ``csc``, ``csr``, ``bsr``, ``dia`` or coo``)#
+1#slice#slice
+1#array_like or sparse matrix, 2 dimensions#ArrayLike
+1#None or one of numeric numpy dtypes#None|DType
+1#a sparse matrix#ArrayLike
+1#{non-zero int, inf, -inf, 'fro'}#int|Literal['fro']
+1#array_like, sparse matrix, or LinearOperator#ArrayLike|LinearOperator
+1#list of (ndarray, ndarray)#Sequence[tuple[ArrayLike,ArrayLike]]
+1#list of ndarrays#Sequence[ArrayLike]
+1#{LinearOperator, Nones}#None|LinearOperator
+1#{array_like, str, None}#ArrayLike|None|str
+1#a square ndarray or matrix or sparse matrix#NDArray
+1#non-negative integer#int
+1#linear operator sequence#Sequence[LinearOperator]
+1#a dense or sparse square numpy matrix or ndarray#NDArray
+1#(M,M) array_like or sparse matrix#ArrayLike
+1#{sparse matrix, dense matrix, LinearOperator}#ArrayLike|LinearOperator
+1#ndarray, sparse matrix, or LinearOperator#ArrayLike|LinearOperator
+1#real or complex#float|complex
+1#str, ['LM' | 'SM' | 'LR' | 'SR' | 'LI' | 'SI']#Literal['SM','LM','LR','LI','SR','SI']
+1#n is a scalar#Scalar
+1#If dtype is not specified, the current dtype will be preserved.#
+1#value, or sequence of values, convertible to int#Any
+1#3-tuple or a BSpline object#tuple|BSpline
+1#tuple or a BSpline instance#tuple|BSpline
+1#tuple or a BSpline object#tuple|BSpline
+1#a `BSpline` instance or a tuple#BSpline|tuple
+1#list [tx, ty, c, kx, ky]#ArrayLike
+1#(M,) array_like#ArrayLike
+1#(4,) array_like#ArrayLike
+1#float or (float, float)#float|tuple[float,float]
+1#int >= 0, < kx#int
+1#int >= 0, < ky#int
+1#(...,N,...) array_like#ArrayLike
+1#array-like or (array-like, array_like) or "extrapolate"#ArrayLike|tuple[ArrayLike,ArrayLike]|Literal["extrapolate"]
+1#array_like or list of array_likes#ArrayLike|Sequence[ArrayLike]
+1#None or int or array_like of ints. Default: None.#int|ArrayLike[int]|None
+1#ndarray, shape (k0, ..., kn, m0, ..., mn, ...)#ArrayLike
+1#ndim-tuple of ndarrays, shapes (mj+1,)#tuple[NDARray,...]
+1#ndim-tuple of 2-tuples float#tuple[tuple[float,float],...]
+1#ndarray, shape (n+k+1,)#ArrayLike
+1#ndarray, shape (>=n, ...)#ArrayLike
+1#ndarray, shape (k+2,)#ArrayLike
+1#array_like, shape (nt,)#ArrayLike
+1#2-D array, shape(k, n)#ArrayLike
+1#1-D array, shape(n,)#ArrayLike
+1#1-D array, shape(n+2*k,)#ArrayLike
+1#array_like, shape (n + 2 * k,).#ArrayLike
+1#array_like, shape (n, ...)#ArrayLike
+1#array_like, shape (nt + k + 1,), optional.#ArrayLike|None
+1#2-tuple or None#tuple|None
+1#array_like, shape (m, ...)#ArrayLike
+1#array_like, shape (n + k + 1,).#ArrayLike
+1#arrays#ArrayLike
+1#ndarray, shape (m, )#NDArray
+1#ndarray, shape (m, ...)#NDArray
+1#string or 2-tuple#str|tuple
+1#array_like, length N#ArrayLike
+1#(Npoints, Ndims) ndarray of floats#NDArray[float]
+1#(Npoints,) ndarray of float or complex#NDArray[float|complex]
+1#2-D ndarray of floats with shape (n, D), or length D tuple of 1-D ndarrays with shape (n,).#NDArray[float]
+1#ndarray of float or complex, shape (n,)#NDArray[float|complex]
+1#2-D ndarray of floats with shape (m, D), or length D tuple of ndarrays broadcastable to the same shape.#NDArray[float]
+1#(P, S) float ndarray#NDArray[float]
+1#(P,) float ndarray#NDArray[float]
+1#(R, N) int ndarray#NDArray[int]
+1#(P, N) array_like#ArrayLike
+1#(P, ...) array_like#ArrayLike
+1#float or (P,) array_like#float|ArrayLike
+1#(Q, N) float ndarray#NDArray[float]
+1#(N, ) ndarray#NDArray
+1#(N,) float ndarray#NDArray[float]
+1#(P+R, S) float ndarray#NDArray
+1#(Q, N) array_like#ArrayLike
+1#array_like, real-valued#ArrayLike
+1#array_like of complex#ArrayLike
+1#numpy array#ArrayLike
+1#function, or tuple of functions/Nones#Callable|tuple[Callable|None,...]
+1#Python class or instance#Any
+1#{False, True}, boolean#bool
+1#BitGenerator#BitGenerator
+1#{None, np.random.RandomState, np.random.Generator}#np.random.RandomState|None|Generator
+1#{str, dtype}#str|DType
+1#{PyCapsule, ctypes function pointer, cffi function pointer}#
+1#ArgumentExtractorType#ArgumentExtractorType
+1#ArgumentReplacerType#ArgumentReplacerType
+1#Optional[Callable]#Callable|None
+1#Optional[str]#str|None
+1#Sequence[Union[uarray.Dispatchable, Any]]#Sequence
+1#Optional[Any]#Any
+1#file or str#FileLike|str
+1#dtypes#DType
+1#False#bool
+1#{'5', '4'}, string#Literal['5','4']
+1#file_like object#FileLike
+1#{True, False} bool#Literal[True,False]
+1#dtype or str#DType|str
+1#dtype character code#str
+1#file-like matrix#ArrayLike
+1#file-object#FileLike
+1#sparse-matrix#ArrayLike
+1#str, unicode#str
+1#ndarray, shape (n_stages, n_stages)#ArrayLike
+1#ndarray, shape (n_stages + 1, n)#ArrayLike
+1#ndarray, shape (3, n)#ArrayLike
+1#ndarray, shape (n)#ArrayLike
+1#array_like, shape (n_segments + 1,)#ArrayLike
+1#list of DenseOutput with n_segments elements#Sequence[DenseOutput]
+1#ndarray with shape (n,) or None#NDArray|None
+1#tuple (structure, groups) or None#tuple|None
+1#list of callables, length n_events#Sequence[Callable]
+1#2-tuple of floats#tuple[float, ...]
+1#string or `OdeSolver`#str|OdeSolver
+1#callable, or list of callables#Callable|Sequence[Callable]
+1#array_like, sparse_matrix, callable or None#ArrayLike|Callable|None
+1#array_like, sparse matrix or None#ArrayLike|None
+1#ndarray, shape (n, n, m)#NDArray
+1#ndarray, shape (n, n, m - 1)#NDArray
+1#ndarray with shape (n, k, m) or None#NDArray|None
+1#ndarray with shape (n, k, m - 1) or None#NDArray|None
+1#ndarray with shape (n, k) or None#NDArray|None
+1#ndarray, shape (m-1,)#NDArray
+1#ndarray, shape (n, m)#NDArray
+1#ndarray, shape (k,)#NDArray
+1#ndarray with shape (n, n) or None#NDArray|None
+1#ndarray, shape (m,)#NDArray
+1#array_like, shape (n, m)#ArrayLike
+1#array_like with shape (k,) or None#ArrayLike|None
+1#array_like with shape (n, n) or None#ArrayLike|None
+1#str {'avg', 'first', 'last'}#Literal['avg','first','last']
+1#{function, scipy.LowLevelCallable}#Callable
+1#iterable object or dict#Iterable|dict
+1#np.ndarray or scalar#NDArray|Scalar
+1#array_like or sparse matrix, shape (m, n)#ArrayLike
+1#int, iterable of int with shape (n,) or None#int|Iterable[int]|None
+1#{None, array_like, sparse matrix, 2-tuple}#None|ArrayLike|tuple
+1#2-D array, "barycenter", or "randomized" (default: "barycenter")#ArrayLike|Literal["barycenter","randomized"]
+1#int, positive (default: 30)#int
+1#float (default: 0.03)#float
+1#1-D logical array#ArrayLike
+1#function(x) -> f#Callable
+1#function(vector) -> scalar#Callable
+1#kwargs#
+1#{`NonlinearConstraint`, `LinearConstraint`, `Bounds`}#Bounds|NonlinearConstraint|LinearConstraint
+1#{callable, '2-point', '3-point', 'cs', HessianUpdateStrategy, None}#None|Literal['2-point','3-point','cs']|HessianUpdateStrategy|Callable
+1#{array_like, sparse matrix}, shape (m, n)#ArrayLike
+1#{NonlinearConstraint, LinearConstraint`, Bounds}#Bounds|NonlinearConstraint|LinearConstraint
+1#callable ``func(x, *args)``#Callable
+1#callable ``fprime(x, *args)``#Callable
+1#A sequence of 2 floats#Sequence[float]
+1#{`~numpy.random.RandomState`, `~numpy.random.Generator`}#np.random.RandomState|np.random.Generator
+1#callable, ``callback(x, f, context)``#Callable
+1#ndarray, shape(n,)#ArrayLike
+1#iteration#
+1#list of functions#Sequence[Callable]
+1#2D array#ArrayLike
+1#array_like or object#Any
+1#None or M-length sequence or MxM array#None|ArrayLike
+1#ndarray, shape (n_ineq,)#NDArray
+1#sparse matrix (or ndarray), shape (m, n)#NDArray
+1#sparse matrix, shape (n, n)#ArrayLike|NDArray
+1#LinearOperator (or sparse matrix or ndarray), shape (m, n)#LinearOperator|ArrayLike|NDArray
+1#LinearOperator (or sparse matrix or ndarray), shape (n, m)#LinearOperator|ArrayLike|NDArray
+1#LinearOperator,  sparse matrix, ndarray, shape (n, m)#LinearOperator|ArrayLike
+1#array_like, sparse matrix of LinearOperator, shape (m, n)#ArrayLike|ArrayLike
+1#ndarray, shape (2, 2)#ArrayLike
+1#ndarray, shape (2,)#ArrayLike
+1#ndarray, sparse matrix or LinearOperator shape (m, n)#NDArray|ArrayLike|LinearOperator
+1#ndarray, sparse matrix or LinearOperator, shape (m, n)#NDArray|ArrayLike|LinearOperator
+1#ndarray, shape (k, n) or (n,)#ArrayLike
+1#array_like with shape (n,) or float#ArrayLike|float
+1#array_like or 'jac'#ArrayLike|Literal['jac']
+1#vec#tuple
+1#vec (tuple)#tuple
+1#generation#
+1#parent homology group rank#
+1#callable f'(x,*args)#Callable
+1#1-D ndarray of float#NDArray[float]
+1#callable ``take_step(x)``#Callable
+1#callable, ``accept_test(f_new=f_new, x_new=x_new, f_old=fold, x_old=x_old)``#Callable
+1#callable, ``callback(x, f, accept)``#Callable
+1#callable fprime(x,*args)#Callable
+1#{Constraint, dict} or List of {Constraint, dict}#Constraint|dict|Sequence[Constraint|dict]
+1#Constraint#Constraint
+1#int (default: 1000)#int
+1#float (default: 1e-8)#float
+1#float (default: 0.99995)#float
+1#float (default: 0.1)#float
+1#str (default: 'MMD_AT_PLUS_A')#str
+1#int (default: 10)#int
+1#"mrc" or "bland" (default: "mrc")#Literal["mrc","bland","mrc"]
+1#array_like of shape (N + 1, N)#ArrayLike
+1#{float, array_like}#ArrayLike|float
+1#args#
+1#callable ``func(x0, *args)``#Callable
+1#callable ``grad(x0, *args)``#Callable
+1#\*args#
+1#callable ``f(x,*args)``#Callable
+1#callable ``f'(x,*args)``#Callable
+1#callable, ``f(x, *args)``#Callable
+1#callable, ``fprime(x, *args)``#Callable
+1#callable ``f'(x, *args)``#Callable
+1#callable ``fhess_p(x, p, *args)``#Callable
+1#callable ``fhess(x, *args)``#Callable
+1#vector of floats#tuple[float]
+1#{0, 1, 2, 3}#Literal[0,1,2,3]
+1#int (default = 1000)#int
+1#float (default = 1e-8)#float
+1#float (default = 0.99995)#float
+1#float (default = 0.1)#float
+1#(N-1,) array_like#ArrayLike
+1#(M, N) ndarray#NDArray
+1#(P, Q) ndarray#NDArray
+1#(n,) array_like#ArrayLike
+1#(m,) array_like#ArrayLike
+1#{int, inf, -inf, 'fro', 'nuc', None}#int|None|Literal['fro', 'nuc']
+1#(N, NRHS) array_like#ArrayLike
+1#bool, optional, deprecated#bool|None
+1#{0, 1, 2, 'N', 'T', 'C'}#Literal[0,1,2,'N','T','C']
+1#(`l` + `u` + 1, M) array_like#ArrayLike
+1#(`u` + 1, M) array_like#ArrayLike
+1#(n, n) array_like#ArrayLike
+1#array_like with shape (N, N)#ArrayLike
+1#str {'real','complex'}#Literal['real','complex']
+1#array_like, iterable#ArrayLike|Iterable
+1#:class:`numpy.ndarray` or :class:`scipy.sparse.linalg.LinearOperator` with `rmatvec`#NDArray|LinearOperator
+1#(m, n) array_like#ArrayLike
+1#(n, k) array_like#ArrayLike
+1#(m, k) array_like#ArrayLike
+1#(..., M) array_like#ArrayLike
+1#(..., M, M) array_like#ArrayLike
+1#(M,) or (N,) array_like#ArrayLike
+1#(M, N), array_like#tuple[M,N]|ArrayLike
+1#(u + 1, M) array_like#ArrayLike
+1#indexable#
+1#positive integer#int
+1#ndarray or dtype#NDArray|DType
+1#structure#
+1#origin#
+1#{'chessboard', 'taxicab'} or array_like#Literal['chessboard','taxicab']|ArrayLike
+1#float64 ndarray#NDArray[float]
+1#(None, data-type, array_like)#None|DType|ArrayLike
+1#int, sequence of ints or None#int|Sequence[int]|None
+1#array_like, N-D#ArrayLike|NDArray
+1#array_like (N-D)#ArrayLike
+1#label or sequence of labels#str|Sequence[str]
+1#structure element#
+1#ndarray (optional)#NDArray
+1#(N, M) ndarray#NDArray
+1#list of str or None#Sequence[str]|None
+1#lambda or function#Callable
+1#matplotlib Axes instance#Axes
+1#array_like of rank-1#ArrayLike
+1#Data class instance#Data
+1#Model class instance#Model
+1#{0, 1, 2, 3} int#Literal[0,1,2,3]

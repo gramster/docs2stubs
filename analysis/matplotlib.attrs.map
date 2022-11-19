@@ -1,0 +1,31 @@
+11#`matplotlib.figure.Figure`#Figure
+9#`~matplotlib.axes.Axes`#Axes
+5#`FigureCanvasBase`#FigureCanvasBase
+3#`.silent_list` of `.PathCollection`\s#
+3#color#Color
+2#bytes#bytes
+2#`~matplotlib.backend_bases.FigureCanvasBase`#FigureCanvasBase
+2#list of `.Text`#list[Text]
+2#:class:`~matplotlib.lines.Line2D`#Line2D
+2#`~matplotlib.widgets.LockDraw`#LockDraw
+2#`.Bbox`#Bbox
+1#dict[str, Any]#dict[str, Any]
+1#OrderedDict#OrderedDict
+1#`~matplotlib.figure.Figure`#Figure
+1#list of `.Rectangle`#list[Rectangle]
+1#list of (`.Line2D`, `.Line2D`) pairs#list[tuple[Line2D,Line2D]]
+1#`.Text`#Text
+1#list of `~.patches.Circle`#list[Circle]
+1#list of :class:`~matplotlib.patches.Rectangle`#list[Rectangle]
+1#None or :class:`~matplotlib.container.ErrorbarContainer`#ErrorbarContainer|None
+1#list of :class:`~matplotlib.lines.Line2D`#list[Line2D]
+1#`.Figure`#Figure
+1#`.LineCollection`#LineCollection
+1#(ntri, 3) array of int#NDArray[int]
+1#(ntri, 3) array of bool#NDArray[bool]
+1#`RendererBase`#RendererBase
+1#`~.axes.Axes` or None#Axes|None
+1#None or `MouseButton` or {'up', 'down'}#MouseButton|Literal['up','down']|None
+1#`MouseEvent`#MouseEvent
+1#`matplotlib.artist.Artist`#Artist
+1#`.ToolManager`#ToolManager
