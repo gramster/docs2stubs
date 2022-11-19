@@ -162,19 +162,25 @@ def _post_process(m: str, state: tuple, include_counts: bool = False, dump_all =
     total_mapped = 0
     total_missed = 0
     trivials = {}
+    first = True # hacky way to tell we are in params
     for result, freq, map in zip(results, freqs, maps):
         for typ, cnt in freq.most_common():
             if typ in map:
                 total_mapped += cnt
-            elif not dump_all and is_trivial(typ, m, locations):
-                trivials[typ] = normalize_type(typ)
-                total_trivial += cnt
             else:
-                total_missed += cnt
-                if include_counts:
-                    result.append(f'{cnt}#{typ}#{normalize_type(typ)}\n')
+                normtype, _ = normalize_type(typ, m, locations, first)
+                if normtype is None:
+                    normtype = typ
+                if not dump_all and is_trivial(typ, m, locations):
+                    trivials[typ] = normtype
+                    total_trivial += cnt
                 else:
-                    result.append(f'{typ}#{normalize_type(typ)}\n')
+                    total_missed += cnt
+                    if include_counts:
+                        result.append(f'{cnt}#{typ}#{normtype}\n')
+                    else:
+                        result.append(f'{typ}#{normtype}\n')
+        first = False        
     print(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
     print('\nTRIVIALS\n')
     for k, v in trivials.items():

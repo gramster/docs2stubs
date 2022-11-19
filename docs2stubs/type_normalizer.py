@@ -107,8 +107,11 @@ def is_trivial(s, modname: str, classes: set|dict|None = None):
     #if parts[0] in _basic_types:
     #    return is_trivial(' or '.join(parts[1:]), modname, classes)  
 
-    #if sl.startswith("ndarray of"):
-    #    return is_trivial(s[11:], modname, classes) 
+    # These are low frequency enough they're not worth the effort to handle
+    #if sl.startswith("generator of "):
+    #    return is_trivial(s[13:], modname, classes) 
+    #if sl.startswith("iterable over "):
+    #    return is_trivial(s[14:], modname, classes) 
 
     # Check if it's a string
 
@@ -192,131 +195,12 @@ def _is_string(s) -> bool:
     return True
 
 
-def normalize_type(s: str, modname: str|None = None, classes: dict|None = None) -> tuple[str, dict|None]:
-    #try:
-    if True:
-        return parse_type(remove_shape(s), modname, classes)
-    #except Exception as e:
-    #    return str(e), None
+def normalize_type(s: str, modname: str|None = None, classes: dict|None = None, is_param: bool = False) -> tuple[str|None, dict[str, list[str]]]:
+    try:
+        return parse_type(remove_shape(s), modname, classes, is_param)
+    except Exception as e:
+        return None, {}
     
-
-def normalize_type_old(s: str, modname: str|None = None) -> str:
-
-    s = s.strip()
-    sl = s.lower()
-
-    # A lot of types end with 'or None', so let's handle
-    # that first to simplify everything else.
-   
-    ornone = ''  # We'll append this before returning
-    if sl.endswith(' or none'):
-        s = s[:-7]
-        sl = sl[:-7]
-        ornone = '|None'
-
-    if m:=_shaped.match(s):
-        s = m.group(1)
-
-    if _ndarray.match(sl):
-        s = 'np.ndarray'
-    elif _arraylike.match(sl):
-        s = 'ArrayLike'
-
-    def recombine(t1, t2, t3) -> str:
-        t1 = normalize_type_old(t1)
-        if t1:
-            t1 += '|'
-        t3 = normalize_type_old(t3)
-        if t3:
-            t3 += '|'
-        return t1 + t2 + t3
-
-    # Handle a restricted value set
-    m = _restricted_val.match(s)
-    if m:
-        # Make sure the innards are a comma-separated list
-        # of strings
-        opts = m.group(2).split(',')
-        if all([_is_string(opt.strip()) for opt in opts]):
-            return recombine(m.group(1), 'Literal[' + m.group(2) + ']', m.group(3)) + ornone
-        elif not m.group(1): # scikit uses this for alternates "{a, b} of x"
-            s = ' or '.join([(o + m.group(3)) for o in opts])
-
-    # Handle tuples in [] or (). Right now we can only handle one per line;
-    # need to fix that.
-
-    m = _tuple1.match(s)
-    if not m:
-        m = _tuple2.match(s)
-    if m:
-        return recombine(m.group(1), 'tuple[' + m.group(2) + ']', m.group(3)) + ornone
-
-    # Now look at list of types. First replace ' or ' with a comma.
-    # This is a bit dangerous as commas may exist elsewhere but 
-    # until we find the failure cases we don't know how to address 
-    # them yet.
-    s = s.replace(' or ', ',')
-
-    # Get the alternatives
-    parts = s.split(',')
-
-    def normalize_one(s: str, modname: str|None = None):
-
-        orig = s
-        rtn = None
-        """ Do some normalizing of a single type. """
-        s = s.strip()
-        if s.startswith(':class:'):
-            s = s[7:].strip()
-
-        if s.endswith(' instance'):
-            s = s[:-9].strip()
-
-        s = s.replace('`', '')  # Removed restructured text junk
-
-        # Handle collections like 'list of...', 'array of ...' ,etc
-        if m:=_sequence_of.match(s):
-            rtn = f'Sequence[{normalize_one(m.group(2))}]'
-        elif m:=_set_of.match(s):
-            rtn = f'set[{normalize_one(m.group(2))}]'
-        elif m:=_tuple_of.match(s):
-            rtn = f'tuple[{normalize_one(m.group(2))}, ...]'
-        elif m:=_dict_of.match(s):
-            rtn = f'set[{normalize_one(m.group(2))}, {normalize_one(m.group(3))}]'
-        elif _filelike.match(s):
-            rtn = 'FileLike'
-        elif _pathlike.match(s):
-            rtn = 'PathLike'
-        elif s.lower() == 'scalar':
-            rtn = 'Scalar'
-        elif _is_string(s):
-            rtn = 'Literal[' + s + ']'
-        else:
-            try:
-                float(s)
-                rtn = 'Literal[' + s + ']'
-            except ValueError:
-                while s.startswith('.') or s.startswith('~'):
-                    s = s[1:]
-
-                if s in _basic_types:
-                    rtn = _basic_types[s]
-
-                elif modname and s.startswith(modname + '.') and _ident.match(s):
-                    rtn = s[s.rfind('.')+1:]
-                elif s.find(' ') >= 0:
-                    rtn = 'Unknown'
-                else:
-                    rtn = s
-        
-        if rtn:
-            _norm1[orig] = rtn
-        return rtn
-        
-    # Create a union from the normalized alternatives
-    s = '|'.join(normalize_one(p) for p in parts if p.strip())
-
-    return s + ornone
 
 
 def check_normalizer(typ: str, m: str|None=None, classes: dict|None = None):

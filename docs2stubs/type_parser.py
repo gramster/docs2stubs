@@ -4,6 +4,8 @@ from lark.lexer import Token
 from lark.visitors import Interpreter
 
 
+# NOTE: imports must be tuples (what, where)! It's easy to get that wrong and invert them.
+
 _grammar = r"""
 start: type_list
 type_list: [RETURNS] type ((_COMMA|OR|_COMMA OR) type)* [_PERIOD|_COMMA] [[_LPAREN] DEFAULT [_EQUALS|_COLON] literal_type [_RPAREN] [_PERIOD]]
@@ -15,6 +17,7 @@ type: array_type
     | filelike_type
     | generator_type 
     | iterable_type
+    | iterator_type
     | literal_type 
     | optional_type 
     | restricted_type 
@@ -56,7 +59,7 @@ type_qualifier: OF (ARRAYS|ARRAYLIKE)
               | [OF] DTYPE [_EQUALS] (basic_type | QUALNAME) [TYPE]
               | _LBRACKET type _RBRACKET
               | _LPAREN type _RPAREN
-basic_type: ANY 
+basic_type.2: ANY 
             | [POSITIVE|NEGATIVE] INT [_GRTRTHAN NUMBER]
             | STR 
             | [POSITIVE|NEGATIVE] FLOAT [IN _LBRACKET NUMBER _COMMA NUMBER _RBRACKET] [_GRTRTHAN NUMBER]
@@ -75,11 +78,14 @@ class_specifier: [A|AN] (INSTANCE|CLASS|SUBCLASS) OF QUALNAME
         | [A|AN] QUALNAME (INSTANCE|CLASS|SUBCLASS)
         | [A|AN] QUALNAME [_COMMA|_LPAREN] OR [A|AN|ANOTHER] SUBCLASS [OF QUALNAME][_RPAREN]
         | [A|AN] QUALNAME [_COLON QUALNAME] [_MINUS LIKE]
-dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|QUALNAME) [(TO|_ARROW) (basic_type | QUALNAME | ANY)] 
+dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|qualname) [(TO|_ARROW) (basic_type|qualname)] 
          | (MAPPING|DICT) [_LBRACKET type _COMMA type _RBRACKET]
 filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE]
 generator_type: GENERATOR [OF type]
 iterable_type: ITERABLE [(OF|OVER) type]
+         | ITERABLE _LPAREN type _RPAREN
+iterator_type: ITERATOR [(OF|OVER) type]
+         | ITERATOR _LPAREN type _RPAREN
 literal_type: STRING | NUMBER | NONE | TRUE | FALSE
 optional_type: OPTIONAL [_LBRACKET type _RBRACKET]
 restricted_type: [(ONE OF)| STR] _LBRACE (literal_type|STR) ((_COMMA|OR) (literal_type|STR|_ELLIPSIS))* _RBRACE [INT|BOOL]
@@ -92,6 +98,7 @@ union_type: UNION _LBRACKET type (_COMMA type)* _RBRACKET
           | type (AND type)+
           | [TUPLE] _LBRACE type (_COMMA type)* _RBRACE
           | type (_PIPE type)*
+qualname.0: QUALNAME
 
 
 A.2:         "a"i
@@ -105,7 +112,7 @@ ARRAYS.2:    "arrays"i
 AS.2:        "as"i
 AXES.2:      "axes"i
 BOOL.2:      "bool"i | "bools"i | "boolean"i | "booleans"i
-CALLABLE.2:  "callable"i | "function"i
+CALLABLE.2:  "callable"i | "callables"i | "function"i
 CLASS.2:     "class"i
 CLASSMARKER.2:":class:"
 COLOR.2:     "color"i | "colors"i
@@ -122,7 +129,8 @@ GENERATOR.2: "generator"i
 IN.2:        "in"i
 INSTANCE.2:  "instance"i
 INT.2:       "int"| "ints"|  "integer" | "integers" | "int8" | "int16" | "int32" | "int64" | "uint8"| "uint16" | "uint32" | "uint64"
-ITERABLE.2:  "iterable"i | "iterator"i
+ITERABLE.2:  "iterable"i
+ITERATOR.2:  "iterator"i | "iter"i
 LENGTH.2:    "length"i
 LIKE.2:      "like"i
 LIST.2:      "list"i | "list thereof"i
@@ -194,6 +202,7 @@ _RPAREN:    ")"
 _SLASH:     "/"
 _STRIDED:   "strided"i
 _SUCH:      "such"
+_THE:       "the"
 _TILDE:     "~"
 _X:         "x"
 
@@ -216,11 +225,12 @@ STRING:    STRINGSQ | STRINGDQ
 %ignore _PRIVATE
 %ignore _STRIDED
 %ignore _SUCH
+%ignore _THE
 %ignore _TILDE
 """
 
 class Normalizer(Interpreter):
-    def configure(self, module:str|None, classes: dict|None):
+    def configure(self, module:str|None, classes: dict|None, is_param:bool):
         if module is None:
             module = ''
         x = module.find('.')
@@ -230,6 +240,7 @@ class Normalizer(Interpreter):
             self._tlmodule = module
         self._module = module
         self._classes = classes
+        self._is_param = is_param
 
     def handle_qualname(self, name: str, imports: set) -> str:
         return name
@@ -241,7 +252,7 @@ class Normalizer(Interpreter):
         
     def type_list(self, tree) -> tuple[str, set[str]|None]:
         """ type_list: type ((_COMMA|OR|_COMMA OR) type)*  [OR NONE] [_PERIOD] """
-        type = ''
+        types = [] # We want to preserve order so don't use a set
         imports = set()
         literals = []
         has_none = False
@@ -255,22 +266,23 @@ class Normalizer(Interpreter):
                     if result[0].startswith('Literal:'):
                         literals.append(result[0][8:])
                     else:
-                        if type:
-                            type += '|'
-                        type += result[0]
+                        type = result[0]
+                        if type not in types:
+                            types.append(type)
                     if result[1]:
                         imports.update(result[1])
 
         if not imports:
             imports = None
         if literals:
-            if type:
-                type += '|'
-            type += 'Literal[' + ','.join(literals) + ']'            
+            type = 'Literal[' + ','.join(literals) + ']'
+            if type not in types:
+                types.append(type)
         if has_none:
-            if type:
-                type += '|'
-            type += 'None'
+            type = 'None'
+            if type not in types:
+                types.append(type)
+        type = '|'.join(types)
         return type, imports
 
     def type(self, tree)-> tuple[str, set[str]|None]:
@@ -343,6 +355,10 @@ class Normalizer(Interpreter):
                     elt_type, imp = self._visit_tree(child)
                     imports.update(imp)
         if elt_type:
+            if self._is_param and 'list' in arr_types:
+                arr_types.add('Sequence')
+                arr_types.remove('list')
+                imports.add(('Sequence', 'typing'))
             return '|'.join([f'{typ}[{elt_type}]' for typ in arr_types]), imports
         else:
             return '|'.join(arr_types), imports
@@ -371,14 +387,21 @@ class Normalizer(Interpreter):
         imports = set()
         for child in tree.children:
             if isinstance(child, Token):
-                if child.type == 'LIST':
+                if child.type == 'NDARRAY':
+                    arr_type = 'NDArray'
+                    imports.add(('NDArray', 'numpy.typing'))
+                elif self._is_param or child.type == 'ARRAYLIKE':
+                    arr_type = 'ArrayLike'
+                    imports.add(('ArrayLike', 'typing'))
+                elif child.type == 'LIST':
                     arr_type = 'list'
                 elif child.type == 'SEQUENCE':
                     arr_type = 'Sequence'
                     imports.add(('Sequence', 'typing'))
-                elif child.type == 'ARRAYLIKE':
-                    arr_type = 'ArrayLike'
-                    imports.add(('ArrayLike', 'numpy.typing'))
+                else:
+                    continue
+                break
+
         if not arr_type:
             arr_type = 'NDArray'
             imports.add(('NDArray', 'numpy.typing'))
@@ -420,15 +443,15 @@ class Normalizer(Interpreter):
         for child in tree.children:
             if isinstance(child, Token):
                 if child.type == 'ANY':
-                    imports.add(('typing', 'Any'))
+                    imports.add(('Any', 'typing'))
                     return 'Any', imports
                 elif child.type == 'SCALAR':
-                    imports.add((f'{self._tlmodule}._typing', 'Scalar'))
+                    imports.add(('Scalar', f'{self._tlmodule}._typing'))
                     return 'Scalar', imports
                 elif child.type == 'PATHLIKE':
-                    imports.add(('os', 'PathLike'))
+                    imports.add(('PathLike', 'os'))
                 elif child.type == 'FILELIKE':
-                    imports.add(('typing', 'IO'))
+                    imports.add(('IO', 'typing'))
                     return 'IO', imports
                 if child.type in self._basic_types:
                     return self._basic_types[child.type], imports
@@ -507,21 +530,60 @@ class Normalizer(Interpreter):
 
         return dict_type, imports
 
+    
+    def qualname(self, tree):
+        """
+        qualname: QUALNAME
+        This is mostly to give qualnames a lower priority than other types like basic_type
+        """
+        for child in tree.children:
+            if isinstance(child, Token):
+                imports = set()
+                return self.handle_qualname(child.value, imports), imports
+            
+
     def filelike_type(self, tree):
         """ filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE] """
         imports = set()
-        imports.add((f'{self._tlmodule}._typing', 'FileLike'))
+        imports.add(('FileLike', f'{self._tlmodule}._typing'))
         return 'FileLike', imports
 
     def generator_type(self, tree):
         """ generator_type: GENERATOR [OF type] """
-        # TODO
-        return 'generator', set()
+        # TODO: the type
+        imports = set()
+        imports.add(('Generator', 'collections.abc'))
+        for child in tree.children:
+            if isinstance(child, Tree):
+                type, imp = self._visit_tree(child)
+                if type:
+                    imports.update(imp)
+                    return f'Generator[{type}, None, None]', imports
+        return 'Generator', imports
 
     def iterable_type(self, tree):
         """ iterable_type: ITERABLE [OF type] """
-        # TODO
-        return 'Iterable', set()
+        imports = set()
+        imports.add(('Iterable', 'collections.abc'))
+        for child in tree.children:
+            if isinstance(child, Tree):
+                type, imp = self._visit_tree(child)
+                if type:
+                    imports.update(imp)
+                    return f'Iterable[{type}]', imports
+        return 'Iterable', imports
+    
+    def iterator_type(self, tree):
+        """ iterator_type: ITERATOR [OVER type] """
+        imports = set()
+        imports.add(('Iterator', 'collections.abc'))
+        for child in tree.children:
+            if isinstance(child, Tree):
+                type, imp = self._visit_tree(child)
+                if type:
+                    imports.update(imp)
+                    return f'Iterator[{type}]', imports
+        return 'Iterator', imports
     
     def literal_type(self, tree)-> tuple[str, set[str]|None]:
         """ literal_type: STRING | NUMBER | NONE | TRUE | FALSE """
@@ -569,6 +631,7 @@ class Normalizer(Interpreter):
                 types.append('str')
         if values:
             types.append(f'Literal[{",".join(values)}]')
+            imp.add(('Literal', 'typing'))
         return '|'.join(types), imp
 
     def set_type(self, tree):
@@ -648,19 +711,18 @@ _lark = Lark(_grammar)
 _norm =  _norm = Normalizer()
 
     
-def parse_type(s: str, modname: str|None = None, classes: dict|None = None) -> tuple[str, dict[str, list[str]]|None]:
+def parse_type(s: str, modname: str|None = None, classes: dict|None = None, is_param:bool=False) -> tuple[str, dict[str, list[str]]]:
     """ Parse a type description from a docstring, returning the normalized
         type and the set of required imports, or None if no imports are needed.
     """
-    #try:
-    if True:
+    try:
+    #if True:
         tree = _lark.parse(s)
         #tree.pretty() # TODO: remove
-        _norm.configure(modname, classes)
+        _norm.configure(modname, classes, is_param)
         n = _norm.visit(tree)
-        imps = None
+        imps = {}
         if n[1]:
-            imps = {}
             for imp in n[1]:
                 what, where = imp
                 if where not in imps:
@@ -669,8 +731,8 @@ def parse_type(s: str, modname: str|None = None, classes: dict|None = None) -> t
             for where in imps.keys():
                 imps[where] = sorted(imps[where])
         return n[0], imps
-    #except Exception as e:
-    #    print(e)
-    #    return '', None
+    except Exception as e:
+        #print(e)
+        return s, {}
     
 

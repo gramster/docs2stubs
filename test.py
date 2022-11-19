@@ -4,8 +4,7 @@ from typing_extensions import reveal_type
 
 def test_normalize():
     from docs2stubs.type_normalizer import check_normalizer, load_map
-    #classes = load_map('sklearn')
-    x = 'A DecisionTreeRegressor object.'
+    x = 'iterator over dict of str to any'
     print(check_normalizer(x, 'sklearn'))
 
 

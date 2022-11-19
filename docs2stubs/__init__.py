@@ -3,13 +3,16 @@ docs2stubs.
 
 Usage:
   docs2stubs analyze (package|module) [--include-counts] [--dump-all] <name>...
-  docs2stubs stub (package|module) [--strip-defaults] <name>...
+  docs2stubs stub (package|module) [--strip-defaults] [--skip-analysis] <name>...
   docs2stubs test [<name>] <typestring>
   docs2stubs -h | --help
   docs2stubs --version
 
 Options:
+  --include-counts  Include frequency count as first field.
+  --dump-all        Dump all types, not just those that need to be stubbed.
   --strip-defaults  Replace parameter default values with ...
+  --skip-analysis   Skip analysis and use existing analysis file.
   <name>            The target package or module (e.g. matplotlib.pyplot).
 
 The package/module needs to be installed in the environment from which

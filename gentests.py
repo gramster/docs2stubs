@@ -30,7 +30,10 @@ if __name__ == '__main__':
     x = typefile.find('.')
     if x > 0:
         modname = typefile[:x]
-        classes = load_map(modname)
+        x = modname.find('/')
+        if x > 0:
+            modname = modname[x+1:]
+        classes = load_map(modname, 'imports')
 
     with open(typefile) as f:
         lnum = 1
@@ -51,7 +54,7 @@ if __name__ == '__main__':
 
                         if keyword and input.find(keyword) < 0:
                             continue
-                        
+
                         if not onlyskips:
                             print(f'    # Line {lnum}')
                         if debug:
