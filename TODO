@@ -3,8 +3,15 @@
 - [x] update the class type handler to do better class name normalization and import generation
 - [ ] use gentests.py to generate more test cases, including of the above
 - [x] expand the logic in is_trivial to cover more cases
-- [ ] incorporate this into stubber
-- [ ] generate stubs and see how well they work
+- [x] incorporate this into stubber
+- [x] generate stubs and see how well they work
+- [ ] try to fix the issue with 'a's being stripped off
+- [ ] output relative imports
+- [ ] output attributes
+- [ ] make sure we also parse formal types
+- [ ] remove private methods
+- [ ] support 'common' map files
+- [ ] print context in log 
 
 Note: in some cases we may need to suppress QUALNAME matching in favor of other things (like basic_type).
 In that case use qualname instead (this requires changing handling from token type to tree type).

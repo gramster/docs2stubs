@@ -4,5 +4,5 @@ dist/
 *.egg
 *.gz
 typings/
-analysis/
+analysis/*.missing
 __pycache__

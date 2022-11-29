@@ -179,9 +179,13 @@ class StubbingTransformer(BaseTransformer):
             return cst.parse_statement('...')
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+        name = node.name.value
+        if name.startswith('_') and not name.startswith('__'):
+            return False
+        
         if self.at_top_level_class_level():
             # Record the method name
-            self._method_names.add(node.name.value)
+            self._method_names.add(name)
         return super().visit_FunctionDef(node)
 
     def leave_FunctionDef(
