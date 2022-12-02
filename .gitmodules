@@ -1,0 +1,9 @@
+[submodule "tracing/submodules/matplotlib"]
+	path = tracing/submodules/matplotlib
+	url = https://github.com/matplotlib/matplotlib.git
+[submodule "tracing/submodules/scikit-learn"]
+	path = tracing/submodules/scikit-learn
+	url = https://github.com/scikit-learn/scikit-learn.git
+[submodule "tracing/submodules/scipy"]
+	path = tracing/submodules/scipy
+	url = https://github.com/scipy/scipy.git
