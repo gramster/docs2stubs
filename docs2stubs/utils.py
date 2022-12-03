@@ -130,3 +130,22 @@ def process_module(m: str,
     return state
 
 
+def save_fullmap(folder, module, params, returns, attrs):
+    for section, fullmap in zip(['params', 'returns', 'attrs'], [params, returns, attrs]):
+        with open(f'{folder}/{module}.{section}.full', 'w') as f:
+            for k, v in fullmap.items():
+                f.write(f'{k}#{v}\n')
+
+                
+def load_fullmap(folder, module):
+    rtn = Sections({}, {}, {})
+    for section, fullmap in zip(['params', 'returns', 'attrs'], rtn):
+        fname = f'{folder}/{module}.{section}.full'
+        if os.path.exists(fname):
+            with open(fname) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        k, v = line.strip().split('#')
+                        fullmap[k] = v
+    return rtn

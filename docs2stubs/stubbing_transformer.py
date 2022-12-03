@@ -290,11 +290,17 @@ def _stub(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **kwar
     return patch_source(m, fname, source, state[0], state[1], state[2], **kwargs)
 
 
+_stub_folder = 'typings'
+
+
 def _targeter(fname: str) -> str:
-    return "typings/" + fname[fname.find("/site-packages/") + 15 :] + "i"
+    return _stub_folder + fname[fname.find("/site-packages/") + 15 :] + "i"
 
 
-def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False):
+def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,
+stub_folder: str = "typings") -> None:
+    global _stub_folder
+    _stub_folder = stub_folder
     imports = load_map(m, 'imports')
     rtn = analyze_module(m, include_submodules=include_submodules)
     if rtn is not None:

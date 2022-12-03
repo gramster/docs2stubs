@@ -4,9 +4,14 @@ from types import ModuleType
 from typing import Any
 import libcst as cst
 from .base_transformer import BaseTransformer
-from .utils import Sections, process_module, load_type_maps, save_result
+from .utils import Sections, process_module, load_type_maps, save_fullmap, save_result
 from .docstring_parser import NumpyDocstringParser
 from .type_normalizer import is_trivial, normalize_type, print_norm1
+
+
+_all_returns = {}
+_all_params = {}
+_all_attrs = {}
 
 class AnalyzingTransformer(BaseTransformer):
 
@@ -45,13 +50,49 @@ class AnalyzingTransformer(BaseTransformer):
         self._classname = None
         
 
-    def _analyze_obj(self, obj, context: str) -> Sections:
+    def update_fullmap(self, section, items, context):
+        if items:
+            for name, typ in items.items():
+                section[f'{context}.{name}'] = typ
+
+    def _get_obj_name(self, obj):
+        rtn = str(obj)
+        if rtn.startswith('<class '):
+            # Something like <class 'sklearn.preprocessing._discretization.KBinsDiscretizer'>
+            return rtn[rtn.find(' ')+2:-2]
+        elif rtn.startswith('<classmethod'):
+            # Something like <classmethod(<function DistanceMetric.get_metric at 0x1277800d0>)>
+            return rtn[rtn.find('.')+1:].split(' ')[0]
+        elif rtn.find(' ') > 0:
+            # Something like <function KBinsDiscretizer.__init__ at 0x169e70430>
+            return rtn.split(' ')[1]
+        else:
+            return rtn
+
+    def _analyze_obj(self, obj, parent=None) -> Sections:
+        """
+        As a side effect we collect all of these so they can be 
+        written out at the end. This allows us to go from a type
+        in the map file to the places it occurs in the source.
+        We can also use this in the augmenter to show the 
+        type annotation whenever we have a mismatch.
+        """
         doc = None
         rtn = Sections(params=None, returns=None, attrs=None)
         if obj:
             doc = inspect.getdoc(obj)
             if doc:
                 rtn = self._parser.parse(doc)
+
+        context = ''
+        if parent and parent != obj:
+            context = self._get_obj_name(parent) + '.'
+        context += self._get_obj_name(obj)
+        
+        self.update_fullmap(_all_params, rtn.params, context)
+        self.update_fullmap(_all_returns, rtn.returns, context)
+        self.update_fullmap(_all_attrs, rtn.attrs, context)
+        
         for section, counter in zip(rtn, self._counters):
             if section:
                 for typ in section.values():
@@ -76,15 +117,20 @@ class AnalyzingTransformer(BaseTransformer):
             self._classname = node.name.value
             self._locations[self._classname] = self._modname
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
-            self._docs[self.context()] = self._analyze_obj(obj, self._classname)
+            self._docs[self.context()] = self._analyze_obj(obj)
         return rtn
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
         outer_context = self.context()
         rtn = super().visit_FunctionDef(node)
         name = node.name.value
+
+        if name.startswith('_') and not name.startswith('__'):
+            return False
+        
         obj = None
         context = self.context()
+        parent = None
         if self.at_top_level_function_level():
             #context = name
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, name)
@@ -96,7 +142,7 @@ class AnalyzingTransformer(BaseTransformer):
                     obj = parent.__dict__[name]
                 else:
                     print(f'{self._fname}: Could not get obj for {context}')
-        docs = self._analyze_obj(obj, context)
+        docs = self._analyze_obj(obj, parent if parent else obj.__module__)
         self._docs[context] = docs
 
         if name == '__init__':
@@ -187,6 +233,13 @@ def _post_process(m: str, state: tuple, include_counts: bool = False, dump_all =
         print(f'{k}#{v}')
 
     print_norm1()
+
+    save_fullmap('analysis', m, _all_params, _all_returns, _all_attrs)
+
+    for section, fullmap in zip(['params', 'returns', 'attrs'], [_all_params, _all_returns, _all_attrs]):
+        with open(f'analysis/{m}.{section}.full', 'w') as f:
+            for k, v in fullmap.items():
+                f.write(f'{k}#{v}\n')
 
     return Sections(params=''.join(results[0]), 
                     returns=''.join(results[1]),
