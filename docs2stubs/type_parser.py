@@ -359,7 +359,8 @@ class Normalizer(Interpreter):
                 arr_types.add('Sequence')
                 arr_types.remove('list')
                 imports.add(('Sequence', 'typing'))
-            return '|'.join([f'{typ}[{elt_type}]' for typ in arr_types]), imports
+            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list'] else f'{typ}' \
+                    for typ in arr_types]), imports
         else:
             return '|'.join(arr_types), imports
 
@@ -392,7 +393,7 @@ class Normalizer(Interpreter):
                     imports.add(('NDArray', 'numpy.typing'))
                 elif self._is_param or child.type == 'ARRAYLIKE':
                     arr_type = 'ArrayLike'
-                    imports.add(('ArrayLike', 'typing'))
+                    imports.add(('ArrayLike', 'numpy.typing'))
                 elif child.type == 'LIST':
                     arr_type = 'list'
                 elif child.type == 'SEQUENCE':

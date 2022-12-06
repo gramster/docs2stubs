@@ -130,6 +130,29 @@ def is_trivial(s, modname: str, classes: set|dict|None = None):
     if x1 >= 0 and x2 > x1:
         return False
     
+    # Handle list/ArrayLike/NDArray of shape (...)
+    # First strip off ", dtype..."" if present
+    x = sl.find(', dtype')
+    sltmp = sl
+    if x >= 0 and sl[x+6:].find(' ') < 0 and sl[x+6:].find(',') < 0:
+        sltmp = sl[:x]
+    parts = sltmp.split(' of shape ')
+    if len(parts) == 2 and parts[0] in ['array', 'arraylike', 'array-like', 'list', 'ndarray'] \
+            and parts[1].startswith('(') and parts[1].endswith(')'):
+        return True
+
+    # Handle some class cases
+    # :class:`~sklearn.preprocessing.LabelEncoder`
+    if sl.startswith(':class:`~') and sl.endswith('`') and is_trivial(sl[9:-1], modname, classes):
+        return True
+    # Foo instance/instance of Foo
+    if sl.endswith(' instance') and is_trivial(sl[:-9], modname, classes):
+        return True
+    if sl.startswith('instance of ') and is_trivial(sl[12:], modname, classes):
+        return True
+    if sl.startswith('matplotlib '):
+        return is_trivial(sl[11:], modname, classes)
+    
     # Handle tuples
     if sl.startswith('tuple'):
         sx = s[5:].strip()

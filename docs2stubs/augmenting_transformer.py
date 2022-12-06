@@ -37,6 +37,9 @@ QueryValue = str|int
 ParameterizedQuery = tuple[str, list[QueryValue]]
 
 
+_aggregate_params_map: dict[str, set[str]] = {}
+_aggregate_returns_map: dict[str, set[str]] = {}
+
 class SQLiteDedupStore(SQLiteStore):
 
     @classmethod
@@ -118,7 +121,35 @@ class MyApplyTypeAnnotationsVisitor(ApplyTypeAnnotationsVisitor):
 
     """ This is a kludge at class level but I didn't want to mess with __init__ """
     fullmap: Sections|None = None
+    module_name: str|None = None
 
+    def _get_type_from_docstring(self, fullkey: str, is_return: bool) -> str:
+        doctype = ''
+        if self.fullmap is not None:
+            if is_return:
+                parts = self.fullmap.returns.get(fullkey, [])
+                if len(parts) > 1:
+                    doctype = f'tuple[{".".join(parts)}]'
+                elif len(parts) == 1:
+                    doctype = str(parts[0])
+            else:
+                doctype = self.fullmap.params.get(fullkey, '')
+        return doctype
+    
+
+    def _log_mismatch(self, key: str, old_annotation: str|None, new_annotation: str|None, is_return: bool):
+        old_annotation = old_annotation or ''
+        new_annotation = new_annotation or ''
+        fullkey = f'{MyApplyTypeAnnotationsVisitor.module_name}.{key}'
+        doctype = self._get_type_from_docstring(fullkey, is_return)
+        print(f'{fullkey}: old: {old_annotation}, new: {new_annotation}, docstring: {doctype}')
+        aggregate_map = _aggregate_returns_map if is_return else _aggregate_params_map
+        if doctype:
+            if doctype not in aggregate_map:
+                aggregate_map[doctype] = set()
+            aggregate_map[doctype].add(new_annotation)
+
+        
     def _update_parameters(
         self,
         fkey: str,
@@ -152,8 +183,7 @@ class MyApplyTypeAnnotationsVisitor(ApplyTypeAnnotationsVisitor):
                     if old_annotation is None or old_annotation == 'Any':
                         overwrite = True
                     elif old_annotation != new_annotation:
-                        print(f'Function {fkey} Parameter {key}: old: {old_annotation}, new: {new_annotation}')
-
+                        self._log_mismatch(f'{fkey}.{key}', old_annotation, new_annotation, False)
                     if overwrite:
                         parameter = self._apply_annotation_to_parameter(
                             parameter=parameter,
@@ -210,8 +240,8 @@ class MyApplyTypeAnnotationsVisitor(ApplyTypeAnnotationsVisitor):
                     if old_annotation == 'Any':
                         set_return_annotation = True
                     else:
-                        print(f'{key.name}: old: {old_annotation}, new: {new_annotation}')
-
+                        self._log_mismatch(key.name, old_annotation, new_annotation, True)
+                        
             if set_return_annotation and function_annotation.returns is not None:
                 updated_node = self._apply_annotation_to_return(
                     function_def=updated_node,
@@ -296,6 +326,7 @@ def apply_stub_using_libcst(
             stub_module,
             overwrite_existing_annotations,
         )
+        MyApplyTypeAnnotationsVisitor.module_name = module
         transformer = MyApplyTypeAnnotationsVisitor(context)
         transformed_source_module = transformer.transform_module(source_module)
     except Exception as exception:
@@ -369,3 +400,19 @@ def augment_module(m: str, include_submodules: bool = True, stub_folder: str = '
         source_path = stub_folder + file[file.rfind('/site-packages/') + 14:] + 'i'
         apply_stub_handler(m, source_path, config)
         print(f"Processed file {file}")
+
+    # Write out the docstrings and trace types for the cases where we had mismatches with stubs;
+    # this will help us improve the stub types.
+    with open(f'analysis/{orig_m}.doc2trace.params.map', 'w') as f:
+        for k, v in _aggregate_params_map.items():
+            if len(v) == 1 and 'None' in v:
+                continue
+            f.write(f'{k}#{"@".join(v)}\n')
+    with open(f'analysis/{orig_m}.doc2trace.returns.map', 'w') as f:
+        for k, v in _aggregate_returns_map.items():
+            if len(v) == 1 and 'None' in v:
+                continue
+            f.write(f'{k}#{"@".join(v)}\n')
+
+    # TODO: update the map.missing file with these types
+            

@@ -147,5 +147,11 @@ def load_fullmap(folder, module):
                     line = line.strip()
                     if line:
                         k, v = line.strip().split('#')
-                        fullmap[k] = v
+                        if section == 'returns': # Turn into a list/tuple
+                            k = k.split('/')[0]
+                            if k not in fullmap:
+                                fullmap[k] = []
+                            fullmap[k].append(v)
+                        else:
+                            fullmap[k] = v
     return rtn

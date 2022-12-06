@@ -1,389 +1,142 @@
-100#ndarray of shape (n_samples,)#NDArray
-39#ndarray of shape (n_samples, n_components)#NDArray
-34#ndarray of shape (n_samples, n_features)#NDArray
-29#ndarray of shape (n_features,)#NDArray
-25#:class:`~sklearn.utils.Bunch`#Bunch
-23#ndarray of shape (n_samples_X, n_samples_Y)#NDArray
-21#ndarray of shape (n_samples, n_classes)#NDArray
-21#{ndarray, sparse matrix} of shape (n_samples, n_features)#NDArray
-13#ndarray of shape (n_features, n_features)#NDArray
+18#{ndarray, sparse matrix} of shape (n_samples, n_features)#NDArray
 13#tuple if ``return_X_y`` is True#tuple
-13#ndarray of shape (n_samples, K)#NDArray
-12#array of shape (n_samples,)#NDArray
-11#array-like of shape (n_samples,)#ArrayLike
-11#boolean array of shape [# input features]#NDArray[bool]
-11#ndarray of shape (n_samples_X, n_samples_X, n_dims)#NDArray
-10#array-like of shape (n_samples, n_classes)#ArrayLike
-9#ndarray of shape (n_components, n_features)#NDArray
-9#ndarray of shape (n_samples_X,)#NDArray
-8#ndarray of shape (n_dims,)#NDArray
-7#ndarray of shape (n_clusters, n_features)#NDArray
-7#ndarray of shape (n_thresholds,)#NDArray
-6#sparse matrix of shape (n_samples, n_samples)#NDArray
-6#array of shape (n_ticks, n_cv_folds)#NDArray
-6#ndarray of shape (n_samples,) or (n_samples, n_classes)#NDArray
-6#array, shape (n_samples,)#NDArray
-5#ndarray of shape (n_samples,) or (n_samples, n_targets)#NDArray
 5#{ndarray, sparse matrix} of shape (n_samples, n_classes)#NDArray
+5#array, shape (n_samples,)#NDArray
 5#array-like, shape (n_samples, n_components)#ArrayLike
-5#array of shape (n_samples, n_classes)#NDArray
 5#sparse matrix of shape (n_samples, n_features)#NDArray
-4#ndarray of shape (n_samples,) of arrays#NDArray[ArrayLike]
-4#array-like of shape (n_samples,) or (n_samples, n_outputs)#ArrayLike
+4#sparse matrix of shape (n_samples, n_samples)#NDArray
 4#array-like, shape (n_samples, n_features)#ArrayLike
-4#array, shape (n_samples, n_components)#NDArray
-4#array, shape (n_samples, n_component)#NDArray
-4#ndarray, shape (n_features,)#NDArray
-4#ndarray of shape (n_samples,) or (n_samples, n_outputs)#NDArray
-4#ndarray, shape (n_samples, n_features)#NDArray
-4#ndarray of shape (n_alphas,)#NDArray
-4#ndarray of shape (n_nonzero_coefs,)#NDArray
-4#array-like of shape (n_alphas,)#ArrayLike
-4#ndarray of shape (n_clusters,)#NDArray
 4#ndarray, shape (n_samples,)#NDArray
-4#:class:`~sklearn.metrics.ConfusionMatrixDisplay`#ConfusionMatrixDisplay
-4#:class:`~sklearn.metrics.PrecisionRecallDisplay`#PrecisionRecallDisplay
-4#float (if average is not None) or array of float, shape =        [n_unique_labels]#float|NDArray[float
-3#array-like of shape (n_samples, n_features)#ArrayLike
-3#array-like of shape (n_samples, n_components)#ArrayLike
-3#array, shape (n_components, )#NDArray
-3#array-like of shape (n_features, n_features)#ArrayLike
-3#{array, sparse matrix}#NDArray
-3#ndarray of shape (n_params,)#NDArray
-3#:class:`~sklearn.inspection.PartialDependenceDisplay`#PartialDependenceDisplay
-3#ndarray of shape (n_classes,)#NDArray
+4#float (if average is not None) or array of float, shape =        [n_unique_labels]#float|NDArray
 3#{ndarray, sparse matrix}#NDArray
-3#ndarray of shape (n_features,), dtype=floating#NDArray[float]
 3#ndarray of shape coef.shape#NDArray
-3#ndarray of shape (n_features,) or (n_features, n_targets)#NDArray
-3#array-like of shape (n_alphas + 1,)#ArrayLike
-3#array-like of shape (n_features, n_alphas + 1)#ArrayLike
-3#ndarray of shape (n_kernel_params,)#NDArray
-3#ndarray of shape (n_dims, 2)#NDArray
-3#array of integers, shape: n_samples#NDArray[int]
-3#array-like of shape (n_samples,) or None#ArrayLike|None
-3#:class:`~sklearn.metrics.DetCurveDisplay`#DetCurveDisplay
+3#array of integers, shape: n_samples#NDArray
 2#sparse matrix of shape (n_samples_transform, n_samples_fit)#NDArray
-2#ndarray of shape (n_samples, n_neighbors)#NDArray
-2#array of shape (n_samples_chunk, n_neighbors)#NDArray
-2#ndarray of shape (n_queries, n_neighbors)#NDArray
 2#sparse-matrix of shape (n_queries, n_samples_fit)#NDArray
-2#list of ndarray of shape (n_samples_chunk,)#list[NDArray]
-2#ndarray of shape (n_queries,) or (n_queries, n_outputs)#NDArray
-2#_CalibratedClassifier instance#_CalibratedClassifier
+2#ndarray of shape (n_samples,) of arrays#NDArray
 2#ndarray of shape (n_bins,) or smaller#NDArray
 2#:class:`~sklearn.calibration.CalibrationDisplay`.#CalibrationDisplay
-2#(doc_topic_distr, suff_stats)#tuple
 2#ndarray of shape (n_components, n_features),#NDArray
-2#ndarray of shape (n_samples, n_components) or None#NDArray|None
-2#array-like of shape (n_components, n_features)#ArrayLike
-2#ndarray, dtype=np.intp#NDArray[np.intp]
+2#ndarray, dtype=np.intp#NDArray
 2#ndarray array of shape (n_samples, n_features_new)#NDArray
 2#ndarray of shape (n_samples, n_classes) or list of such arrays#NDArray|list[ArrayLike]
-2#array of shape (n_unique_ticks,)#NDArray
 2#dict of str to any#dict[str, Any]
 2#list of str of shape (n_output_features,)#list[str]
 2#{ndarray, sparse matrix} of shape                 (n_samples, n_encoded_features)#NDArray
-2#array, shape (n_components,)#NDArray
-2#array-like of shape (n_components,)#ArrayLike
 2#mapping of string to any#Mapping[str, Any]
-2#ndarray of shape (n_samples, n_transformed_features)#NDArray
 2#array-like or sparse matrix of                 shape (n_samples, sum_n_components)#ArrayLike|NDArray
-2#array-like of shape (number of Gaussians,)#ArrayLike
-2#ndarray of shape (n_features, n_classes)#NDArray
 2#ndarray of shape  (n_classes * (n_classes - 1) / 2)#NDArray
-2#:class:`~sklearn.inspection.DecisionBoundaryDisplay`#DecisionBoundaryDisplay
-2#list, length = n_layers - 1#list
-2#list, length = len(grads)#list
-2#ndarray of shape (n_samples,), dtype=bool#NDArray[bool]
+2#ndarray, shape (n_features,)#NDArray
 2#list of shape (n_alphas,) of ndarray of shape             (n_features, n_features)#list[NDArray]
 2#mask#mask
-2#ndarray of str or `None`#NDArray[str]|None
-2#ndarray of shape (n_features,) or (n_samples,), dtype=floating#NDArray[float]
-2#ndarray of shape (n_features,), dtype={np.float32, np.float64}#NDArray[np.float32|np.float64]
+2#ndarray of shape (n_features,), dtype={np.float32, np.float64}#NDArray
 2#the return value of `func`#Any
-2#array-like, sparse matrix or list#ArrayLike|NDArray|list
 2#list of size n_outputs of ndarray of size (n_classes,)#list[NDArray]
 2#{ndarray, sparse matrix} of shape (n_samples, n_features)         or (n_samples, n_features_with_missing)#NDArray
 2#array-like, shape (n_samples,)#ArrayLike
-2#ndarray of shape (n_feature,)#NDArray
-2#ndarray of shape (n_features, n_alphas) or             (n_targets, n_features, n_alphas)#NDArray
-2#ndarray of shape (n_features, n_nonzero_coefs)#NDArray
-2#ndarray of shape (n_cs, n_features) or (n_cs, n_features + 1)#NDArray
-2#{array-like, sparse matrix}#NDArray|ArrayLike
-2#{ndarray, sparse matrix} of shape (n_components, n_features)#NDArray
-2#json|str
 2#tuple if `return_X_y=True`#tuple
-2#ndarray of shape (n_samples, 2)#NDArray
-2#ndarray of shape (n_samples, 4)#NDArray
-2#ndarray of shape (n_samples, 3)#NDArray
 2#ndarray of shape `shape`#NDArray
-2#ndarray of shape (n_clusters, X.shape[0])#NDArray
-2#ndarray of shape (n_clusters, X.shape[1])#NDArray
 2#ndarry of shape (n_samples,)#NDArray
 2#{array-like, sparse matrix} of                 shape (n_samples, sum_n_components)#NDArray|ArrayLike
-2#array of shape (n_samples,) or (n_samples, n_classes)#NDArray
 2#arrays of shape (n_samples,) or (n_samples, n_classes)#NDArray
 2#sparse matrix of (n_samples, n_features)#NDArray
-2#ndarray of shape (n_samples, n_clusters)#NDArray
-2#ndarray of shape (n_clusters, 2)#NDArray
-2#ndarray of shape (n_nodes-1, 2)#NDArray
-2#ndarray of shape (n_nodes-1,)#NDArray
-2#ndarray of shape (n_samples,) or (n_samples, n_output)#NDArray
-2#ndarray of shape (n_samples, n_estimators)#NDArray
+2#{array, sparse matrix}#NDArray
 2#sparse matrix of shape (n_samples, n_nodes)#NDArray
 2#ndarray of shape (n_samples, n_classes), or a list of such arrays#NDArray|list[ArrayLike]
 2#sparse matrix of shape (n_samples, n_out)#NDArray
-2#ndarray of shape (n_thresholds + 1,)#NDArray
-2#ndarray of shape (>2,)#NDArray
 2#{array-like, sparse matrix} of shape (n_samples_X, n_features)#NDArray|ArrayLike
 2#{array-like, sparse matrix} of shape (n_samples_Y, n_features)#NDArray|ArrayLike
-2#array-like of shape (n_samples, n_outputs)#ArrayLike
-2#:class:`~sklearn.metrics.plot.RocCurveDisplay`#RocCurveDisplay
-2#:class:`~sklearn.metrics.RocCurveDisplay`#RocCurveDisplay
-2#array or indicator matrix#NDArray
 2#ndarray of shape (n_samples, n_classes) or list of n_outputs             such arrays if n_outputs > 1#NDArray|list[NDArray]
-1#ndarray of shape (n_queries,)#NDArray
-1#ndarray of shape (n_queries,) or (n_queries, n_outputs), dtype=int#NDArray[int]
-1#ndarray of shape (n_queries,) or (n_queries, n_outputs),                 dtype=double#NDArray[double]
-1#array of the same shape as ``dist``#NDArray
-1#{sparse matrix, array-like}, (n_samples, n_samples)#NDArray|ArrayLike|tuple[int,int]
-1#str or ndarray of shape (n_features_a, n_features_b)#str|NDArray
-1#ndarray of shape (n_components * n_features,)#NDArray
+1#ndarray of shape (n_queries,) or (n_queries, n_outputs),                 dtype=double#NDArray
 1#ndarray of shape (n_queries, n_classes), or a list of n_outputs                 of such arrays if n_outputs > 1.#NDArray|list[NDArray]
 1#ndarray of shape (n_queries, n_classes), or a list of                 n_outputs of such arrays if n_outputs > 1.#NDArray|list[NDArray]
-1#X, Y, x_mean, y_mean, x_std, y_std#tuple
-1#ndarray of shape (n_samples, n_targets)#NDArray
-1#array-like, shape (X.shape[0], len(clf.classes_))#ArrayLike
 1#array, shape (n_samples, n_classes)#NDArray
-1#:class:`~sklearn.calibration.CalibrationDisplay`#CalibrationDisplay
 1#ndarray of shape (n_samples, n_components),#NDArray
 1#ndarray of shape (n_components, n_features) or None#NDArray|None
-1#ndarray of shape (n_components, n_components)#NDArray
-1#array of shape=(n_features, n_features)#NDArray
+1#ndarray of shape (n_samples, n_components) or None#NDArray|None
 1#array, shape=(n_features, n_features)#NDArray
 1#X_original array-like of shape (n_samples, n_features)#ArrayLike
 1#estimator instance#Estimator
-1#{ndarray, sparse matrix} or tuple of these#NDArray|tuple[NDArray, ...]
-1#ndarray of shape (n_samples,), dtype=np.int64#NDArray[np.int64]
-1#ndarray of shape (n_rows, n_cols)#NDArray
 1#a cross-validator instance.#CrossValidator
 1#list, length=2 * len(arrays)#list
 1#dict of float arrays of shape (n_splits,)#dict
 1#ndarray of float of shape=(len(list(cv)),)#NDArray
-1#dict with the following attributes#dict
-1#array of shape (n_permutations,)#NDArray
 1#iterator over dict of str to any#Iterator[dict[str, Any]]
-1#ndarray of shape (n_samples,) or (n_samples, n_classes)                 or (n_samples, n_classes * (n_classes-1) / 2)#NDArray
 1#{ndarray, sparse matrix} of shape (n_samples,)#NDArray
 1#array or CSR matrix, shape (n_samples, n_classes)#NDArray
-1#sparse matrix of shape (n_samples, n_classes)#NDArray
 1#{ndarray, sparse matrix} of shape (n_samples, NP)#NDArray
-1#ndarray of shape (n_knots, n_features), dtype=np.float64#NDArray[np.float64]
-1#ndarray of shape (n_samples, n_features * n_splines)#NDArray
-1#{ndarray, sparse matrix}, dtype={np.float32, np.float64}#NDArray[np.float32|np.float64]
-1#ndarray, dtype={np.float32, np.float64}#NDArray[np.float32|np.float64]
-1#ndarray of shape (n_infrequent_categories,) or None#NDArray|None
-1#ndarray of shape (n_output_features,)#NDArray
-1#ndarray of shape (n_samples, ) if axis=1 else (n_features, )#NDArray
-1#ndarray of shape (n_samples1, n_samples2)#NDArray
+1#{ndarray, sparse matrix}, dtype={np.float32, np.float64}#NDArray
+1#ndarray, dtype={np.float32, np.float64}#NDArray
 1#{ndarray, sparse matrix} of shape (n_samples, n_features + 1)#NDArray
 1#{ndarray, sparse matrix} of (n_samples, n_features)#NDArray
-1#array, (n_components, n_features)#NDArray|tuple[int,int]
-1#array, shape (n_components, n_features, n_features)#NDArray
-1#array, shape (n_features, n_features)#NDArray
-1#array, shape (n_components, n_features)#NDArray
+1#array, shape (n_samples, n_components)#NDArray
 1#array, shape (n_samples, n_features)#NDArray
 1#array, shape (nsamples,)#NDArray
-1#array-like of shape (n_classes, n_features)#ArrayLike
-1#ndarray of shape (n_samples, n_components) or             (n_samples, min(rank, n_components))#NDArray
-1#affinity_matrix of shape (n_samples, n_samples)#NDArray
 1#array-like, shape (n_queries, n_components)#ArrayLike
-1#ndarray of shape (n_samples * (n_samples-1) / 2,)#NDArray
-1#array of shape (n_samples, n_components)#NDArray
 1#array-like, shape (n_samples, n_neighbors)#ArrayLike
 1#sparse matrix in CSR format, shape = [n_samples, n_samples]#NDArray
 1#array-like, shape [n_samples, n_components]#ArrayLike
-1#array-like of shape (n_samples, n_class * (n_class-1) / 2)#ArrayLike
-1#ndarray of shape (n_samples, n_classes * (n_classes-1) / 2)#NDArray
-1#ndarray of shape (n_features, n_features + 1)#NDArray
 1#:class:`~sklearn.utils.Bunch` or dict of such instances#Bunch|dict[str, Bunch]
-1#ndarray, shape (n_points, n_target_features)#NDArray
-1#list of 1d ndarrays#list[NDArray]
-1#array of shape [n_samples]#NDArray
 1#array, shape = [n_samples, n_classes] or [n_samples]#NDArray|tuple
-1#array of shape [n_samples, n_selected_features]#NDArray
-1#array of shape [n_samples, n_original_features]#NDArray
-1#array-like, shape (number of nodes of all layers,)#ArrayLike
 1#ndarray, shape (n_samples,) or (n_samples, n_classes)#NDArray
-1#ndarray of shape (n_samples, n_outputs)#NDArray
-1#ndarray of shape (select, n_features)#NDArray
-1#ndarray of shape (select, n_features, n_features)#NDArray
-1#ndarray of shape (select, n_samples)#NDArray
 1#list of (objective, dual_gap) pairs#list[tuple[float,float]]
-1#list of shape (n_alphas,), dtype=float#list[float]
 1#sequence of array-like of shape (n_samples,) or             (n_samples, n_outputs)#Sequence[ArrayLike]
 1#sequence of indexable data-structures#Sequenc
 1#element wise square#NDArray
-1#ndarray of shape (n_elements,), dtype=object#NDArray[object]
-1#1d boolean nd-array#NDArray[bool]
-1#context_manager#ContextManager
+1#1d boolean nd-array#NDArray
 1#object with the joblib.Memory interface#Memory
 1#list of {ndarray, sparse matrix, dataframe} or None#list[NDArray|DataFrame]|None
-1#sparse matrix.#NDArray
 1#:class:`numpy:numpy.random.RandomState`#RandomState
 1#numbers.Number#Number
-1#ndarray of shape (n_eigenvalues,)#NDArray
-1#dict or tag value#dict
-1#ndarray of shape (n_features,) or (n_samples,), dtype=integral#NDArray[integral]
-1#boolean array#NDArray[bool]
-1#1D array of shape (n_components,) containing the `n_components`#NDArray
-1#2D array of shape (M.shape[0], n_components) containing the#NDArray
-1#ndarray of shape (M, len(arrays))#NDArray
 1#arrays with the same dimensions as the input.#NDArray
-1#ndarray of shape (M, N) or (M,)#NDArray
-1#ndarray of shape (M, N)#NDArray
-1#result#result
-1#ndarray with same shape as u#NDArray
-1#converted_container#converted_container
-1#int if `array` 1D, ndarray if `array` 2D#int|NDArray
-1#X, y#tuple
-1#ndarray of shape (n_samples,) if n_classes == 2                else (n_samples, n_classes)#NDArray
 1#np.ndarray, float, shape = [N,N]#NDArray
-1#ndarray of shape (n_unique_labels,)#NDArray
 1#list of int of size n_outputs#list[int]
 1#generator#Generator
-1#iter(Matrices)#Iterator[Matrices]
-1#ndarray of shape (size,)#NDArray
-1#ndarray of shape (n_features,) or (n_features + 1,)#NDArray
-1#estimator with sklearn API#Estimator
-1#ndarray, shape (n_features, n_features)#NDArray
-1#ndarray, shape(n_features,)#NDArray
-1#ndarray of shape (n_receivers,)#NDArray
-1#array-like of shape (n_samples, n_output_features)#ArrayLike
 1#{ndarray, sparse matrix} of shape                 (n_samples, n_features_out)#NDArray
-1#{ndarray, sparse matrix} of shape         (n_samples, n_features)#NDArray
-1#ndarray of shape (n_features_with_missing)#NDArray
-1#{ndarray, sparse matrix} of shape (n_samples,         n_features)#NDArray
 1#array, shape = [n_samples] or [n_samples, n_targets]#NDArray|tuple[int,int]
-1#ndarray, shape (len(w))#NDArray
-1#ndarray of shape (n_samples, )#NDArray
 1#array-like, shape (n_samples, n_classes)#ArrayLike
-1#ndarray of shape (n_features,) or (n_targets, n_features)#NDArray
-1#float or ndarray of shape (n_targets,)#float|NDArray
-1#ndarray of shape (n_samples, n_samples)#NDArray
-1#np.ndarray, shape (n_samples,)#NDArRAY
-1#{array-like, sparse matrix} of shape (n_samples, n_features)#NDArray|ArrayLike
-1#ndarray of shape (n_features,) or (n_classes, n_features)#NDArray
-1#float or ndarray of shape (n_classes,)#float|NDArray
-1#ndarray of shape (n_samples,) or             (n_samples, n_classes)#NDArray
-1#ndarray of shape = (n_features,)#NDArray
-1#ndarray of shape (n_subpopulation, n_features + intercept)#NDArray
-1#ndarray of shape (n_samples, max_features)#NDArray
-1#array of shape (n_cs,)#NDArray
-1#ndarray of shape (n_cs,)#NDArray
-1#ndarray of shape(n_cs,)#NDArray
-1#array-like of shape (n_features, n_alphas)#ArrayLike
-1#array-like of shape (n_alphas, n_samples)#ArrayLike
 1#intercept_decay#float
-1#{ndarray, sparse matrix} of shape (n_samples,) or (n_samples, n_targets)#NDArray
-1#float or ndarray of shape (n_features,)#float|NDArray
 1#{array-like, sparse matrix} of shape (n_samples, n_outputs)#NDArray|ArrayLike
 1#array of shape (n_samples, n_classes), or a list of n_outputs                 such arrays if n_outputs > 1.#NDArray|list[NDArray]
-1#sparse matrix of shape (n_components, n_features)#NDArray
 1#{ndarray, sparse matrix} of shape (n_samples, n_components)#NDArray
 1#{ndarray, sparse matrix},                shape = (n_samples, n_features * (2*sample_steps - 1))#NDArray
 1#ndarray of shape (n_samples,), or, in the multilabel a list of#NDArray
-1#np.array or scipy.sparse.csr_matrix#NDArray
-1#np.array#NDArray
-1#np.ndarray#NDArray
 1#1-D arrays#NDArray
-1#ndarray of shape (n_samples, 10)#NDArray
-1#ndarray of shape (n_centers, n_features)#NDArray
-1#ndarray of shape (n_features, n_samples) or (n_samples, n_features)#NDArray
-1#ndarray of shape (n_features, n_components) or             (n_components, n_features)#NDArray
-1#ndarray of shape (n_components, n_samples) or (n_samples, n_components)#NDArray
-1#ndarray of shape (n_dim, n_dim)#NDArray
 1#sparse matrix of shape (dim, dim)#NDArray
 1#3D array#NDArray
-1#ndarray of shape (n_samples, n_samples) or                 (n_samples, n_samples, n_targets)#NDArray
 1#ndarray of shape (n_samples_X, n_samples), or             (n_samples_X, n_targets, n_samples)#NDArray|tuple[int,int,int]
-1#array of shape (n_dims, 2)#NDArray
-1#ndarray of shape (n_samples_X, n_samples_Y, n_kernels)#NDArray
 1#ndarray of shape                 (n_samples_X, n_samples_X, n_dims, n_kernels)#NDArray
-1#ndarray of shape (n_samples_X, n_kernels)#NDArray
 1#(sparse) array-like of shape (n_samples,) or (n_samples, n_classes)#ArrayLike
 1#(sparse) array-like of shape (n_samples, n_classes)#ArrayLike
 1#array-like of shape (n_samples, n_classes) or (n_samples,) for             binary classification.#ArrayLike
 1#numpy array of shape [n_samples]#NDArray
-1#array-like of shape (n_samples, n_classes) or (n_samples,)#ArrayLike
 1#numpy scalar or array of shape (n_classes,)#Scalar|NDArray
 1#C-contiguous array of shape (n_samples,) or array of shape             (n_samples, n_classes)#NDArray
 1#C-contiguous array of shape (n_samples,), array of shape#NDArray
-1#array of shape (n_samples, 2)#NDArray
 1#ndarray or a sparse matrix class#NDArray
 1#np.ndarray or a sparse matrix class#NDArray
-1#strided ndarray#NDArray
-1#array of shape (n_patches, patch_height, patch_width) or         (n_patches, patch_height, patch_width, n_channels)#NDArray
 1#ndarray of shape image_size#NDArray
-1#array of shape (n_patches, patch_height, patch_width) or              (n_patches, patch_height, patch_width, n_channels)#NDArray
-1#True if stop words are consistent with the preprocessor#bool
-1#array of shape (n_samples, n_features)#NDArray
 1#list of arrays of shape (n_samples,)#list[ArrayLike]
 1#list of dict_type objects of shape (n_samples,)#list[Mapping]
 1#list of length (n_features,)#list
 1#module#module
-1#list of shape (n_leaves,)#list
 1#ndarray of shape(n_samples,)#NDArray
 1#{array-like, sparse matrix} of shape (n_samples, n_clusters)#NDArray|ArrayLike
-1#ndarray of shape (n_samples, n_clusters) or (n_clusters,)#NDArray
-1#ndarray of shape (n_samples, n_features) or (n_features,)#NDArray
-1#ndarray of shape (n_core_samples,)#NDArray
-1#sparse matrix#NDArray
 1#ndarray of shape (n_nodes,) or None#NDArray|None
 1#ndarray of shape (n_nodes, ) or None#NDArray|None
-1#array [n_samples]#NDArray
 1#ndarray of shape (n_samples, n_classes) or             list of ndarray of shape (n_output,)#NDArray|list[NDArray]
 1#ndarray of shape (n_samples,), (n_samples, n_classes),             or (n_samples, n_classes * (n_classes-1) / 2)#NDArray
-1#ndarray of shape (n_samples, n_estimators) or                 (n_samples, n_classes * n_estimators)#NDArray
 1#A TreePredictor object.#TreePredictor
-1#array, shape (n_samples, n_trees_per_iteration)#NDArray
-1#ndarray, shape                 (n_trees_per_iteration, n_samples)#NDArray
 1#ndarray, shape (n_samples, n_classes)#NDArray
 1#ndarray, shape (n_samples,) or                 (n_samples, n_trees_per_iteration)#NDArray
-1#ndarray of shape (n_categorical_features, 8)#NDArray
 1#ndarray of shape of (n_samples, k)#NDArray
-1#generator of ndarray of shape (n_samples, k)#Generator[NDArray, None, None]
-1#ndarray of shape                 (n_trees_per_iteration, n_samples)#NDArray
-1#array-like of shape (n_samples, n_estimators, n_classes)#ArrayLike
-1#ndarray of shape (n_samples, n_classes) or (n_samples,)#NDArray
-1#array-like of shape (n_samples, n_estimators)#ArrayLike
-1#ndarray of shape (n_samples, k)#NDArray
-1#ndarray of shape (n_samples, n_classifiers)#NDArray
-1#ndarray of shape (n_estimators + 1,)#NDArray
-1#ndarray of shape (n_samples, n_classes, n_outputs) or                 (n_samples, 1, n_outputs)#NDArray
-1#ndarray of shape (n_samples, n_classes, n_outputs)#NDArray
-1#ndarray of shape (n_samples, 1, n_outputs)#NDArray
 1#ndarray of shape = (n_thresholds,)#NDArray
 1#float in [0., 1.]#float
 1#numpy.ndarray#NDArray
-1#ndarray of shape (n_samples_X * n_samples_Y, n_features) or             (n_samples_X, n_samples_Y)#NDArray
-1#ndarray of shape (n_samples_X, n_samples_X) or             (n_samples_X, n_samples_Y)#NDArray
-1#ndarray of shape (n_samples_X, n_samples_X) or (n_samples_X, n_samples_Y)#NDArray
-1#one of {'continuous', continuous-multioutput'}#Literal['continuous', 'continuous-multioutput']
-1#array-like of shape (n_outputs) or string in ['raw_values',#ArrayLike|str
-1#:class:`~sklearn.metrics.plot.DetCurveDisplay`#DetCurveDisplay
 1#{array-like, sparse}, shape=[n_classes_true, n_classes_pred]#NDArray|ArrayLike
-1#ndarray of shape (2, 2), dtype=np.int64#NDArray[np.int64]
 1#float (upperlimited by 1.0)#float
-1#float or array of shape [n_classes]#float|NDArray
-1#one of {'multilabel-indicator', 'multiclass', 'binary'}#Literal['multilabel-indicator','multiclass','binary']
-1#ndarray of shape (n_classes, n_classes)#NDArray
-1#ndarray of shape (n_outputs, 2, 2)#NDArray
-1#float or ndarray of shape (n_unique_labels,), dtype=np.float64#float|NDArray[np.float64]
-1#float or array of float, shape = [n_unique_labels]#float|NDArray[float]
-1#None (if average is not None) or array of int, shape =        [n_unique_labels]#None|NDArray[int]
-1#float (if average is not None) or array of float of shape                 (n_unique_labels,)#float|NDArray[float]
-1#float (if average is not None) or array of float of shape              (n_unique_labels,)#floati|NDArray[float]
-1#list, length n#list
+1#float or array of float, shape = [n_unique_labels]#float|NDArray
+1#None (if average is not None) or array of int, shape =        [n_unique_labels]#None|NDArray
+1#float (if average is not None) or array of float of shape                 (n_unique_labels,)#float|NDArray
+1#float (if average is not None) or array of float of shape              (n_unique_labels,)#floati|NDArray
 1#list of artists#list[Artistxs]

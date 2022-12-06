@@ -1,0 +1,404 @@
+50#(float, float)#tuple[float,float]
+37#color#Color
+30#1D or 2D array-like#ArrayLike
+28#`.RendererBase` subclass.#RendererBase
+26#`~.axes.Axes`#Axes
+23#`.GraphicsContextBase`#GraphicsContextBase
+22#`matplotlib.transforms.Transform`#Transform
+20#number#int|float
+20#indexable object#Indexable
+19#str or `~matplotlib.colors.Colormap`#str|Colormap
+19#`~matplotlib.figure.Figure`#Figure
+16#str or `~datetime.tzinfo`#str|tzinfo
+15#`~matplotlib.axes.Axes`#Axes
+14#str or `~matplotlib.colors.Normalize`#str|Normalize
+13#1D array-like#ArrayLike
+12#`matplotlib.font_manager.FontProperties`#FontProperties
+12#color or list of colors#Color|ArrayLike[Colors]
+11#`.Figure`#Figure
+11#1-D array or sequence#ArrayLike
+11#`.RendererBase` subclass#RendererBase
+10#array (length N) or scalar#ArrayLike|Scalar
+10#`matplotlib.backend_bases.MouseEvent`#MouseEvent
+10#`~.backend_bases.MouseEvent`#MouseEvent
+9#list of colors#ArrayLike[Color]
+9#color or color sequence#Color|Sequence[Color]
+9#(M, N) array-like#ArrayLike
+8#2D array-like#ArrayLike
+8#array-like of length *ncols*#ArrayLike
+8#array-like of length *nrows*#ArrayLike
+8#str or `.Artist` or `.Transform` or callable or (float, float)#str|Artist|Callable|tuple[float,float]
+8#`.Triangulation`#Triangulation
+8#`.Event`#Event
+7#list of str or None#ArrayLike[str]|None
+7#float or (float, float)#float|tuple[float,float]
+7#`.Transform`#Transform
+7#`matplotlib.axes.Axes`#Axes
+7#function#Callable
+7#`matplotlib.text.Text`#Text
+6#(N, 2) array-like#ArrayLike
+6#`.MouseButton` or None#MouseButton|None
+6#1-D arrays or sequences#ArrayLike|sequences
+6#array-like, shape (n, )#ArrayLike
+6#float or array-like, shape (n, )#float|ArrayLike
+6#tuple (left, bottom, width, height).#tuple[float,float,float,float]
+6#`.MouseButton`#MouseButton
+6#`~.font_manager.FontProperties`#FontProperties
+6#(N, M, 4) array-like of np.uint8#ArrayLike[uint8]
+6#`matplotlib.transforms.Affine2DBase`#Affine2DBase
+6#1D arrays, same shape as `tri_index`#ArrayLike
+5#(int, int)#tuple[int,int]
+5#`~matplotlib.axis.Axis`#Axis
+5#tuple (left, bottom, right, top)#tuple[float,float,float,float]
+5#array (length N)#ArrayLike
+5#array of bool (length N)#Sequence[bool]
+5#{"linear", "log", "symlog", "logit", ...} or `.ScaleBase`#Literal["linear","log","symlog","logit"]|ScaleBase
+5#str or tuple or list thereof#str|tuple|Sequence[str|tuple]
+5#`.CapStyle` or {'butt', 'projecting', 'round'}#CapStyle|Literal['butt','projecting','round']
+5#`.JoinStyle` or {'miter', 'round', 'bevel'}#JoinStyle|Literal['miter','round','bevel']
+5#dict[str, str]#dict[str, str]
+5#(npoints,) array-like#ArrayLike
+4#1D/2D arrays#ArrayLike
+4#2D arrays#ArrayLike
+4#float > 0#float
+4#list of `.Artist`#Sequence[Artist]
+4#default: :rc:`figure.titlesize`#
+4#default: :rc:`figure.titleweight`#
+4#Array or a sequence of vectors.#Sequence[ArrayLike]
+4#float or array-like, shape(N,) or shape(2, N)#float|ArrayLike
+4#int or (int, int)#int|tuple[int,int]
+4#{'none', None, 'face', color, color sequence}#Literal['none','face']|None|Color|Sequence[Color]
+4#`.Bbox`#Bbox
+4#array-like of length n#ArrayLike
+4#`~matplotlib.path.Path`#Path
+4#`~matplotlib.transforms.Bbox`#Bbox
+4#default: :rc:`figure.labelsize`#
+4#default: :rc:`figure.labelweight`#
+4#(3, 2) array-like#ArrayLike
+4#(3, 4) array-like#ArrayLike
+4#(N, 3, 2) array-like#ArrayLike
+4#(N, 3, 4) array-like#ArrayLike
+4#list[tuple[callable, tuple, dict]]#list[tuple[callable, tuple, dict]]
+4#`~matplotlib.tri.Triangulation`#Triangulation
+3#(callable, callable)#tuple[Callable,Callable]
+3#float or 2D array#float|ArrayLike
+3#Renderer#Renderer
+3#`matplotlib.axis.Axis`#Axis
+3#`.Normalize` (or subclass thereof) or str or None#Normalize|str|None
+3#`.Artist` properties#
+3#4-tuple of float#tuple[float, ...]
+3#string (one of 'left', 'right', 'bottom', 'top')#Literal['left', 'right', 'bottom', 'top']
+3#bytes#
+3#`.Artist`#Artist
+3#`matplotlib.quiver.Quiver`#Quiver
+3#(N,) array-like#ArrayLike
+3#list of 6 strings#ArrayLike[str]
+3#`~matplotlib.transforms.Transform`#Transform
+3#`.CapStyle`-like#CapStyle
+3#`.JoinStyle`-like#JoinStyle
+3#(float, float) or list thereof#tuple[float,float]|Sequence[tuple[float,float]]
+3#`~.Transform`#Transform
+3#color or None#Color|None
+3#1D array#ArrayLike
+3#subclass type of `~.axes.Axes`#Axes`
+3#list of `~matplotlib.axes.Axes`#Sequence[Axes]
+3#1D int array#Sequence[int]
+3#array like of dim 3 (shape: (nx, 3, 2))#ArrayLike
+3#`Bbox`#Bbox
+2#(..., 3) array-like#ArrayLike
+2#`~matplotlib.colors.Colormap`#Colormap
+2#color or 2D array#Color|ArrayLike
+2#Nx2 array#ArrayLike
+2#`.UnitData`#UnitData
+2#positive float#float
+2#`.Normalize` or str or None#Normalize|str|None
+2#`.Colormap` or str or None#Colormap|str|None
+2#[level0, level1, ..., leveln]#
+2#[level0segs, level1segs, ...]#
+2#numpy array#ArrayLike
+2#(N, 2) array#ArrayLike
+2#Cycler#Cycler
+2#`.Artist` or list of `.Artist`#Artist|Sequence[Artist]
+2#str or path-like or binary file-like#str|PathLike|FileLike
+2#int, (int, int, *index*), or `.SubplotSpec`#int|tuple|SubplotSpec
+2#list of list of {hashable or nested} or str#Sequence[Sequence[Hashable]]|str
+2#tuple with floats, degrees#tuple[float, ...]
+2#`~.axes.Axes` or list or `numpy.ndarray` of Axes#Axes|NDArray[Axes]|Sequence[Axes]
+2#`matplotlib.colors.Colormap` or str or None#Colormap|str|None
+2#`.BarContainer`#BarContainer
+2#sequence of tuples (*xmin*, *xwidth*)#ArrayLike[tuples]
+2#(*ymin*, *yheight*)#tuple[float,float]
+2#`.ContourSet` instance#ContourSet
+2#str or tuple or list of such values#str|tuple|Sequence[str|tuple]
+2#sequence of x, y, [color]#tuple[float,float]|tuple[float,float,Color]
+2#`.Line2D` properties#
+2#int > 0#int
+2#(n,) array or sequence of (n,) arrays#ArrayLike|Sequence[ArrayLike]
+2#(n,) array-like or None#ArrayLike|None
+2#bool or -1#bool|Literal[-1]
+2#color or array-like of colors or None#Color|Sequence[Color]|None
+2#None or int or [int, int] or array-like or [array, array]#int|tuple[int,int]|ArrayLike|tuple[ArrayLike,ArrayLike]|None
+2#array-like shape(2, 2)#ArrayLike
+2#array-like or PIL image#ArrayLike|Image
+2#floats (left, right, bottom, top)#tuple[float,float,float,float]
+2#sequence of `.Artist`#Sequence[Artist]
+2#timezone string or `datetime.tzinfo`#str|tzinfo
+2#array-like or list of colors or color#Sequence[Color]|Color
+2#`~.markers.MarkerStyle`#MarkerStyle
+2#{'face', 'none', *None*} or color or sequence of color#None|Literal['face','none']|Color|Sequence[Color]
+2#`.Colormap`#Colormap
+2#*None* or (xmin, xmax)#tuple[float,float]|None
+2#list of color#Sequence[Color]
+2#2D list of str#Sequence[str]
+2#2D list of colors#Sequence[Color]
+2#substring of 'BRTL' or {'open', 'closed', 'horizontal', 'vertical'}#str|Literal['open', 'closed', 'horizontal', 'vertical']
+2#pair of ints (m, n)#tuple[int,int]
+2#`~datetime.datetime`#datetime
+2#`.ticker.Locator`#Locator
+2#`.Figure` to perform layout on.#Figure
+2#`.Patch` or `.Path` or `.TransformedPath` or None#Patch|Path|None
+2#{FONTNAME, 'serif', 'sans-serif', 'cursive', 'fantasy', 'monospace'}#str|Literal['cursive','serif','sans-serif','fantasy','monospace']
+2#`.font_manager.FontProperties` or `str` or `pathlib.Path`#FontProperties|str|Path
+2#list of (float, float)#Sequence[tuple[float,float]]
+2#color or list of color#color|Sequence[Color]
+2#{'-', '--', '-.', ':', '', (offset, on-off-seq), ...}#Literal['-', '--', '-.', ':', '']
+2#str or `matplotlib.patches.BoxStyle`#str|BoxStyle
+2#`.patches.Patch`#Patch
+2#None or `MouseButton` or {'up', 'down'}#MouseButton|Literal['up','down']|None
+2#[float, float]#tuple[float,float]
+2#str or bytes#str|bytes
+2#`.MouseButton` or list of `.MouseButton`#MouseButton|Sequence[MouseButton]
+2#1D arrays#ArrayLike
+2#`.MouseButton`, list of `.MouseButton`#MouseButton|Sequence[MouseButton]
+2#`~matplotlib.artist.Artist`#Artist
+2#`.FontProperties`#FontProperties
+2#default: :rc:`figure.%(rc)ssize`#
+2#default: :rc:`figure.%(rc)sweight`#
+2#`.gridspec.SubplotSpec`#SubplotSpec
+2#list of `.Artist` or ``None``#Sequence[Artist]|None
+2#default: :rc:`figure.facecolor`#
+2#default: :rc:`figure.edgecolor`#
+2#str or `~matplotlib.font_manager.FontProperties`#str|FontProperties
+2#`.Cursors`#Cursors
+2#`matplotlib.figure.Figure`#Figure
+2#`matplotlib.backend_bases.RendererBase`#RendererBase
+2#`.Figure` or int#Figure|int
+2#np.ndarray#ndarray
+2#None or a sequence#ArrayLike|None
+2#(float, float), or *False*#tuple[float,float]|Literal[False]
+2#None or .Bbox#Bbox|None
+2#(float, float) or {'C', 'SW', 'S', 'SE', 'E', 'NE', ...}#tuple[float,float]|Literal['C','SW','S','SE','E','NE']
+2#float greater than -0.5#float
+2#[x0, y0, width, height]#tuple[float,float,float,float]
+2#`.Axes`#Axes
+2#2-tuple of func, or Transform with an inverse#tuple[Callable,Callable]|Transform
+2#list of dicts#Sequence[dict]
+2#`~matplotlib.tri.TriFinder`#TriFinder
+2#tuple of array-likes (dzdx, dzdy)#tuple[ArrayLike]
+2#array-like of dim 1 (shape (nx,))#ArrayLike
+2#color or 'auto'#Color|Literal['auto']
+2#`.BboxBase`#BboxBase
+2#`Transform`#Transform
+2#list of subplots#Sequence[SubplotBase]
+1#Matplotlib color or ``np.ma.masked``#
+1#Matplotlib color or array of colors#Color|Sequence[Color]
+1#:doc:`color </tutorials/colors/colors>` or `numpy.ma.masked`#
+1#(M, 3) array-like or callable#ArrayLike|Callable
+1#array-like of colors or array-like of (value, color)#Sequence[Color]|ArrayLike
+1#`~matplotlib.colors.Normalize` instance#Normalize
+1#sequence of numbers#Sequence[float|int]
+1#sequence of colors#Sequence[Color]
+1#iterable of :class:`AbstractPathEffect`#Iterable[AbstractPathEffect]
+1#`matplotlib.backend_bases.RendererBase` subclass#RendererBase
+1#list of {-1, 0, 1}#Sequence[Literal[-1,0,1]]
+1#list of (str or None)#Sequence[tuple[str]]
+1#iterable of str or bytes#Iterable[str]|bytes
+1#subclass of `ScaleBase`#ScaleBase
+1#list of Images#Sequence[Image]
+1#`.RendererBase`#RendererBase
+1#float or 2D array-like or None#float|ArrayLike|None
+1#array-like or `PIL.Image.Image`#ArrayLike|Image
+1#color or colors or None#Color|Sequence[Color]|None
+1#`.Formatter` or str or callable or dict#Formatter|str|Callable|dict
+1#`.Transform` or `False`#Transform|Literal[False]
+1#``None`` or [level0kinds, level1kinds, ...]#None|tuple
+1#[level0kinds, level1kinds, ...]#tuple
+1#function: float -> str#Callable
+1#list of int or None#Sequence[int]|None
+1#None or :class:`~matplotlib.transforms.Transform`#Transform|None
+1#None or (float, float, float, float)#tuple[float,float,float,float]|None
+1#list of `Path`#Sequence[Path]
+1#list of `.Affine2D`#Sequence[Affine2D]
+1#`.Affine2D`#Affine2D
+1#(subset, all)#tuple
+1#`~.scale.SymmetricalLogTransform`#SymmetricalLogTransform
+1#None, int, (int, int), slice, float, (float, float), or list[int]#int|tuple[int,int]|slice|float|tuple[float,float]|Sequence[int]|None
+1#iterator of _Token#Iterator[_Token]
+1#str or 3-tuple#str|tuple
+1#int or str or `.Figure` or `.SubFigure`#int|str|Figure|SubFigure
+1#subclass of `~matplotlib.figure.Figure`#Figure
+1#{'constrained', 'tight', `.LayoutEngine`, None}#Literal['constrained','tight']|LayoutEngine|None
+1#None or int or str or `.Figure`#int|str|Figure|None
+1#None or 4-tuple#tuple|None
+1#`~matplotlib.colors.Colormap` or str#Colormap|str
+1#None or int or False#int|Literal[False]|None
+1#2-tuple#tuple
+1#`.Bbox` or None#.Bbox|None
+1#datetime.datetime#datetime
+1#`datetime.datetime` or `numpy.datetime64` or sequences of these#datetime|datetime64|Sequence[datetime|datetime64]
+1#`datetime.timedelta`#timedelta
+1#{YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY, MINUTELY, SECONDLY}#
+1#`datetime.tzinfo`#tzinfo
+1#Callable[[Event], Any]#Callable
+1#float, 1.08#float|Literal[1.08]
+1#`.figure.Figure.tight_layout` and `.pyplot.tight_layout`.#
+1#{'default', 'constant', 'mean', 'linear', 'none'} or function#Literal['default','constant','mean','linear','none']|Callable
+1#any object#Any
+1#0-D or 1-D array or sequence#ArrayLike
+1#1D array or sequence#ArrayLike
+1#(# of dimensions, #ArrayLike
+1#transforms.Transform#Transform
+1#dict with properties for `.patches.FancyBboxPatch`#dict
+1#float (multiple of font size)#float
+1#{a numeric value in range 0-1000, 'ultralight', 'light', 'normal', 'regular', 'book', 'medium', 'roman', 'semibold', 'demibold', 'demi', 'bold', 'heavy', 'extra bold', 'black'}#int|Literal['ultralight', 'light', 'normal', 'regular', 'book', 'medium', 'roman', 'semibold', 'demibold', 'demi', 'bold', 'heavy', 'extra bold', 'black']
+1#{a numeric value in range 0-1000, 'ultra-condensed', 'extra-condensed', 'condensed', 'semi-condensed', 'normal', 'semi-expanded', 'expanded', 'extra-expanded', 'ultra-expanded'}#int|Literal['ultra-condensed', 'extra-condensed', 'condensed', 'semi-condensed', 'normal', 'semi-expanded', 'expanded', 'extra-expanded', 'ultra-expanded'
+1#`.Artist` or `.BboxBase` or `.Transform`#Artist|Transform
+1#{'points, 'pixels'}#Literal['points, 'pixels']
+1#`RendererBase`#RendererBase
+1#FT2Font#FT2Font
+1#(N, 2) or (2,) array-like#ArrayLike
+1#color or list of rgba tuples#Color|tuple[float,float,float,float]
+1#color or list of colors or 'face'#Color|Sequence[Color]|Literal['face']
+1#list of `.path.Path`#Sequence[Path]
+1#int, None, "auto", array-like, or `~.ticker.Locator`#int|ArrayLike|Literal["auto"]|None
+1#str, `~matplotlib.ticker.Formatter`, or None#str|Formatter|None
+1#float or list thereof#float|ArrayLike
+1#bool or list thereof#bool|ArrayLike
+1#list of `.Patch`#Sequence[Patch]
+1#(M+1, N+1, 2) array-like#ArrayLike
+1#(M, N) array-like or M*N array-like#ArrayLike
+1#`.Patch`#Patch
+1#{'xy', 'center', (number, number)}#Literal['xy', 'center']|tuple[float,float]
+1#1D array-like or None#ArrayLike|None
+1#float, 1D array-like or None#float|ArrayLike|None
+1#str or `.ArrowStyle`#str|ArrowStyle
+1#str or `matplotlib.patches.ConnectionStyle`#str|ConnectionStyle
+1#str or `matplotlib.patches.ArrowStyle`#str|ArrowStyle
+1#`~matplotlib.transform.Transform`#Transform
+1#list of `~matplotlib.transform.Transform` or None#Sequence[Transform]|None
+1#`matplotlib.widgets.Widget`#Widget
+1#`.backend_managers.ToolManager`#ToolManager
+1#{str: class_like}#
+1#`.AbstractPathEffect`#AbstractPathEffect
+1#`~matplotlib.artist.Artist` or an iterable of `Artist`\s#Artist|Iterable[Artist]
+1#`MovieWriter` or str#MovieWriter|str
+1#iterable, int, generator function, or None#Iterable|int|Callable|None
+1#dict[int, callable]#dict[int, Callable]
+1#_dvistate#_dvistate
+1#list[str]#Sequence[str]
+1#os.PathLike#PathLike
+1#array-like or PIL Image#ArrayLike|Image
+1#tuple of float or None#tuple[float, ...]|None
+1#list of `matplotlib.axes.Axes`#Sequence[Axes]
+1#func(min, max), min/max are floats#Callable[[float, float]]
+1#tuple of length 2#tuple
+1#None or int or (int, int) or slice or list[int] or float or (float, float) or list[bool]#int|tuple[int,int]|slice|Sequence[int]|float|tuple[float,float]|Sequence[bool]|None
+1#float or callable[[Artist, Event], tuple[bool, dict]]#float|Callable
+1#(2, N) array or two 1D arrays#
+1#marker style string, `~.path.Path` or `~.markers.MarkerStyle`#str|Path|MarkerStyle
+1#sequence of floats (on/off ink in points) or (None, None)#Sequence[float|None]
+1#`.Line2D`#Line2D
+1#`~matplotlib.gridspec.GridSpec`#GridSpec
+1#(float, float) or callable#tuple[float,float]|Callable
+1#`.OffsetBox`#OffsetBox
+1#`.BboxBase`, 2-tuple, or 4-tuple of floats#BboxBase|tuple|tuple[float, ...]
+1#None or :class:`matplotlib.transforms.Transform`#Transform|None
+1#`OffsetBox`#OffsetBox
+1#tuple (left, bottom, width, height)#tuple[float,float,float,float]
+1#`.Figure` or `.SubFigure`#Figure|SubFigure
+1#bbox or None#BBox|None
+1#2-tuple of floats#tuple[float, ...]
+1#`SubplotParams`#SubplotParams
+1#{'constrained', 'compressed', 'tight', `.LayoutEngine`, None}#Literal['tight', 'compressed', 'constrained']|LayoutEngine|None
+1#{'constrained', 'compressed', 'tight', 'none'} or `LayoutEngine` or None#Literal['constrained','compressed','tight']|LayoutEngine|None
+1#bool or dict with keys "pad", "w_pad", "h_pad", "rect" or None#bool|dict|None
+1#FigureCanvas#FigureCanvas
+1#(float, float) or float#tuple[float,float]|float
+1#`.Legend`#Legend
+1#`~matplotlib.axes.Axes` or `.Figure`#Axes|Figure
+1#{'center', 'left', 'right'}.#Literal['center','left','right']
+1#`~matplotlib.transforms.BboxBase` or tuple#BboxBase|tuple
+1#list of `.Axes`#Sequence[Axes]
+1#str or `~matplotlib.colors.Colormap` or None#str|Colormap|None
+1#(N, d) array#ArrayLike
+1#(k,) array-like#ArrayLike
+1#`.FT2Font`#FT2Font
+1#Iterable[str, Path, bytes], str, Path, bytes#Iterable[str, Path, Any]|tuple[str, Path, Any]
+1#writable text file-like object#writable text file-like object
+1#dict[str, Any]#dict[str, Any]
+1#dict[str, Union[str, datetime, Name]]#dict[str, Name|str|datetime]
+1#dict from Name to anything, or None#dict[Name, Any]|None
+1#dict from strings to strings and dates#dict[str, str]|dates
+1#type#
+1#`.ToolBase`#ToolBase
+1#str or `.ToolBase`#str|ToolBase
+1#array, shape (n, ...)#ArrayLike
+1#bool, optional (False)#bool|None
+1#dict or Artist subclass or Artist instance#dict|Artist
+1#ndarray, shape (M, N)#ArrayLike
+1#ndarray, shape (N_1, ..., N_k)#ArrayLike
+1#ndarray, shape (N, M)#ArrayLike
+1#`.ScalarMappable`#ScalarMappable
+1#`~matplotlib.colors.Normalize`#Normalize
+1#{*None*, 'auto', length, lengths}#
+1#None or list of ticks or Locator#Sequence[Tick]|None
+1#sequence of str or of `.Text`#Sequence[str|Text]
+1#`~.axes.Axes` or list or `numpy.ndarray` of `~.axes.Axes`#Axes|ArrayLike|Sequence[Axes]
+1#2-tuple of func, or `Transform` with an inverse.#[Callable|Callable]|Transform
+1#tuple (*nrows*, *ncols*, *index*) or int#tuple|int
+1#[left, bottom, width, height] or `~matplotlib.transforms.Bbox`#tuple[float,float,float,float]|Bbox
+1#Callable[[Axes, Renderer], Bbox]#Callable
+1#None or str or (float, float)#str|tuple[float,float]|None
+1#4-tuple or 3 tuple#tuple
+1#default: False#bool
+1#{'center', 'left', 'right'}, str#Literal['center','left','right']|str
+1#color or sequence or sequence of color or None#Color|ArrayLike|Sequence[Color]|None
+1#color or sequence of color or {'face', 'none'} or None#Color|Sequence[Color]|Literal['face','none']|None
+1#{{'pre', 'post', 'mid'}}#Literal['pre','post','mid']
+1#optional#None
+1#decimal.Decimal or iterable#Decimal|Iterable
+1#tuple of keys from {'z', 'dzdx', 'dzdy'}#tuple[Literal['z', 'dzdx', 'dzdy'],...]
+1#is a (N x 3 x 1) array (array of column-matrices) of#ArrayLike
+1#is a (N x 3 x 1) array (array of column-matrices) of triangle#ArrayLike
+1#is a (N x 1 x 9) arrays (arrays of row-matrices) of computed#ArrayLike
+1#shape (3,) array#ArrayLike
+1#shape (3, 2) array#ArrayLike
+1#(ntri, 3) array-like of int#Sequence[int]
+1#(ntri,) array-like of bool#Sequence[bool]
+1#None or bool array of length ntri#Sequence[bool]|None
+1#1D bool array#Sequence[bool]
+1#`~matplotlib.tri.TriInterpolator`#TriInterpolator
+1#module string or canvas class#
+1#'tight' or `.Bbox`#Bbox|Literal['tight']
+1#list of `~matplotlib.artist.Artist`#Sequence[Artist]
+1#`KeyEvent`#KeyEvent
+1#`FigureCanvasBase`#FigureCanvasBase
+1#`NavigationToolbar2`#NavigationToolbar2
+1#tool_like#
+1#{"tip", "middle"} or number#Literal["tip","middle"]|float|int
+1#sequence of pairs of floats#Sequence[tuple[float,float]]
+1#`~matplotlib.font_manager.FontProperties`#FontProperties
+1#{False, True, "TeX"}#bool|Literal["TeX"]
+1#tuple or array of two float values#tuple[float,float]|Sequence[float]
+1#`~matplotlib.legend.Legend`#Legend
+1#:class:`matplotlib.artist.Artist` or similar#Artist
+1#`matplotlib.offsetbox.OffsetBox`#OffsetBox
+1#Nx2 Numpy array.#NDArray
+1#sequence of `.BboxBase`#Sequence[BboxBase]
+1#`~.path.Path`#Path
+1#`~.patches.Patch`#Patch
+1#`Transform` subclass#Transform
+1#list[tuple[slice, slice]]#Sequence[tuple[slice,slice]]
+1#list[tuple[int, int]]#Sequence[tuple[int,int]]
+1#list of `.SubplotSpec`#Sequence[SubplotSpec]
+1#renderer#RendererBase

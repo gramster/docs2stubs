@@ -256,7 +256,9 @@ class NumpyDocstringParser(DocstringParserBase):
         if prefer_type and not _type:
             _type, _name = _name, _type
 
-        # Consume the description
+        # Consume the description. Sometimes this will contain
+        # type information too, but there's no way to tell; safer
+        # to just discard it.
         self._consume_indented_block(self._get_indent(line) + 1)
         return _name, _type
 

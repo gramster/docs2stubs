@@ -50,10 +50,10 @@ class AnalyzingTransformer(BaseTransformer):
         self._classname = None
         
 
-    def update_fullmap(self, section, items, context):
+    def _update_fullmap(self, section, items, context, keysep='.'):
         if items:
             for name, typ in items.items():
-                section[f'{context}.{name}'] = typ
+                section[f'{context}{keysep}{name}'] = typ
 
     def _get_obj_name(self, obj):
         rtn = str(obj)
@@ -69,7 +69,7 @@ class AnalyzingTransformer(BaseTransformer):
         else:
             return rtn
 
-    def _analyze_obj(self, obj, parent=None) -> Sections:
+    def _update_full_context(self, sections: Sections, context: str):
         """
         As a side effect we collect all of these so they can be 
         written out at the end. This allows us to go from a type
@@ -77,21 +77,18 @@ class AnalyzingTransformer(BaseTransformer):
         We can also use this in the augmenter to show the 
         type annotation whenever we have a mismatch.
         """
+        fullcontext = f'{self._modname}.{context}'   
+        self._update_fullmap(_all_params, sections.params, fullcontext)
+        self._update_fullmap(_all_returns, sections.returns, fullcontext, keysep='/')
+        self._update_fullmap(_all_attrs, sections.attrs, fullcontext)
+
+    def _analyze_obj(self, obj, context: str) -> Sections:
         doc = None
         rtn = Sections(params=None, returns=None, attrs=None)
         if obj:
             doc = inspect.getdoc(obj)
             if doc:
                 rtn = self._parser.parse(doc)
-
-        context = ''
-        if parent and parent != obj:
-            context = self._get_obj_name(parent) + '.'
-        context += self._get_obj_name(obj)
-        
-        self.update_fullmap(_all_params, rtn.params, context)
-        self.update_fullmap(_all_returns, rtn.returns, context)
-        self.update_fullmap(_all_attrs, rtn.attrs, context)
         
         for section, counter in zip(rtn, self._counters):
             if section:
@@ -117,7 +114,10 @@ class AnalyzingTransformer(BaseTransformer):
             self._classname = node.name.value
             self._locations[self._classname] = self._modname
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
-            self._docs[self.context()] = self._analyze_obj(obj)
+            context = self.context()
+            docs = self._analyze_obj(obj, context)
+            self._docs[context] = docs
+            self._update_full_context(docs, context)
         return rtn
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
@@ -142,15 +142,19 @@ class AnalyzingTransformer(BaseTransformer):
                     obj = parent.__dict__[name]
                 else:
                     print(f'{self._fname}: Could not get obj for {context}')
-        docs = self._analyze_obj(obj, parent if parent else obj.__module__)
-        self._docs[context] = docs
 
+        docs = self._analyze_obj(obj, context)
+        self._docs[context] = docs
+        self._update_full_context(docs, context)
         if name == '__init__':
             # If we actually had a docstring with params section, we're done
             if docs and docs.params:
                 return rtn
             # Else use the class docstring for __init__
-            self._docs[context] = self._docs.get(outer_context) 
+            docs = self._docs.get(outer_context)
+            self._docs[context] = docs
+            if docs is not None:
+                self._update_full_context(docs, context)
 
         return rtn
 
@@ -199,6 +203,7 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **k
 
 
 def _post_process(m: str, state: tuple, include_counts: bool = False, dump_all = False):
+    print("Analyzing and normalizing types...")
     maps = load_type_maps(m)
     results = [[], [], []]
     freqs: Sections = state[0]
@@ -253,6 +258,7 @@ def _targeter(m: str, suffix: str) -> str:
 
 
 def analyze_module(m: str, include_submodules: bool = True, include_counts = False, dump_all = False) -> None|tuple:
+    print("Gathering docstrings")
     rtn = process_module(m, (
         Sections(params=Counter(), returns=Counter(), attrs=Counter()),
         {}, {}), 
