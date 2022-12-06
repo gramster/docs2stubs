@@ -93,7 +93,7 @@ class MyConfig(DefaultConfig):
         return SQLiteDedupStore.make_store(self._db)
 
 
-def get_annotation(n: cst.CSTNode|None):
+def get_annotation(n: cst.CSTNode|None, is_param: bool) -> str|None:
     if n is None:
         return None
     state = CodegenState(default_indent='', default_newline='')
@@ -103,6 +103,11 @@ def get_annotation(n: cst.CSTNode|None):
             replace('Dict', 'dict').\
             replace('ndarray', 'NDArray').\
             replace('Tuple', 'tuple')
+    if is_param:
+        annotation = annotation.replace('list', 'Sequence').\
+            replace('dict', 'Mapping').\
+            replace('NDArray', 'ArrayLike')
+
     addnone = False
     if annotation.startswith('Optional['):
         addnone = True
@@ -177,8 +182,8 @@ class MyApplyTypeAnnotationsVisitor(ApplyTypeAnnotationsVisitor):
             for i, parameter in enumerate(parameters):
                 key = i if positional else parameter.name.value
                 if key in parameter_annotations:
-                    old_annotation = get_annotation(parameter.annotation)
-                    new_annotation = get_annotation(parameter_annotations[key])
+                    old_annotation = get_annotation(parameter.annotation, True)
+                    new_annotation = get_annotation(parameter_annotations[key], True)
                     overwrite = self.overwrite_existing_annotations or not parameter.annotation
                     if old_annotation is None or old_annotation == 'Any':
                         overwrite = True
@@ -234,8 +239,8 @@ class MyApplyTypeAnnotationsVisitor(ApplyTypeAnnotationsVisitor):
             )
 
             if (updated_node.returns is not None and function_annotation.returns is not None):
-                old_annotation = get_annotation(updated_node.returns)
-                new_annotation = get_annotation(function_annotation.returns)
+                old_annotation = get_annotation(updated_node.returns, False)
+                new_annotation = get_annotation(function_annotation.returns, False)
                 if (new_annotation != old_annotation):
                     if old_annotation == 'Any':
                         set_return_annotation = True

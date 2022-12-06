@@ -44,12 +44,12 @@ def load_import_map(m: str) -> dict[str, str]:
 
 
 def save_type_contexts(m:str, data: dict):
-    with open(f'analysis/{m}.data.pkl', 'wb') as f:
+    with open(f'analysis/{m}.analysis.pkl', 'wb') as f:
         pickle.dump(data, f)
 
 
 def load_type_contexts(m:str) -> dict:
-    with open(f'analysis/{m}.data.pkl', 'rb') as f:
+    with open(f'analysis/{m}.analysis.pkl', 'rb') as f:
         return pickle.load(f)
 
      

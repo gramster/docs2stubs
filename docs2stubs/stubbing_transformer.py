@@ -293,7 +293,7 @@ _stub_folder = 'typings'
 
 
 def _targeter(fname: str) -> str:
-    return _stub_folder + fname[fname.find("/site-packages/") + 15 :] + "i"
+    return f'{_stub_folder}/{fname[fname.find("/site-packages/") + 15 :]}i'
 
 
 def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,

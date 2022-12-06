@@ -5,7 +5,7 @@
 23#array-like of str or None#ArrayLike|None
 20#1d array-like, or label indicator array / sparse matrix#ArrayLike
 18#int, cross-validation generator or an iterable#int|Generator|Iterable
-17#array-like of shape (n_samples_X, n_features) or list of object#ArrayLike|list[Any]
+17#array-like of shape (n_samples_X, n_features) or list of object#ArrayLike|Sequence[Any]
 16#array-like, shape (n_samples, n_features)#ArrayLike
 15#estimator instance#Estimator
 14#matplotlib axes#Axes
@@ -19,7 +19,7 @@
 8#'raise' or numeric#numeric|Literal['raise']
 8#{array-like, sparse matrix}#NDArray|ArrayLike
 8#array-like, shape (n_samples,)#ArrayLike
-8#array-like of shape (n_samples, n_features) or list of object#ArrayLike|list[Any]
+8#array-like of shape (n_samples, n_features) or list of object#ArrayLike|Sequence[Any]
 8#(sparse) array-like of shape (n_samples, n_features)#ArrayLike
 8#None or C-contiguous array of shape (n_samples,)#NDArray|None
 7#array-like of shape (n_queries, n_features),                 or (n_queries, n_indexed) if metric == 'precomputed'#ArrayLike
@@ -54,7 +54,7 @@
 4#str or matplotlib Colormap#str|Colormap
 3#int or RandomState instance#int|RandomState
 3#iterable of iterables#Iterable[Iterable]
-3#list of str of shape (n_features,)#list[str]
+3#list of str of shape (n_features,)#Sequence[str]
 3#int or np.nan#int
 3#iterable or array-like, depending on transformers#Iterable|ArrayLike
 3#array-like, shape (n_samples, n_dim)#ArrayLike
@@ -69,7 +69,7 @@
 3#tuple (min_n, max_n)#tuple[float,float]
 3#type#type
 3#{'k-means++', 'random'}, callable or array-like of shape             (n_clusters, n_features)#Literal['k-means++','random']|Callable|ArrayLike
-3#list of (str, estimator) tuples#list[tuple[str,Estimator]]
+3#list of (str, estimator) tuples#Sequence[tuple[str,Estimator]]
 3#matplotlib Axes#Axes
 3#int array-like of shape (n_samples,)#ArrayLike
 2#array-like of shape (n_samples, n_features) or BallTree#ArrayLike|BallTree
@@ -79,20 +79,20 @@
 2#array-like of shape (n_samples,) or (n_samples, n_outputs) or None#ArrayLike|None
 2#dict of str -> object#Mapping[str, Any]
 2#{ndarray, sparse matrix} of shape (n_samples, n_classes)#NDArray
-2#'auto' or a list of array-like#list[ArrayLike]|Literal['auto']
+2#'auto' or a list of array-like#Sequence[ArrayLike]|Literal['auto']
 2#number type#int|float
 2#tuple (min, max)#tuple[float,float]
 2#tuple (q_min, q_max), 0.0 < q_min < q_max < 100.0#tuple[float,float]
 2#{array-like, NearestNeighbors}#NearestNeighbors|ArrayLike
 2#{array-like, sparse matrix} of shape (n_samples, n_features) or                 (n_samples_test, n_samples_train)#NDArray|ArrayLike
-2#list of {int, str, pair of int, pair of str}#list[int,str,tuple[int,int],tuple[str,str]]
-2#{'average', 'individual', 'both'} or list of such str#Literal['average','individual','both']|list[str]
+2#list of {int, str, pair of int, pair of str}#Sequence[int,str,tuple[int,int],tuple[str,str]]
+2#{'average', 'individual', 'both'} or list of such str#Literal['average','individual','both']|Sequence[str]
 2#Matplotlib axes#Axes
 2#``Estimator`` instance#Estimator
 2#tuple, length = n_layers - 2#tuple
 2#list, length = len(coefs_) + len(intercepts_)#list
-2#str, bool or list/tuple of str#str|bool|list[str]|tuple[str,...]
-2#'numeric', type, list of type or None#type|list[type]|Literal['numeric']|None
+2#str, bool or list/tuple of str#str|bool|Sequence[str]|tuple[str,...]
+2#'numeric', type, list of type or None#type|Sequence[type]|Literal['numeric']|None
 2#str or estimator instance#str|Estimator
 2#{ndarray, list, sparse matrix}#NDArray|list
 2#the warning class#Warning
@@ -114,9 +114,9 @@
 2#float, ndarray of shape (n_features,) or None#float|NDArray|None
 2#int or tuple of shape (2,), dtype=int#int|tuple
 2#{'drop', 'passthrough'} or estimator#Literal['drop','passthrough']|Estimator
-2#column dtype or list of column dtypes#DType|list[DType]
+2#column dtype or list of column dtypes#DType|Sequence[DType]
 2#function#Callable
-2#array-like of shape (n_samples_Y, n_features) or list of object#ArrayLike|list[Any]
+2#array-like of shape (n_samples_Y, n_features) or list of object#ArrayLike|Sequence[Any]
 2#(sparse) array-like of shape (n_samples,) or (n_samples, n_classes)#ArrayLike
 2#array, shape (n_classes, )#NDArray
 2#{int, array of shape (n_samples,)}#NDArray|int
@@ -134,7 +134,7 @@
 2#float between 0 and 1#float
 2#sparse matrix#NDArray
 2#dict of str -> obj#Mapping[str, Any]
-2#list of (str, estimator)#list[tuple[str,Estimator]]
+2#list of (str, estimator)#Sequence[tuple[str,Estimator]]
 2#int, cross-validation generator, iterable, or "prefit"#int|Generator|Iterable|Literal["prefit"]
 2#tree.Tree#Tree
 2#ndarray of bool of shape (n_features,)#NDArray
@@ -145,7 +145,7 @@
 2#Estimator#Estimator
 2#estimator or 'zero'#Estimator|Literal['zero']
 2#{'auto', 'sqrt', 'log2'}, int or float#Literal['auto','sqrt','log2']|int|float
-2#{"balanced", "balanced_subsample"}, dict or list of dicts#Literal["balanced","balanced_subsample"]|dict|list[dict]
+2#{"balanced", "balanced_subsample"}, dict or list of dicts#Literal["balanced","balanced_subsample"]|dict|Sequence[dict]
 2#{ndarray, sparse matrix} of shape (n_samples, n_labels)#NDArray
 2#{'raw_values', 'uniform_average'}  or array-like of shape             (n_outputs,)#Literal['raw_values','uniform_average']|ArrayLike
 2#array-like of shape = (n_samples) or (n_samples, n_outputs)#ArrayLike|tuple[int,int]
@@ -156,19 +156,19 @@
 2#{array-like, sparse matrix} of shape (n_samples, n_outputs) or             (n_samples,)#NDArray|ArrayLike
 2#array, shape = [n_samples]#NDArray
 2#1d array-like#ArrayLike
-2#dict, list of dict or "balanced"#dict|list[dict]|Literal["balanced"]
+2#dict, list of dict or "balanced"#dict|Sequence[dict]|Literal["balanced"]
 2#int, float, {"auto", "sqrt", "log2"} or None#int|float|Literal["auto","sqrt","log2"]|None
-2#list of str or bool#list[str]|bool
+2#list of str or bool#Sequence[str]|bool
 1#array-like, shape (n_queries, n_features),             or (n_queries, n_indexed) if metric == 'precomputed'#ArrayLike
 1#array-like of (n_samples, n_features)#ArrayLike
 1#{'auto', 'pca', 'lda', 'identity', 'random'} or ndarray of shape             (n_features_a, n_features_b)#Literal['auto','pca','lda','identity','random']|NDArray
 1#int or numpy.RandomState#int|RandomState
 1#int, cross-validation generator, iterable or "prefit"#int|Generator|Iterable|Literal["prefit"]
-1#list of fitted estimator instances#list[Estimator]
+1#list of fitted estimator instances#Sequence[Estimator]
 1#tuple of (A, B) ndarrays#tuple[NDArray, ...]
 1#int >= 0, or 'auto'#int|Literal['auto']
 1#{ndarray, sparse matrix} of shape (n_samples, n_components)#NDArray
-1#{list, tuple, set} of estimator instance or a single             estimator instance#Estimator|list[Estimator]|tuple[Estimator,...]|set[Estimator]
+1#{list, tuple, set} of estimator instance or a single             estimator instance#Estimator|Sequence[Estimator]|tuple[Estimator,...]|set[Estimator]
 1#{array-like, object with finite length or shape}#ArrayLike
 1#float in [0.0, 1.0]#float
 1#sequence of indexables with same length / shape[0]#Sequence
@@ -177,7 +177,7 @@
 1#array-like of shape at least 2D#ArrayLike
 1#array-like of  shape (n_samples,)#ArrayLike
 1#dict of str to sequence, or sequence of such#Mapping[str, Sequence]|Sequence[Mapping[str,Sequence]]
-1#dict or list of dicts#dict|list[dict]
+1#dict or list of dicts#dict|Sequence[dict]
 1#{ndarray, sparse matrix} of shape (n_samples,) or                 (n_samples, n_classes)#NDArray
 1#{array, sparse matrix} of shape (n_samples,) or                 (n_samples, n_classes)#NDArray
 1#int or tuple (min_degree, max_degree)#int|tuple[int,int]
@@ -190,9 +190,9 @@
 1#{array-like, sparse matrix} of shape (n_sample, n_features)#NDArray|ArrayLike
 1#array-like, shape (n_features,)#ArrayLike
 1#covariance estimator#Estimator
-1#list of Estimator objects#list[Estimator]
-1#list of (str, transformer) tuples#list[tuple[str, Transformer]]
-1#list of estimators#list[Estimator]
+1#list of Estimator objects#Sequence[Estimator]
+1#list of (str, transformer) tuples#Sequence[tuple[str, Transformer]]
+1#list of estimators#Sequence[Estimator]
 1#{array-like, sparse graph} of shape (n_samples, n_samples)#ArrayLike
 1#{array-like, sparse graph, BallTree, KDTree, NearestNeighbors}#ArrayLike|BallTree|KDTree|NearestNeighbors
 1#{array-like, sparse graph, BallTree, KDTree}#ArrayLike|BallTree|KDTree
@@ -202,7 +202,7 @@
 1#{array-like, sparse matrix} of shape (n_samples, n_features)                 or (n_samples, n_samples)#NDArray|ArrayLike
 1#ndarray or DataFrame, shape (n_samples, n_features)#NDArray|DataFrame
 1#array-like or None, shape (n_samples, ) or (n_samples, n_classes)#ArrayLike|None
-1#list of (int,) or list of (int, int)#list|list[tuple[int,int]]
+1#list of (int,) or list of (int, int)#list|Sequence[tuple[int,int]]
 1#{array-like, sparse matrix, dataframe} of shape (n_samples, 2)#ArrayLike|DataFrame
 1#{array-like or dataframe} of shape (n_samples, n_features)#ArrayLike|DataFrame
 1#str, callable, list/tuple or dict#str|Callable|list|tuple|dict
@@ -221,7 +221,7 @@
 1#{array-like, ndarray, sparse matrix}#NDArray|ArrayLike
 1#list-like#Sequence
 1#any type#Any
-1#{"classifier", "regressor", "cluster", "transformer"}             or list of such str#Literal["classifier","regressor","cluster","transformer"]|list[str]
+1#{"classifier", "regressor", "cluster", "transformer"}             or list of such str#Literal["classifier","regressor","cluster","transformer"]|Sequence[str]
 1#None, str or object with the joblib.Memory interface#None|str|Memory
 1#list or tuple of input objects.#list|tuple|list
 1#{lists, dataframes, ndarrays, sparse matrices}#ArrayLike|DataFrame
@@ -237,17 +237,17 @@
 1#tuple of warning class#tuple[Warning, ...]
 1#exception or tuple of exception#Exception|tuple[Exception, ...]
 1#str, optional#str|None
-1#Exception or list of Exception#Exception|list[Exception]
-1#str, list of str or tuple of str#str|list[str]|tuple[str, ...]
-1#list of estimators or `_VisualBlock`s or a single estimator#list[Estimator|_VisualBlock]|Estimator
-1#list of str, str, or None#list[str]|str|None
-1#dict, list of dicts, "balanced", or None#dict|list[dicts]|Literal["balanced"]|None
+1#Exception or list of Exception#Exception|Sequence[Exception]
+1#str, list of str or tuple of str#str|Sequence[str]|tuple[str, ...]
+1#list of estimators or `_VisualBlock`s or a single estimator#Sequence[Estimator|_VisualBlock]|Estimator
+1#list of str, str, or None#Sequence[str]|str|None
+1#dict, list of dicts, "balanced", or None#dict|Sequence[dicts]|Literal["balanced"]|None
 1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_outputs)#NDArray|ArrayLike
 1#{sparse matrix, ndarray} of shape (n, n)#NDArray
 1#arraylike or sparse matrix, shape = (N,N)#ArrayLike|NDArray
 1#array-likes#ArrayLike
 1#{array-like, sparse matrix} of size (n_samples, n_outputs)#NDArray|ArrayLike
-1#list of estimators instances#list[Estimator]
+1#list of estimators instances#Sequence[Estimator]
 1#int, dict, 'sequential_blas_under_openmp' or None (default=None)#int|dict|Literal['sequential_blas_under_openmp']|None
 1#"blas", "openmp" or None (default=None)#Literal["blas","openmp"]|None
 1#array-like shape of (n_samples, n_features)#ArrayLike
@@ -275,7 +275,7 @@
 1#array, shape = [1]#NDArray
 1#None, 'auto', array-like of shape (n_features, n_features)#ArrayLike|Literal['auto']|None
 1#array-like, shape (n_samples, )#ArrayLike
-1#list of ndarray of shape (n_outputs,)#list[NDArray]
+1#list of ndarray of shape (n_outputs,)#Sequence[NDArray]
 1#a dictionary for environment variables#dict
 1#array-like, dtype=str#ArrayLike
 1#array-like, dtype=str, file-like or int#ArrayLike|IO|int
@@ -290,7 +290,7 @@
 1#{`china.jpg`, `flower.jpg`}#Literal['flower.jpg','flower.jpg']
 1#dataframe of shape (n_features, n_samples)#DataFrame
 1#array-like of shape (n_kernel_params,) default=None#ArrayLike|None
-1#list of Kernels#list[Kernel]
+1#list of Kernels#Sequence[Kernel]
 1#float >= 0#float
 1#{array-like, sparse matrix} of shape (n_samples,)#NDArray|ArrayLike
 1#{np.float64, np.float32}#float64|float32
@@ -318,7 +318,7 @@
 1#array-like of shape (n_samples,) or default=None#ArrayLike|None
 1#ndarray, dtype=np.uint32#NDArray
 1#bool or ndarray, dtype=bool#bool|NDArray
-1#list of {ndarray, None} of shape (n_features,)#list[NDArray|None]
+1#list of {ndarray, None} of shape (n_features,)#Sequence[NDArray|None]
 1#ndarray of PREDICTOR_RECORD_DTYPE#NDArray
 1#uint8#int
 1#ndarray, shape (n_samples, n_target_features)#NDArray
@@ -328,6 +328,8 @@
 1#ndarray of shape, (n,)#NDArray
 1#ndarray of shape of (n_samples,)#NDArray
 1#float > 0 and <= 1#float
+1#str, type, list of type#str|type|ArrayLike
+1#np.nan or int#np.nan|int
 1#{ndarray, sparse matrix} of shape (n_samples_X, n_features)#NDArray
 1#{ndarray, sparse matrix} of shape (n_samples_Y, n_features)#NDArray
 1#float, slope of the pinball loss#float
@@ -336,12 +338,10 @@
 1#{ndarray, sparse matrix} of shape             (n_classes_true, n_classes_pred)#NDArray
 1#int array, shape = (``n_samples``,)#NDArray
 1#array, shape = (``n_samples``, )#NDArray
+1#"warn", {0.0, 1.0}#float|Literal["warn"]
 1#tuple or set, for internal use#tuple|set
-1#list of str of shape (n_labels,)#list[str]
+1#list of str of shape (n_labels,)#Sequence[str]
 1#array-like of float, shape = (n_samples, n_classes) or (n_samples,)#ArrayLike
 1#decision tree regressor or classifier#Regressor|Classifier
 1#matplotlib axis#Axis
 1#decision tree classifier#Classifier
-1#str, type, list of type#str|type|ArrayLike
-1#np.nan or int#np.nan|int
-1#"warn", {0.0, 1.0}#float|Literal["warn"]

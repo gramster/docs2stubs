@@ -322,7 +322,14 @@ class Normalizer(Interpreter):
         'COMPLEX': 'complex',
         'OBJECT': 'Any',
         'PATHLIKE': 'PathLike',
-        'FILELIKE': 'FileLike'
+        'FILELIKE': 'IO'
+    }
+    _basic_types_imports = {
+        'ANY': 'typing',
+        'SCALAR': '_typing',
+        'OBJECT': 'typing',
+        'PATHLIKE': 'os',
+        'FILELIKE': 'typing'
     }
 
     def array_type(self, tree):
@@ -455,7 +462,13 @@ class Normalizer(Interpreter):
                     imports.add(('IO', 'typing'))
                     return 'IO', imports
                 if child.type in self._basic_types:
-                    return self._basic_types[child.type], imports
+                    typ = self._basic_types[child.type]
+                    if child.type in self._basic_types_imports:
+                        imp = self._basic_types_imports[child.type]
+                        if imp == '_typing':
+                            imp = self._tlmodule + '.' + imp
+                        imports.add((typ, imp))
+                    return typ, imports
 
         assert(False)
 

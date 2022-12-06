@@ -28,7 +28,7 @@
 2#ndarray of shape  (n_classes * (n_classes - 1) / 2)#NDArray
 2#ndarray, shape (n_features,)#NDArray
 2#list of shape (n_alphas,) of ndarray of shape             (n_features, n_features)#list[NDArray]
-2#mask#mask
+2#mask#
 2#ndarray of shape (n_features,), dtype={np.float32, np.float64}#NDArray
 2#the return value of `func`#Any
 2#list of size n_outputs of ndarray of size (n_classes,)#list[NDArray]
@@ -81,7 +81,7 @@
 1#ndarray, shape (n_samples,) or (n_samples, n_classes)#NDArray
 1#list of (objective, dual_gap) pairs#list[tuple[float,float]]
 1#sequence of array-like of shape (n_samples,) or             (n_samples, n_outputs)#Sequence[ArrayLike]
-1#sequence of indexable data-structures#Sequenc
+1#sequence of indexable data-structures#Sequence
 1#element wise square#NDArray
 1#1d boolean nd-array#NDArray
 1#object with the joblib.Memory interface#Memory
@@ -138,5 +138,5 @@
 1#float or array of float, shape = [n_unique_labels]#float|NDArray
 1#None (if average is not None) or array of int, shape =        [n_unique_labels]#None|NDArray
 1#float (if average is not None) or array of float of shape                 (n_unique_labels,)#float|NDArray
-1#float (if average is not None) or array of float of shape              (n_unique_labels,)#floati|NDArray
-1#list of artists#list[Artistxs]
+1#float (if average is not None) or array of float of shape              (n_unique_labels,)#float|NDArray
+1#list of artists#list[Artist]
