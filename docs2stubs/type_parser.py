@@ -514,7 +514,11 @@ class Normalizer(Interpreter):
                     dict_type = 'Mapping'
                     imports.add(('Mapping', 'typing'))
                 elif child.type == 'DICT':
-                    dict_type = 'dict'
+                    if self._is_param:
+                        dict_type = 'Mapping'
+                        imports.add(('Mapping', 'typing'))
+                    else:
+                        dict_type = 'dict'
                 elif child.type == 'QUALNAME':
                     to_type = self.handle_qualname(child.value, imports)
                     if from_type is None:

@@ -78,7 +78,6 @@ or package will be used (if it exists) to decide what are valid classnames.
 
 __version__ = '0.1'
 
-from xml.etree.ElementInclude import include
 from docopt import docopt
 from .stubbing_transformer import stub_module
 from .analyzing_transformer import analyze_module

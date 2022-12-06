@@ -4,7 +4,7 @@ from types import ModuleType
 from typing import Any
 import libcst as cst
 from .base_transformer import BaseTransformer
-from .utils import Sections, process_module, load_type_maps, save_fullmap, save_result
+from .utils import Sections, process_module, load_type_maps, save_fullmap, save_result, save_import_map, save_type_contexts
 from .docstring_parser import NumpyDocstringParser
 from .type_normalizer import is_trivial, normalize_type, print_norm1
 
@@ -241,11 +241,6 @@ def _post_process(m: str, state: tuple, include_counts: bool = False, dump_all =
 
     save_fullmap('analysis', m, _all_params, _all_returns, _all_attrs)
 
-    for section, fullmap in zip(['params', 'returns', 'attrs'], [_all_params, _all_returns, _all_attrs]):
-        with open(f'analysis/{m}.{section}.full', 'w') as f:
-            for k, v in fullmap.items():
-                f.write(f'{k}#{v}\n')
-
     return Sections(params=''.join(results[0]), 
                     returns=''.join(results[1]),
                     attrs=''.join(results[2])), \
@@ -267,10 +262,7 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Fal
         include_counts=include_counts,
         dump_all=dump_all)
     # Save imports and type contexts too
-    imports= rtn
     if rtn:
-        save_result(f"analysis/{m}.imports.map",
-            ''.join([f"{k}#{v}\n" for k, v in rtn[1].items()]))
+        save_import_map(m, rtn[1])
+        save_type_contexts(m, rtn[2])
     return rtn
-
-

@@ -1,5 +1,8 @@
 import libcst as cst
 
+
+_stack_debug = False
+
 class BaseTransformer(cst.CSTTransformer):
     """
     A base class for our CST transformers that keeps track of
@@ -9,6 +12,7 @@ class BaseTransformer(cst.CSTTransformer):
     context key for storing state relevant to the context in a 
     dictionary.
     """
+
     def __init__(self, modname: str, fname: str, strip_defaults=False):
         self._modname = modname
         self._fname = fname
@@ -46,6 +50,8 @@ class BaseTransformer(cst.CSTTransformer):
 
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
         assert(self._in_class_count <= 1)
+        if _stack_debug:
+            print(f"{' '*4*len(self._context_stack)}Entering class {node.name.value}")
         self._context_stack.append(node.name.value)
         self._in_class_count += 1
         # No point recursing if we are at nested function level
@@ -53,12 +59,16 @@ class BaseTransformer(cst.CSTTransformer):
         return self._in_class_count == 1
 
     def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.CSTNode:
-        self._context_stack.pop()
+        n = self._context_stack.pop()
+        if _stack_debug:
+            print(f"{' '*4*len(self._context_stack)}Leaving class {n}")
         self._in_class_count -= 1
         return updated_node
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
         assert(self._in_function_count <= 1)
+        if _stack_debug:
+            print(f"{' '*4*len(self._context_stack)}Entering function {node.name.value}")
         self._context_stack.append(node.name.value)
         self._in_function_count += 1
         # No point recursing if we are at nested function level
@@ -67,18 +77,24 @@ class BaseTransformer(cst.CSTTransformer):
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
-        self._context_stack.pop() 
+        n = self._context_stack.pop() 
+        if _stack_debug:
+            print(f"{' '*4*len(self._context_stack)}Leaving function {n}")
         self._in_function_count -= 1 
         return updated_node
 
     def visit_Param(self, node: cst.Param) -> bool:
+        if _stack_debug:
+            print(f"{' '*4*len(self._context_stack)}Entering param {node.name.value}")
         self._context_stack.append(node.name.value)
         return True
 
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
     ) -> cst.CSTNode:
-        self._context_stack.pop() 
+        n = self._context_stack.pop()
+        if _stack_debug:
+            print(f"{' '*4*len(self._context_stack)}Leaving param {n}")
         return updated_node
 
     def visit_Lambda(self, node: cst.Lambda) -> bool:
@@ -87,13 +103,10 @@ class BaseTransformer(cst.CSTTransformer):
 
     def visit_Assign(self, node: cst.Assign) -> bool:
         # TODO: figure out how to handle attributes here
-        #if len(node.targets) == 1:
-        #    self._context_stack.append(node.targets[0].name.value)
         return False
 
     def leave_Assign(
         self, original_node: cst.Assign, updated_node: cst.Assign
     ) -> cst.CSTNode:
-        #self._context_stack.pop() 
         return updated_node
 

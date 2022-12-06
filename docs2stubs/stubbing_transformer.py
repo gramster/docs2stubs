@@ -7,7 +7,7 @@ from black.mode import Mode
 from .analyzing_transformer import analyze_module
 from .type_normalizer import is_trivial, normalize_type
 from .base_transformer import BaseTransformer
-from .utils import Sections, load_map, load_type_maps, process_module
+from .utils import Sections, load_map, load_type_contexts, load_type_maps, process_module
 
 
 class StubbingTransformer(BaseTransformer):
@@ -180,13 +180,12 @@ class StubbingTransformer(BaseTransformer):
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
         name = node.name.value
-        if name.startswith('_') and not name.startswith('__'):
-            return False
-        
-        if self.at_top_level_class_level():
+        is_private = name.startswith('_') and not name.startswith('__')
+        if not is_private and self.at_top_level_class_level():
             # Record the method name
             self._method_names.add(name)
-        return super().visit_FunctionDef(node)
+        rtn = super().visit_FunctionDef(node)
+        return False if is_private else rtn
 
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
@@ -302,8 +301,12 @@ stub_folder: str = "typings") -> None:
     global _stub_folder
     _stub_folder = stub_folder
     imports = load_map(m, 'imports')
-    rtn = analyze_module(m, include_submodules=include_submodules)
+    if skip_analysis:
+        rtn = (load_type_maps(m), imports, load_type_contexts(m))
+    else:   
+        rtn = analyze_module(m, include_submodules=include_submodules)
     if rtn is not None:
+        imports = rtn[1]
         if imports:
             # Add any extra imports paths found in the imports file
             for k, v in imports.items():

@@ -3,6 +3,7 @@ import glob
 import importlib
 import inspect
 import os
+import pickle
 import re
 from types import ModuleType
 from typing import Callable
@@ -33,6 +34,25 @@ def load_type_maps(m: str) -> Sections:
                     attrs=load_map(m, 'attrs'))
 
 
+def save_import_map(m: str, imports: dict[str, str]):
+    save_result(f"analysis/{m}.imports.map",
+        ''.join([f"{k}#{v}\n" for k, v in imports.items()]))
+
+    
+def load_import_map(m: str) -> dict[str, str]:
+    return load_map(m, 'imports')
+
+
+def save_type_contexts(m:str, data: dict):
+    with open(f'analysis/{m}.data.pkl', 'wb') as f:
+        pickle.dump(data, f)
+
+
+def load_type_contexts(m:str) -> dict:
+    with open(f'analysis/{m}.data.pkl', 'rb') as f:
+        return pickle.load(f)
+
+     
 def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str]]:
     try:
         mod = importlib.import_module(m)
