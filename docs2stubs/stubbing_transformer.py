@@ -103,7 +103,8 @@ class StubbingTransformer(BaseTransformer):
         imports = {}
         how = ''
         if doctyp in map:
-            # We still call the normalizer, just to get the imports
+            # We still call the normalizer, just to get the imports, althought there is a chance
+            # these could now be wrong
             typ = map[doctyp]
             _, imports = normalize_type(typ, self._modname, self._classes, is_param)
             how = 'mapped'
@@ -260,7 +261,18 @@ class StubbingTransformer(BaseTransformer):
         ]
         return updated_node.with_changes(body=newbody)
 
+    def leave_ImportAlias(
+        self, original_node: cst.ImportAlias, updated_node: cst.ImportAlias
+    ) -> cst.ImportAlias:
+        # If the containing file is an __init__.py, then we need to
+        # then we need to add the alias to the import statement if not
+        # present.
+        if self._fname == '__init__.py' and original_node.asname is None and isinstance(original_node.name, cst.Name):
+            return updated_node.with_changes(asname=cst.AsName(name=cst.Name(original_node.name.value)))
+        else:
+            return updated_node
 
+         
 def patch_source(m: str, fname: str, source: str, maps: Sections, imports: dict, typs: dict, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
