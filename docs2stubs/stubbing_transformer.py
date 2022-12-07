@@ -267,7 +267,7 @@ class StubbingTransformer(BaseTransformer):
         # If the containing file is an __init__.py, then we need to
         # then we need to add the alias to the import statement if not
         # present.
-        if self._fname == '__init__.py' and original_node.asname is None and isinstance(original_node.name, cst.Name):
+        if self._fname.endswith('__init__.py') and original_node.asname is None and isinstance(original_node.name, cst.Name):
             return updated_node.with_changes(asname=cst.AsName(name=cst.Name(original_node.name.value)))
         else:
             return updated_node
