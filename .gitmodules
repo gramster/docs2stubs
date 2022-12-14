@@ -7,3 +7,24 @@
 [submodule "tracing/submodules/scipy"]
 	path = tracing/submodules/scipy
 	url = https://github.com/scipy/scipy.git
+[submodule "tracing/submodules/astropy"]
+	path = tracing/submodules/astropy
+	url = https://github.com/astropy/astropy.git
+[submodule "tracing/submodules/sympy"]
+	path = tracing/submodules/sympy
+	url = https://github.com/sympy/sympy.git
+[submodule "tracing/submodules/QuantEcon.py"]
+	path = tracing/submodules/QuantEcon.py
+	url = https://github.com/QuantEcon/QuantEcon.py.git
+[submodule "tracing/submodules/scikit-image"]
+	path = tracing/submodules/scikit-image
+	url = https://github.com/scikit-image/scikit-image.git
+[submodule "tracing/submodules/networkx"]
+	path = tracing/submodules/networkx
+	url = https://github.com/networkx/networkx.git
+[submodule "tracing/submodules/napari"]
+	path = tracing/submodules/napari
+	url = https://github.com/napari/napari.git
+[submodule "tracing/submodules/vispy"]
+	path = tracing/submodules/vispy
+	url = https://github.com/vispy/vispy.git

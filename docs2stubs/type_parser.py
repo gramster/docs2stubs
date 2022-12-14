@@ -38,6 +38,7 @@ array_kind: [A|AN] [SPARSE | _LPAREN SPARSE _RPAREN] ARRAYLIKE
           | [A] LIST
           | [A|AN] NDARRAY 
           | [A] [SPARSE | _LPAREN SPARSE _RPAREN] MATRIX [CLASS]
+          | [A] SPARSEMATRIX [CLASS]
           | [A] SEQUENCE
           | [A|AN] [SPARSE | _LPAREN SPARSE _RPAREN] ARRAY 
           | ARRAYS 
@@ -136,7 +137,7 @@ LIKE.2:      "like"i
 LIST.2:      "list"i | "list thereof"i
 MAPPING.2:   "mapping"i
 MATPLOTLIB:  "matplotlib"i
-MATRIX.2:    "matrix"i | "sparse-matrix"i
+MATRIX.2:    "matrix"i
 NDARRAY.2:   "ndarray"i | "ndarrays"i | "nd-array"i | "numpy array"i | "np.array"i | "numpy.ndarray"i
 NEGATIVE.2:  "negative"i
 NONE.2:      "none"i
@@ -161,6 +162,7 @@ SET.2:       "set"i
 SHAPE.2:     "shape"i
 SIZE.2:      "size"i
 SPARSE.2:    "sparse"i
+SPARSEMATRIX.2: "sparse-matrix"i
 STR.2:       "str"i | "string"i | "strings"i | "python string"i | "python str"i
 SUBCLASS.2:  "subclass"i | "subclass thereof"i
 THREED.2:    "3-d"i | "3d"i | "three-dimensional"i
@@ -345,8 +347,12 @@ class Normalizer(Interpreter):
         imports = set()
         for child in tree.children:
             if isinstance(child, Token) and (child.type == 'NDARRAY' or child.type == 'NUMPY'):
-                arr_types.add('NDArray')
-                imports.add(('NDArray', 'numpy.typing'))
+                if self._is_param:
+                    arr_types.add('NDArray')
+                    imports.add(('NDArray', 'numpy.typing'))
+                else:
+                    arr_types.add('np.ndarray')
+                    imports.add(('ndarray', 'numpy'))
             if isinstance(child, Tree) and isinstance(child.data, Token):
                 tok = child.data
                 subrule = tok.value
@@ -366,7 +372,7 @@ class Normalizer(Interpreter):
                 arr_types.add('Sequence')
                 arr_types.remove('list')
                 imports.add(('Sequence', 'typing'))
-            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list'] else f'{typ}' \
+            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list', 'ndarray'] else f'{typ}' \
                     for typ in arr_types]), imports
         else:
             return '|'.join(arr_types), imports
@@ -386,18 +392,28 @@ class Normalizer(Interpreter):
         array_kind: ARRAYLIKE 
           | LIST
           | NDARRAY 
-          | MATRIX 
+          | MATRIX
+          | SPARSE MATRIX 
+          | SPARSEMATRIX
           | SEQUENCE
           | ARRAY 
           | ARRAYS 
         """
         arr_type = ''
         imports = set()
+        is_sparse = False
         for child in tree.children:
             if isinstance(child, Token):
-                if child.type == 'NDARRAY':
-                    arr_type = 'NDArray'
-                    imports.add(('NDArray', 'numpy.typing'))
+                if child.type == 'SPARSE':
+                    is_sparse = True
+                    continue
+                elif child.type == 'NDARRAY':
+                    if self._is_param:
+                        arr_type = 'NDArray'
+                        imports.add(('NDArray', 'numpy.typing'))
+                    else:
+                        arr_type = 'np.ndarray'
+                        imports.add(('ndarray', 'numpy'))
                 elif self._is_param or child.type == 'ARRAYLIKE':
                     arr_type = 'ArrayLike'
                     imports.add(('ArrayLike', 'numpy.typing'))
@@ -406,8 +422,13 @@ class Normalizer(Interpreter):
                 elif child.type == 'SEQUENCE':
                     arr_type = 'Sequence'
                     imports.add(('Sequence', 'typing'))
-                else:
-                    continue
+                elif child.type == 'SPARSEMATRIX':
+                    arr_type = 'spmatrix'
+                    imports.add(('spmatrix', 'scipy.sparse'))
+                elif child.type == 'MATRIX':
+                    if is_sparse:
+                        arr_type = 'spmatrix'
+                        imports.add(('spmatrix', 'scipy.sparse'))
                 break
 
         if not arr_type:

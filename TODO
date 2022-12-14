@@ -11,12 +11,14 @@
 - [ ] make sure we also parse formal types
 - [x] remove private methods
 - [ ] support 'common' map files
-- [ ] print context in log 
+- [x] print context in log 
 
-- [ ] fix the context's that are going in the full map. There's definite issues with these. See def _analyze_obj and _get_obj_name. For e.g. in the returns.full we have things ending .self which should if anything be in params.full
-- [ ] Once the above are fixed, add docstrings to the mismatched type outputs in the augmenter
 - [ ] See if some of the remapped types coming out of analyzer need tweaking based on output of above, and do that
 - [ ] Allow the full map (or something like it) to be used for fine grain support of type overrides
+- [ ] Make sure we are actually doing the necessary imports for remapped types. I suspect we aren't.
+- [ ] Clean up code more
+- [ ] Look at perf; it sucks
+
 
 Note: in some cases we may need to suppress QUALNAME matching in favor of other things (like basic_type).
 In that case use qualname instead (this requires changing handling from token type to tree type).
