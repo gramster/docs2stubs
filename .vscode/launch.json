@@ -5,33 +5,105 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Analyze",
+            "name": "Analyze sklearn",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "program": "analyze.py",
+            "program": "process.py",
+            "args": [ "analyze", "sklearn"],
             "console": "integratedTerminal",
             "justMyCode": false
         },
         {
-            "name": "Stub",
+            "name": "Stub sklearn",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "program": "stub.py",
+            "program": "process.py",
+            "args": [ "stub", "sklearn"],
             "console": "integratedTerminal",
             "justMyCode": false
         },
         {
-            "name": "Augment",
+            "name": "Augment sklearn",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "program": "augment.py",
+            "program": "process.py",
+            "args": [ "augment", "sklearn"],
             "console": "integratedTerminal",
             "justMyCode": false
         },
-
+        {
+            "name": "Analyze matplotlib",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "analyze", "matplotlib"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Stub matplotlib",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "stub", "matplotlib"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Analyze matplotlib",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "analyze", "scipy"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Stub matplotlib",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "stub", "scipy"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Analyze astropy",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "analyze", "astropy"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Stub astropy",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "stub", "astropy"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Augment matplotlib",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "process.py",
+            "args": [ "augment", "matplotlib"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
         {
             "name": "Python: Current File",
             "type": "python",

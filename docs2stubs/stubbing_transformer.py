@@ -55,7 +55,7 @@ class StubbingTransformer(BaseTransformer):
                     break
         return typ
 
-    def get_assign_value(self, node: cst.Assign) -> cst.BaseExpression:
+    def get_assign_value(self, node: cst.Assign|cst.AnnAssign) -> cst.BaseExpression:
         # See if this is an alias, in which case we want to
         # preserve the value; else we set the new value to ...
         new_value = None
@@ -79,6 +79,12 @@ class StubbingTransformer(BaseTransformer):
     def leave_Assign(
         self, original_node: cst.Assign, updated_node: cst.Assign
     ) -> cst.CSTNode:
+        # If this is an __all__ assignment, we want to preserve it
+        if len(original_node.targets) == 1:
+            target0 = original_node.targets[0].target
+            if isinstance(target0, cst.Name) and target0.value == '__all__':
+                return updated_node
+        
         typ, value = self.get_assign_props(original_node)
         typ = StubbingTransformer.get_value_type(original_node.value)
         # Make sure the assignment was not to a tuple before
@@ -93,7 +99,7 @@ class StubbingTransformer(BaseTransformer):
             return updated_node.with_changes(value=value)
 
     def leave_AnnAssign(
-        self, original_node: cst.Assign, updated_node: cst.Assign
+        self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
     ) -> cst.CSTNode:
         value=self.get_assign_value(original_node)
         return updated_node.with_changes(value=value)
@@ -254,10 +260,9 @@ class StubbingTransformer(BaseTransformer):
         newbody = [
             node
             for node in updated_node.body
-            if any(
-                isinstance(node, cls)
-                for cls in [cst.ClassDef, cst.FunctionDef, cst.SimpleStatementLine]
-            )
+            if isinstance(node, cst.ClassDef) or \
+               isinstance(node,cst.SimpleStatementLine) or \
+              (isinstance(node, cst.FunctionDef) and not node.name.value.startswith('_'))
         ]
         return updated_node.with_changes(body=newbody)
 
@@ -271,7 +276,7 @@ class StubbingTransformer(BaseTransformer):
             return updated_node.with_changes(asname=cst.AsName(name=cst.Name(original_node.name.value)))
         else:
             return updated_node
-
+    
          
 def patch_source(m: str, fname: str, source: str, maps: Sections, imports: dict, typs: dict, strip_defaults: bool = False) -> str|None:
     try:

@@ -1,0 +1,125 @@
+37##
+28#instance of Event#Event
+20#instance of Color#Color|str
+9#instance of Node#Node
+9#np.array#NDArray
+8#list, array or 4-tuple#ArrayLike|tuple
+8#tuple (x,y) or (x,y,z)#tuple[float,float]|tuple[float,float,float]
+6#array_like#ArrayLike
+6#numpy array#NDArray
+6#number#float
+6#instance of VisualView | None#None|VisualView
+6#list of lists, tuples, or ndarrays#Sequence[ArrayLike|tuple|NDArray]
+5#instance of VisualShare | None#VisualShare|None
+5#str | tuple | list of colors#str|tuple|Sequence
+4#instance of Program | None#None|Program
+4#Transform instance#Transform
+4#str | callback | list of str or callback | None#Callable|str|ArrayLike|None
+3#float (in px)#float
+3#(x, y)#tuple[float,float]
+3#int or 1-D array#int|ArrayLike
+3#list, array or 2-tuple#ArrayLike|tuple
+3#str or :class:`vispy.color.colormap.ColorMap`#str|ColorMap
+3#(float, float)#tuple[float,float]
+3#open file- like object#FileLike
+3#list of colors | ColorArray#ArrayLike
+3#tuple of integers#tuple[int, ...]
+3#RenderBuffer (optional)#RenderBuffer|None
+3#(int, int)#tuple[int,int]
+2#tuple (min, max)#tuple[float,float]
+2#instance of Widget#Widget
+2#(width, height)#tuple[float,float]
+2#widget-object#Widget
+2#int > 0#int
+2#instance of TransformSystem | None#None|TransformSystem
+2#ndarray, shape (Nv, 3)#NDArray
+2#ndarray, shape (Nf, 3)#NDArray
+2#ndarray, shape (Nv,)#NDArray
+2#unicode#str
+2#ndarray, shape (Nv, 3) | None#NDArray|None
+2#ndarray, shape (Nf, 3) | None#NDArray|None
+2#ndarray, shape (Nv,) | None#NDArray|None
+2#ndarray, shape (Nlev,) | None#NDArray|None
+2#numpy.dtype | str | None#np.dtype|None|str
+2#np.dtype or None#np.dtype|None
+2#GL_ENUM#GL_ENUM
+2#instance of Texture2D#Texture2D
+2#matrix or sparse#ArrayLike|NDArray
+2#instance of Visual#Visual
+2#str | GL_ENUM#GL_ENUM|str
+2#{float, int, tuple, GLObject}#float|int|tuple|GLObject
+2#array-like, shape (2, 2) or (2, 3)#ArrayLike
+2#array-like, shape (4, 3)#ArrayLike
+2#list of BaseTransform instances#Sequence[BaseTransform]
+2#instance of Transform#Transform
+2#instance of MeshData | None#None|MeshData
+2#list, tuple or numpy array#ArrayLike|tuple|NDArray
+2#(h, w, 4) ndarray#NDArray
+2#integer#int
+2#function | tuple#Callable|tuple
+2#array-like, shape (3,)#ArrayLike
+2#dtype | None#np.dtype|None
+2#tuple of Key instances#tuple[Key,...]
+1#instance of Camera | str | None#None|str|BaseCamera
+1#tuple (major_axis, minor_axis) [0, 1]#tuple
+1#(w, h)#tuple[float,float]
+1#instance of ViewBox#ViewBox
+1#instance of Color | None#None|Color|str
+1#instance of FrameBuffer#FrameBuffer
+1#tuple of 2-4 elements#tuple
+1#length-2 sequence#Sequence
+1#instance of Camera#BaseCamera
+1#ndarray (n,3)#NDArray
+1#ndarray (p,3)#NDArray
+1#(Nv, 3) array#ArrayLike
+1#(Nv, 2) array#ArrayLike
+1#(Nf, 3) array#ArrayLike
+1#ndarray, shape (Nv, 4)#NDArray
+1#ndarray, shape (Nf, 4)#NDArray
+1#ndarray, shape (Nl,)#NDArray
+1#Color, tuple, colormap name or array#Color|tuple|ArrayLike|str
+1#array-like (x, y)#ArrayLike
+1#tuple (x, y)#tuple[float,float]
+1#tuple (half_width, half_height)#tuple[float,float]
+1#tuple (rows, cols)#tuple[float,float]
+1#str | ColorMap#str|ColorMap
+1#numpy.ndarray#NDArray
+1#np.dtype#np.dtype
+1#int, tuple or 1-D array#int|tuple|ArrayLike
+1#sampler2D#sampler2D
+1#vec3#vec3
+1#instance of SDFRenderer#SDFRenderer
+1#str or dict or iterable-object of float32#str|dict|Iterable[float32]
+1#layout: is numpy array it is assumed it takes the shape (number_of_nodes, 2).#np.array
+1#instance of RandomState | int | None#None|int|RandomState
+1#array or sparse#ArrayLike|NDArray
+1#instance of VisualView#VisualView
+1#list of BaseVisual instances#Sequence[BaseVisual]
+1#list of Functions#ArrayLike
+1#instance of Canvas | None#None|Canvas
+1#instance of Canvas#Canvas
+1#function#Callable
+1#arrayndarray#np.ndarray
+1#Canvas instance#Canvas
+1#{'mip', 'attenuated_mip', 'minip', 'translucent', 'additive',#Literal['mip', 'attenuated_mip', 'minip', 'translucent', 'additive']
+1#numpy.dtype#np.dtype
+1#Color, colormap name, tuple, list or array#Color|str|tuple|list|np.array
+1#instance of AxisVisual#AxisVisual
+1#(M, N) or (M, N, C) array#tuple|ArrayLike
+1#(N, 2) array#ArrayLike
+1#(h, w, 4) ndarray or 'screenshot'#NDArray|Literal['screenshot']
+1#instance of ColorArray#ColorArray
+1#int (optional)#int|None
+1#str (optional)#str|None
+1#numpy.dtype object#np.dtype
+1#str, int, slice, or Ellpsis#str|int|slice
+1#tuple of two integers#tuple[int,int]
+1#str | dtype#str|np.dtype
+1#instance of GLContext | None#None|GLContext
+1#char#char
+1#subclass of Event#Event
+1#tuple of two floats | None#tuple[float,float]|None
+1#function | str#Callable|str
+1#[int, ...]#tuple[int, ...]
+1#(int, int, int, int) or None#tuple[int,int,int,int]|None
+1#function | None#Callable|None

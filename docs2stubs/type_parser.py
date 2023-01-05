@@ -76,9 +76,9 @@ class_type: [CLASSMARKER] class_specifier [INSTANCE|OBJECT]
         | class_specifier [_COMMA|_LPAREN] OR SUBCLASS [_RPAREN]
         | class_specifier [_COMMA|_LPAREN] OR class_specifier[_RPAREN]
 class_specifier: [A|AN] (INSTANCE|CLASS|SUBCLASS) OF QUALNAME 
-        | [A|AN] QUALNAME (INSTANCE|CLASS|SUBCLASS)
-        | [A|AN] QUALNAME [_COMMA|_LPAREN] OR [A|AN|ANOTHER] SUBCLASS [OF QUALNAME][_RPAREN]
-        | [A|AN] QUALNAME [_COLON QUALNAME] [_MINUS LIKE]
+        | QUALNAME (INSTANCE|CLASS|SUBCLASS)
+        | QUALNAME [_COMMA|_LPAREN] OR [A|AN|ANOTHER] SUBCLASS [OF QUALNAME][_RPAREN]
+        | QUALNAME [_COLON QUALNAME] [_MINUS LIKE]
 dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|qualname) [(TO|_ARROW) (basic_type|qualname)] 
          | (MAPPING|DICT) [_LBRACKET type _COMMA type _RBRACKET]
 filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE]
@@ -335,13 +335,6 @@ class Normalizer(Interpreter):
     }
 
     def array_type(self, tree):
-        """
-        array_type: [NDARRAY|NUMPY] basic_type [_MINUS] array_kind [[_COMMA] (dimension | shape_qualifier)]
-                | array_kind [_COMMA] shape_qualifier [[_COMMA] type_qualifier] 
-                | array_kind [_COMMA] type_qualifier [[_COMMA] shape_qualifier] 
-                | (dimension | shape) array_kind [type_qualifier]
-                | array_kind
-        """
         arr_types = set()
         elt_type = None
         imports = set()
@@ -388,17 +381,6 @@ class Normalizer(Interpreter):
         return types, imports
 
     def array_kind(self, tree):
-        """
-        array_kind: ARRAYLIKE 
-          | LIST
-          | NDARRAY 
-          | MATRIX
-          | SPARSE MATRIX 
-          | SPARSEMATRIX
-          | SEQUENCE
-          | ARRAY 
-          | ARRAYS 
-        """
         arr_type = ''
         imports = set()
         is_sparse = False
@@ -414,14 +396,14 @@ class Normalizer(Interpreter):
                     else:
                         arr_type = 'np.ndarray'
                         imports.add(('ndarray', 'numpy'))
+                elif child.type == 'SEQUENCE':
+                    arr_type = 'Sequence'
+                    imports.add(('Sequence', 'typing'))
                 elif self._is_param or child.type == 'ARRAYLIKE':
                     arr_type = 'ArrayLike'
                     imports.add(('ArrayLike', 'numpy.typing'))
                 elif child.type == 'LIST':
                     arr_type = 'list'
-                elif child.type == 'SEQUENCE':
-                    arr_type = 'Sequence'
-                    imports.add(('Sequence', 'typing'))
                 elif child.type == 'SPARSEMATRIX':
                     arr_type = 'spmatrix'
                     imports.add(('spmatrix', 'scipy.sparse'))
@@ -429,6 +411,9 @@ class Normalizer(Interpreter):
                     if is_sparse:
                         arr_type = 'spmatrix'
                         imports.add(('spmatrix', 'scipy.sparse'))
+                    else:
+                        arr_type = 'matrix'
+                        imports.add(('matrix', 'numpy'))
                 break
 
         if not arr_type:
@@ -439,8 +424,8 @@ class Normalizer(Interpreter):
 
     def type_qualifier(self, tree):
         """
-            type_qualifier: OF ARRAYS
-              | OF type 
+        type_qualifier: OF (ARRAYS|ARRAYLIKE)
+              | OF [NUMBER] type 
               | [OF] DTYPE [_EQUALS] (basic_type | QUALNAME) [TYPE]
               | _LBRACKET type _RBRACKET
               | _LPAREN type _RPAREN
@@ -531,7 +516,7 @@ class Normalizer(Interpreter):
         elif self._classes and cname in self._classes:
             imp.add((cname, self._classes[cname]))
 
-        return cname, imp ## FOR NOW, BUT WE NEED TO FIGURE OUT THE IMPORT      
+        return cname, imp      
 
     def dict_type(self, tree):
         """
@@ -757,7 +742,7 @@ def parse_type(s: str, modname: str|None = None, classes: dict|None = None, is_p
     try:
     #if True:
         tree = _lark.parse(s)
-        #tree.pretty() # TODO: remove
+        #print(tree.pretty()) # TODO: remove
         _norm.configure(modname, classes, is_param)
         n = _norm.visit(tree)
         imps = {}

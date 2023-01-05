@@ -42,7 +42,7 @@
 2#list[str]#list[str]
 2#length-N bool array#NDArray
 2#`~.axes.Axes`, or a subclass of `~.axes.Axes`#Axes
-2#`~.axes.Axes` or array of Axes#Axes|NDArray[Axes]
+2#`~.axes.Axes` or array of Axes#Axes|np.ndarray(Axes, dtype=object)|np.ndarray(np.ndarray(Axes, dtype=object), dtype=object)
 2#dict[label, Axes]#dict[Label,Axes]
 2#left, right#tuple
 2#`~matplotlib.colorbar.Colorbar`#Colorbar

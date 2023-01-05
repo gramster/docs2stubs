@@ -181,7 +181,8 @@ class DocstringParserBase(abc.ABC):
         self._returns = None
         self._is_in_section = False
         self._section_indent = 0
-        self._lines = Deque(map(str.rstrip, docstring.splitlines()))
+        # Remove # from the docstrings as we use it as a CSV file separator
+        self._lines = Deque(map(str.rstrip, docstring.replace('#','').splitlines()))
 
     def parse(self, docstring: str) -> Sections:
         self._prep_parser(docstring)

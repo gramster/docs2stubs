@@ -1,0 +1,126 @@
+18#Matrix#ArrayLike
+15#number#float
+9#SymPy Matrix#SymPy Matrix
+7#SymPy expression#SymPy expression
+7#:py:class:`~.Submodule`#:py:class:`~.Submodule`
+5#(x, y)#tuple[float,float]
+5#number or SymPy expression#number or SymPy expression
+5#domain element#domain element
+5#:py:class:`~.ModuleElement`#:ModuleElement
+4#Matrices#Matrices
+4#List[Tuple]#list[tuple]
+4#:py:class:`~.DomainMatrix`#DomainMatrix
+3#iterator object#Iterator
+3#angle in radians#float
+3#True, False or None#bool|None
+3#list of Points#list[Point]
+3#number or instance of Basic#float|Basic
+3#(base, strong_gens)#tuple
+3#dict of dict of lists#dict[dict[list]]
+3#:py:class:`~.Module`, ``None``#Module|None
+2#:py:class:`~.Interval`#Interval
+2#Rational number times the square root of a rational number.#float
+2#list of GeometryEntity objects#list[GeometryEntity]
+2#number or expression#float|expression
+2#integer#int
+2#number or symbolic expression#float or symbolic expression
+2#list (plot interval)#list
+2#number of Basic instance#int
+2#``True``, ``False``, or ``None``#bool|None
+2#theano.gof.graph.Variable#Variable
+2#aesara.graph.basic.Variable#Variable
+2#:py:class:`~.AlgebraicField`, ``None``#AlgebraicField|None
+2#:py:class:`~.PowerBasisElement`#PowerBasisElement
+2#:py:class:`~.AlgebraicNumber`#AlgebraicNumber
+2#:py:class:`~.AlgebraicField`#AlgebraicField
+2#False#vool
+1#List of Matrix#ArrayLike
+1#[(eigenval, multiplicity, eigenspace), ...]#
+1#(Matrix, list)#tuple[np.matrix|np.spmatrix,list]
+1#``Matrix``#np.matrix|np.spmatrix
+1#A RandomSymbol.#RandomSymbol
+1#float/list/numpy.ndarray#float|list|np.ndarray
+1#sympy.ImmutableDenseMatrix containing CoordinateSymbol#ImmutableDenseMatrix
+1#a tuple of (equations, initial conditions)#tuple
+1#dictionary of expression substitutions#dict
+1#list of (Symbol, expression) pairs#list[tuple[Symbol,expression]]
+1#list of SymPy expressions#list of SymPy expressions
+1#list of Eq#list[Eq]
+1#(zeros, poles)#tuple
+1#ImmutableMatrix, shape(3,3)#ImmutableMatrix
+1#ImmutableMatrix, shape(3,1)#ImmutableMatrix
+1#list with 1, 2 or 4 Lines#list
+1#list with 1 or 2 Lines#list
+1#list of GeometryEntities#list[GeometryEntities]
+1#number or symbolic expression.#float or expression.
+1#number or Basic instance#float|Basic
+1#number or SymPy expressions#float or SymPy expressions
+1#list of sides#list
+1#Polygon objects or None#Polygon|None
+1#Line (or Point for equilateral triangles in which case all#Line|Point
+1#a Point; the ray from the origin to this point is the#Point
+1#list of geometrical entities#list
+1#tuple of Points#tuple[Point, ...]
+1#Point or LinearEntity (Line, Ray, Segment)#Point|LinearEntity
+1#two Line instances#tuple[Line,Line]
+1#angle in radians (ccw angle is positive)#float
+1#Tuple of simultaneous equations#tuple
+1#Polygon if ``polygon`` is True else as a tuple `(U, L)` where#Polygon|tuple
+1#True/False#bool
+1#(power_rel, conj_rel)#tuple
+1#(i, j)#tuple
+1#List of lists#list[list]
+1#namedtuple#namedtuple
+1#A list of indices of 'exts' where extension of#list
+1#iterator#Iterator
+1#a ValueError is raised if the ``keyfunc`` is not binary.#ValueError
+1#The absolute path to the generated shared object / executable.#PathLike
+1#Absolute path to the generate shared object.#PathLike
+1#Absolute path of generated object file.#PathLike
+1#pair of strings#tuple[str,str]
+1#Path to the copied file.#PathLike
+1#True if equation is a Riccati ODE, False otherwise#bool
+1#[b0, b1, b2] if match is True, [] otherwise. Here,#list
+1#A dictionary that has power of the term as key#dict
+1#the matrix representing the rhs of the matrix equation.#np.matrix|np.spmatrix
+1#List of List of Equations#list[list[Equation]]
+1#Dictionary mapping SymPy expressions to strings (macro names)#dict
+1#Compiled function that can evaluate the expression.#Callable
+1#An :py:class:`~.SDM` object#SDM
+1#:py:class:`~.SDM` containing elements of ddm#SDM
+1#DomainMatrix containing elements defined in rows#DomainMatrix
+1#DomainMatrix containing elements of rows#DomainMatrix
+1#DomainMatrix containing elements of elemsdict#DomainMatrix
+1#Returns DomainMatrix with identical elements as M#DomainMatrix
+1#List of lists of integers#list[list[int]]
+1#(DomainMatrix, list)#tuple[DomainMatrix,list]
+1#S.Complexes#Complexes
+1#(L, U, exchange)#tuple
+1#Pair ``(D, F)``  of dictionaries.#tuple[dict,dict]
+1#generator#Generator
+1#:py:class:`~.DomainMatrix` over :ref:`ZZ`#DomainMatrix
+1#:py:class:`~.DomainMatrix` over :ref:`QQ`#DomainMatrix
+1#Pair ``(e1, e2)``#tuple
+1#:py:class:`~.InnerEndomorphism`#InnerEndomorphism
+1#:py:class:`~.Poly`, ``None``#Poly|None
+1#List of rational numbers, or None#list
+1#Pair (f, coeffs) or triple (f, coeffs, reps), where#tuple
+1#:py:class:`~.ANP`#ANP
+1#List of :py:class:`~.PrimeIdeal` instances.#list[PrimeIdeal]
+1#:py:class:`~.Module` representing the nilradical mod *p* in *H*.#Module
+1#Pair ``(ZK, dK)``, where#tuple
+1#:py:class:`~.Domain`#Domain
+1#The augmented matrix representation of the system as a DomainMatrix.#DomainMatrix
+1#The equations as PolyElement instances#PolyElement
+1#dict[Symbol, DomainElement] if _raw=True.#dict[Symbol, DomainElement]
+1#Domain and list of domain elements#tuple[Domain,list[DomainElement]]
+1#:py:class:`~sympy.polys.numberfields.modules.Submodule`.#Submodule
+1#tuple of domain elements#tuple[DomainElement]
+1#Expression#Expression
+1#(p, r, d)#tuple
+1#(p, r, e)#tuple
+1#(c1, c2)#tuple
+1#(p, g, a)#tuple
+1#(p, q)#tuple
+1#(a, N)#tuple
+1#Expr or iterator#Expr|Iterator

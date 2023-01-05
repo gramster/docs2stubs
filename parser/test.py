@@ -1,3 +1,13 @@
+# Script to help with occasional grammar testing.
+# TODO: move grammar out of herte and get it from docs2stubs.
+
+from lark.lark import Lark
+from lark.tree import Tree
+from lark.lexer import Token
+from lark.visitors import Interpreter
+
+
+_grammar = """
 start: type_list [_PERIOD]
 type_list: type ((_COMMA|OR|_COMMA OR) type)*
 type: basic_type [TYPE] 
@@ -190,3 +200,200 @@ STRING:    STRINGSQ | STRINGDQ
 %ignore _PLURAL
 %ignore THEREOF
 %ignore SORTED
+
+"""
+
+
+class Normalizer(Interpreter):
+    def __init__(self, tlmodule: str, module:str):
+        self._tlmodule = module  # top-level module
+        self._module = module
+
+    def start(self, tree) -> tuple[str, set[str]|None]:
+        """ start: type_list [PERIOD] """
+        result = self.visit(tree.children[0])
+        return result
+        
+    def type_list(self, tree) -> tuple[str, set[str]|None]:
+        """ type_list: type ((_COMMA|OR|_COMMA OR) type)*  [OR NONE] [_PERIOD] """
+        type = ''
+        imports = set()
+        literals = []
+        has_none = False
+        for child in tree.children:
+            if isinstance(child, Tree):
+                result = self._visit_tree(child)
+                if result:
+                    if result[0] == 'None':
+                        has_none = True
+                        continue
+                    if result[0].startswith('Literal:'):
+                        literals.append(result[0][8:])
+                    else:
+                        if type:
+                            type += '| '
+                        type += result[0]
+                    if result[1]:
+                        imports.update(result[1])
+
+        if not imports:
+            imports = None
+        if literals:
+            if type:
+                type += '| '
+            type += 'Literal[' + ','.join(literals) + ']'            
+        if has_none:
+            if type:
+                type += '| '
+            type += 'None'
+        return type, imports
+
+    def type(self, tree)-> tuple[str, set[str]|None]:
+        """
+        type: basic_type [TYPE] 
+            | alt_type 
+            | array_type 
+            | restricted_type 
+            | tuple_type 
+            | class_type 
+            | dict_type 
+            | list_type 
+            | generator_type 
+            | union_type 
+            | optional_type 
+            | literal_type 
+            | callable_type 
+            | iterable_type
+            | filelike_type
+            | _LESSTHAN type _GRTRTHAN
+        """
+        for child in tree.children:
+            print(child)
+            if isinstance(child, Tree):
+                result = self._visit_tree(child)
+                if result:
+                    return result
+        assert(False)
+
+    _basic_types = {
+        'ANY': 'Any',
+        'INT': 'int',
+        'STR' : 'str',
+        'FLOAT': 'float',
+        'BOOL': 'bool',
+        'SCALAR': 'Scalar',
+        'COMPLEX': 'complex'
+    }
+
+    def basic_type(self, tree) -> tuple[str, set[str]|None]:
+        """
+        basic_type: ANY 
+            | [POSITIVE|NEGATIVE] INT 
+            | STR 
+            | [POSITIVE|NEGATIVE] FLOAT [IN range] 
+            | BOOL
+            | SCALAR [VALUE]
+            | COMPLEX
+        """
+        for child in tree.children:
+            if isinstance(child, Token):
+                if child.type in self._basic_types:
+                    return self._basic_types[child.type], None
+                if child.type == 'ANY':
+                    return 'Any',set(('typing', 'Any'))
+                elif child.type == 'SCALAR':
+                    return 'Scalar', set((f'{self._tlmodule}._typing', 'Scalar'))
+
+        assert(False)
+    
+    def alt_type(self, tree):
+        pass
+
+    def array_type(self, tree):
+        pass
+
+    def restricted_type(self, tree):
+        pass
+
+    def tuple_type(self, tree):
+        pass
+
+    def class_type(self, tree):
+        pass
+
+    def dict_type(self, tree):
+        pass
+
+    def list_type(self, tree):
+        pass
+
+    def generator_type(self, tree):
+        """ generator_type: GENERATOR [OF type] """
+        pass
+
+    def union_type(self, tree):
+        pass
+    
+    def optional_type(self, tree):
+        pass
+
+    def literal_type(self, tree)-> tuple[str, set[str]|None]:
+        """ literal_type: STRING | NUMBER | NONE | TRUE | FALSE """
+        assert(len(tree.children) == 1 and isinstance(tree.children[0], Token))
+        tok = tree.children[0]
+        type = tok.type
+        if type == 'STRING' or type == 'NUMBER':
+            return f'Literal:' + tok.value, set(('typing', 'Literal'))
+        if type == 'NONE':
+            return 'None', None
+        if type == 'TRUE':
+            return 'Literal:True', set(('typing', 'Literal'))
+        if type == 'FALSE':
+            return 'Literal:False', set(('typing', 'Literal'))
+        assert(False)
+
+    def callable_type(self, tree):
+        pass
+
+    def iterable_type(self, tree):
+        pass
+    
+    def filelike_type(self, tree):
+        """ filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE] """
+        return 'FileLike', set((f'{self._tlmodule}._typing', 'FileLike'))
+
+    
+_lark = Lark(_grammar)
+_norm = Normalizer('tlmod', 'mod')
+
+
+def normalize_type(s: str, modname: str|None = None) -> tuple[str, set[str]|None]:
+    """ Normalize a type, returning the normalized type and the list of
+        required imports, or None if no imports are needed.
+    """
+    #try:
+    if True:
+        tree = _lark.parse(s)
+        tree.pretty()
+        n = _norm.visit(tree)
+        return n
+    #except Exception as e:
+    #    print(e)
+    #    return s, None
+    
+    return s, None
+
+
+if True:
+    lines = ["'true' or 'false' or true or false or 3"]
+else:
+    with open('testdata.txt') as f:
+        lines = [l for l in f]
+
+    
+for line in lines:
+    l = line.strip()
+    result = normalize_type(l)
+    print(result)
+    print(f'{l} ### {result[0]} ### {result[1]}')
+

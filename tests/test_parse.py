@@ -6,7 +6,7 @@ from hamcrest import assert_that, equal_to
 
 
 
-def test_parser(): 
+def test_parser1(): 
     x = """
             Create legend handles and labels for a PathCollection.
 
@@ -85,3 +85,26 @@ def test_parser():
     ))
     assert_that(rtn.attrs, equal_to(None))
 
+
+def test_parser2():
+    x ="""The Euler line of the triangle.
+
+        The line which passes through circumcenter, centroid and orthocenter.
+
+        Returns
+        =======
+
+        eulerline : Line (or Point for equilateral triangles in which case all
+                    centers coincide)
+
+        Examples
+        ========
+    
+    """
+    rtn = NumpyDocstringParser().parse(x)
+    assert_that(rtn.params, equal_to(None))
+    assert_that(rtn.returns, equal_to(
+        {'eulerline': 'Line (or Point for equilateral triangles in which case all centers coincide)',
+        }
+    ))
+    assert_that(rtn.attrs, equal_to(None))

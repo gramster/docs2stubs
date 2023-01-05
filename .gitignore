@@ -6,3 +6,5 @@ dist/
 typings/
 analysis/*.missing
 __pycache__
+samples/
+tracing/*-tests/

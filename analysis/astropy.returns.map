@@ -1,0 +1,197 @@
+23#`~astropy.units.Quantity`#Quantity
+16#`~astropy.units.Quantity` ['length']#Quantity
+16#`~astropy.coordinates.Angle`#Angle
+13#`~astropy.cosmology.Cosmology` subclass instance#Cosmology
+12#float or `~numpy.ndarray`#float|np.ndarray
+12#`~astropy.table.Table`#Table
+12#bytes#bytes
+12#int array#ArrayLike
+11#unicode#str
+10#(2,) tuple#tuple
+10#np.ndarray#np.ndarray
+9#`numpy.ndarray`#np.ndarray
+9#`~astropy.io.votable.tree.Element`#Element
+8#`~astropy.units.Quantity` ['angle']#Quantity
+8#`BaseCoordinateFrame` subclass instance#BaseCoordinateFrame
+7#`~astropy.coordinates.SkyCoord`#SkyCoord
+7#dict of `~astropy.units.Quantity`#dict[Quantity, Quantity]
+7#`astropy.units.Quantity`#Quantity
+6#dict of `CartesianRepresentation`#dict[CartesianRepresentation, CartesianRepresentation]
+6#`~astropy.coordinates.BaseRepresentation` subclass instance#BaseRepresentation
+5#`~astropy.table.Table` object#Table
+5#`~astropy.modeling.FittableModel`#FittableModel
+5#`~astropy.wcs.WCS`#WCS
+5#`~astropy.coordinates.CartesianRepresentation`#CartesianRepresentation
+5#`CartesianDifferential`#CartesianDifferential
+4#`~astropy.units.equivalencies.Equivalency`#Equivalency
+4#function#Callable
+4#`~astropy.units.CompositeUnit`#CompositeUnit
+4#int or int array#int|np.ndarray
+4#`~astropy.nddata.NDData`-like#NDData
+4#`Header`#Header
+4#`~astropy.units.Quantity` ['speed']#Quantity
+4#`~astropy.coordinates.BaseCoordinateFrame`#BaseCoordinateFrame
+3#ndarray or `~astropy.units.Quantity` ['dimensionless']#np.ndarray|Quantity
+3#float or `~astropy.units.Quantity` ['dimensionless']#float|Quantity
+3#`~astropy.units.Quantity` ['dimensionless']#Quantity
+3#float64#float64
+3#Time object#Time
+3#array_like#ArrayLike
+3#float or `np.ndarray`#float|np.ndarray
+2#ndarray or `~astropy.units.Quantity`#np.ndarray|Quantity
+2#1D array#np.ndarray
+2#array of dtype float#np.ndarray
+2#`~astropy.modeling.core.CompoundModel`#CompoundModel
+2#bool or `NotImplemented`#bool|Literal['NotImplemented']
+2#`~astropy.table.QTable`#QTable
+2#`~astropy.units.Quantity` ['temperature']#Quantity
+2#`~astropy.units.Quantity` ['time']#Quantity
+2#iterator#Iterator
+2#`~astropy.table.Table` if out==None else None#Table|None
+2#list of `Column`#list[Column]
+2#:class:`pandas.DataFrame`#DataFrame
+2#`~astropy.units.physical.PhysicalType`#PhysicalType
+2#list of `CompositeUnit`#list[CompositeUnit]
+2#numpy.array, numpy.ma.array#np.array|np.ma.array
+2#`~datetime.datetime`#datetime
+2#Time (or subclass)#Time
+2#`~astropy.coordinates.Longitude`#Longitude
+2#float or float array#float|ArrayLike
+2#float or `~astropy.units.Quantity` ['angle']#float|Quantity
+2#tuple of slice#tuple[slice, ...]
+2#`NDUncertainty` instance#NDUncertainty
+2#`~astropy.io.fits.HDUList`#HDUList
+2#`~astropy.utils.iers.LeapSeconds`#LeapSeconds
+2#`~astropy.io.fits.header.Header`#Header
+2#`HDUList`#HDUList
+2#`astropy.table.Table`#Table
+2#`~astropy.io.ascii.BaseReader` subclass#BaseReader
+2#`CartesianRepresentation`#CartesianRepresentation
+2#`~astropy.coordinates.SphericalRepresentation`#SphericalRepresentation
+2#`~astropy.coordinates.EarthLocation` (or subclass) instance#EarthLocation
+2#`np.ndarray`#np.ndarray
+2#`SpectralCoord`#SpectralCoord
+2#str or string array#str|NDArray
+2#`~astropy.coordinates.UnitSphericalRepresentation`#UnitSphericalRepresentation
+2#`~astropy.coordinates.Distance`#Distance
+2#`SkyCoord`#SkyCoord
+2#`~astropy.timeseries.TimeSeries`#TimeSeries
+1#float or `~astropy.units.Quantity`#float|Quantity
+1#float or numpy.ndarray#float|np.ndarray
+1#(N,) array of float#ArrayLike
+1#(N-1,) array of float#ArrayLike
+1#`numpy.array`#np.array
+1#`~astropy.cosmology.Parameter`#Parameter
+1#``validator`` or callable[``validator``]#validator|Callable
+1#NotImplemented or True#Literal[True]
+1#`math.inf` or ndarray[float] thereof#math.inf|np.ndarray
+1#`~astropy.units.Quantity` ['redshift']#Quantity
+1#`astropy.table.Table` or subclass instance#Table
+1#`~astropy.table.Row`#Row
+1#`astropy.table.Column`#Column
+1#`astropy.modeling.Parameter`#Parameter
+1#callable[[`~astropy.io.misc.yaml.AstropyDumper`, |Cosmology|], str]#Callable[Any, str]
+1#`_CosmologyModel` subclass instance#_CosmologyModel
+1#`~astropy.units.Quantity` ['frequency']#Quantity
+1#`~astropy.cosmology.Cosmology` instance#Cosmology
+1#Copy of input column#Column
+1#Column (or subclass)#Column
+1#`~astropy.table.Column`#Column
+1#`~astropy.table.MaskedColumn`#MaskedColumn
+1#None (context manager)#None
+1#``numpy.void`` or ``numpy.ma.mvoid``#np.void|np.ma.mvoid
+1#array or `~numpy.ma.MaskedArray`#np.ndarray|np.ma.MaskedArray
+1#Wrapped ``auto_format_func`` function#Callable
+1#Column object with groups attr set accordingly#Column
+1#None or func#Callable|None
+1#Index of columns or None#Index|None
+1#`Table`#Table
+1#`~astropy.units.PhysicalType`#PhysicalType
+1#`~astropy.units.Quantity` (or subclass)#Quantity
+1#`~astropy.units.Quantity`, `~numpy.ndarray`#Quantity|np.ndarray
+1#`astropy.units.format.Base` instance#Base
+1#tuple of lists#tuple[lists, ...]
+1#`~astropy.units.UnitBase` instance#UnitBase
+1#`~astropy.units.StructuredUnit`#StructuredUnit
+1#list of `UnitBase`#list[UnitBase]
+1#`~astropy.units.UnitBase`#UnitBase
+1#`~astropy.time.Time` subclass#Time
+1#`~astropy.time.Time`#Time
+1#str or numpy.array#str|np.array
+1#`~astropy.time.TimeDelta`#TimeDelta
+1#number or ndarray#number|np.ndarray
+1#float or `~astropy.units.Quantity` ['density']#float|Quantity
+1#float or `~astropy.units.Quantity` ['speed']#float|Quantity
+1#`CompoundModel`#CompoundModel
+1#`matplotlib.axes.Axes` instance#Axes
+1#`NDData` subclass#NDData
+1#`~astropy.nddata.NDData`#NDData
+1#readable file-like#FileLike
+1#iterator of str#Iterator[str]
+1#iterator of file object#Iterator[FileLike]
+1#int or `~astropy.units.Quantity`#int|Quantity
+1#``IERS_A`` class instance#IERS_A
+1#``IERS_B`` class instance#IERS_B
+1#`~astropy.table.QTable` instance#QTable
+1#`~collections.OrderedDict` or None#OrderedDict|None
+1#str or bytes#str|bytes
+1#list of unicode#list[str]
+1#`tuple`#tuple
+1#str (one character)#str
+1#numpy bool array#np.ndarray
+1#`~astropy.io.votable.tree.VOTableFile` object#VOTableFile
+1#`~astropy.io.votable.tree.Table` object#Table
+1#`~astropy.io.votable.tree.VOTableFile` instance#VOTableFile
+1#writable file-like#FileLike
+1#BaseHDU#BaseHDU
+1#str, number, complex, bool, or ``astropy.io.fits.card.Undefined``#str|number|complex|bool|Undefined
+1#`Header` object#Header
+1#ndarray or `~numpy.recarray` or `~astropy.io.fits.Group`#np.ndarray|np.recarray
+1#`~astropy.io.fits.BinTableHDU`#BinTableHDU
+1#list of list of str#list[list[str]]
+1#`~astropy.table.Table` or <generator>#Table|Generator
+1#:class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance#BaseCoordinateFrame
+1#`~astropy.coordinates.SkyCoord` subclass#SkyCoord
+1#`~.builtin_frames.ITRS`#ITRS
+1#`~astropy.wcs.WCS` object#WCS
+1#list of `~astropy.units.Quantity`#list[Quantity]
+1#`astropy.io.fits.Header`#Header
+1#list of `WCS`#list[WCS]
+1#list subclass instance#list
+1#``configobj.ConfigObj`` or ``configobj.Section``#ConfigObj|Section
+1#`BaseRepresentation` or `BaseDifferential` subclass instance#BaseRepresentation|BaseDifferential
+1#`BaseRepresentation` subclass instance#BaseRepresentation
+1#`UnitSphericalRepresentation` or `SphericalRepresentation`#UnitSphericalRepresentation|SphericalRepresentation
+1#`BaseDifferential` subclass instance#BaseDifferential
+1#EarthLocation (or subclass)#EarthLocation
+1#`~astropy.coordinates.ITRS`#ITRS
+1#`~astropy.coordinates.GCRS` instance#GCRS
+1#`SpectralQuantity`#SpectralQuantity
+1#`astropy.coordinates.ICRS` object#ICRS
+1#`numpy.matrix`#np.matrix
+1#`~astropy.coordinates.EarthLocation`#EarthLocation
+1#`SpectralCoord` object#SpectralCoord
+1#tuple of `~astropy.coordinates.CartesianRepresentation`#tuple[CartesianRepresentation, ...]
+1#`~astropy.units.Quantity` ['angle'] or float#Quantity
+1#list of class or None#list[class]|None
+1#`CompositeTransform` or None#CompositeTransform|None
+1#`BaseCoordinateFrame` subclass#BaseCoordinateFrame
+1#``networkx.Graph``#Graph
+1#`~astropy.coordinates.BaseRepresentation` or `~astropy.coordinates.BaseDifferential`.#BaseRepresentation|BaseDifferential
+1#BaseRepresentation-derived object#BaseRepresentation
+1#SkyCoord (or subclass)#SkyCoord
+1#`~astropy.coordinates.SkyCoord` instance#SkyCoord
+1#`~astropy.coordinates.SkyOffsetFrame`#SkyOffsetFrame
+1#angle-like#Angle
+1#`~astropy.coordinates.SkyCoord` or subclass#SkyCoord
+1#`astropy.timeseries.binned.BinnedTimeSeries`#BinnedTimeSeries
+1#ndarray, shape=(n_times, n_parameters)#np.ndarray
+1#ndarray or `~astropy.units.Quantity` ['frequency']#np.ndarray|Quantity
+1#np.ndarray (n_parameters,)#np.ndarray
+1#array-like or `~astropy.units.Quantity` ['time']#ArrayLike|Quantity
+1#array-like or `~astropy.units.Quantity`#ArrayLike|Quantity
+1#`astropy.timeseries.sampled.TimeSeries`#TimeSeries
+1#`ImageNormalize` instance#ImageNormalize
+1#`.BboxBase`#BboxBase
+1#:class:`~matplotlib.path.Path`#Path
+1#`bool`#bool

@@ -357,23 +357,30 @@ def apply_stub_handler(
     existing_annotation_strategy: ExistingAnnotationStrategy = ExistingAnnotationStrategy.OMIT,
     stdout: IO[str] = sys.stdout, stderr: IO[str] = sys.stderr
 ) -> None:
-    stub = get_stub(module, config, stdout, stderr)
-    if stub is None:
-        complain_about_no_traces(module, stderr)
-        return
-    source_with_types = apply_stub_using_libcst(
-        module,
-        stub=stub.render(),
-        source=Path(source_path).read_text(),
-        overwrite_existing_annotations=existing_annotation_strategy
-        == ExistingAnnotationStrategy.IGNORE,
-    )
-    Path(source_path).write_text(source_with_types)
-    #print(source_with_types, file=stdout)
+    try:
+        stub = get_stub(module, config, stdout, stderr)
+        if stub is None:
+            complain_about_no_traces(module, stderr)
+            return
+        source_with_types = apply_stub_using_libcst(
+            module,
+            stub=stub.render(),
+            source=Path(source_path).read_text(),
+            overwrite_existing_annotations=existing_annotation_strategy
+            == ExistingAnnotationStrategy.IGNORE,
+        )
+        Path(source_path).write_text(source_with_types)
+        #print(source_with_types, file=stdout)
+    except Exception as e:
+        print(f'Failed to augment {str}: {e}')
 
 
 def augment_module(m: str, include_submodules: bool = True, stub_folder: str = 'typings', trace_folder: str = '.') -> None|tuple:
-    config = MyConfig(f"{trace_folder}/{m}.sqlite3")
+    tracefile = f"{trace_folder}/{m}.sqlite3"
+    if not os.path.exists(tracefile):
+        print(f"Trace file {tracefile} does not exist; skipping augmentation")
+        return
+    config = MyConfig(tracefile)
     orig_m = m
 
     MyApplyTypeAnnotationsVisitor.fullmap = load_fullmap('analysis', m)

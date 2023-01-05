@@ -1,0 +1,22 @@
+2#instance of Rect#Rect
+2#instance of ColorArray#ColorArray
+1#instance of Widget#Widget
+1#instance of Visual | None#None|Visual
+1#instance of Node | None#None|Node
+1#instance of ChainTransform#ChainTransform
+1#ndarray, shape (Nvout, 3)#np.ndarray
+1#ndarray, shape (Ne, 2)#np.ndarray
+1#ndarray, shape (Nvout,)#np.ndarray
+1#function#Callable
+1#instance of STTransform#STTransform
+1#NpzFile#NpzFile
+1#ndarray, shape (N, 3)#np.ndarray
+1#instance of Polygon#Polygon
+1#instance of Image#Image
+1#instance of Mesh#Mesh
+1#instance of LinePlot#LinePlot
+1#instance of Spectrogram#Spectrogram
+1#instance of Volume#Volume
+1#instance of ColorBarWidget#ColorBarWidget
+1#tk.Tk#Tk
+1#tk.Toplevel#Toplevel
