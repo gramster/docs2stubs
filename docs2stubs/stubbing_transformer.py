@@ -306,7 +306,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     init_trace_loader(trace_folder, m)
     imports = load_map(m, 'imports')
     if skip_analysis:
-        state = State(None, imports, load_docstrings(m), {}, load_type_maps(m))
+        state = State(None, imports, load_docstrings(m), load_type_maps(m), {}, {})
     else:   
         state = analyze_module(m, include_submodules=include_submodules)
     if state is not None:

@@ -6,7 +6,7 @@ import os
 import pickle
 import re
 from types import ModuleType
-from typing import Callable, Generic, NamedTuple, TypeVar, cast
+from typing import Callable, Generator, Generic, NamedTuple, TypeVar, cast
 
 
 # I tried using a generic class from NamedTuple here but
@@ -15,10 +15,21 @@ from typing import Callable, Generic, NamedTuple, TypeVar, cast
 
 T = TypeVar('T')
 
-class Sections(NamedTuple, Generic[T]):
-    params: T
-    returns: T
-    attrs: T
+class Sections(Generic[T]):
+    # Would use NamedTuple but it can't be generic
+    def __init__(self, params: T, returns:T, attrs:T):
+        self.params: T = params
+        self.returns: T = returns
+        self.attrs: T = attrs
+
+    def __iter__(self) -> Generator[T, None, None]:
+        yield self.params
+        yield self.returns
+        yield self.attrs
+
+    def __getitem__(self, i: int) -> T:
+        return [self.params, self.returns, self.attrs][i]
+
 
 # State object
 # counters: a Section of collections.Counter that count the frequency of each docstring
@@ -28,12 +39,16 @@ class Sections(NamedTuple, Generic[T]):
 #     to inspect.Signatures derived from MonkeyType traces
 # maps: dict mapping docstring types to annotations read from .map files
 # 'contexts' are pseudo-pathnames identifying classes, functions, methods or parameters
+# trace_types: dict mapping docstring types to sets of Python types derive from MonkeyType traces
+
 State = NamedTuple("State", [
     ("counters", None|Sections[Counter[str]]), 
     ("imports", dict[str, str]), 
     ("docstrings", dict[str, Sections[dict[str, str]]]), 
-    ("trace_sigs", dict[str, dict[str, inspect.Signature]]),
-    ("maps", None|Sections[dict[str,str]])
+    #("trace_sigs", dict[str, dict[str, inspect.Signature]]),
+    ("maps", None|Sections[dict[str,str]]),
+    ("trace_param_types", dict[str, set[type]]),
+    ("trace_return_types", dict[str, set[type]])
 ])
 
 

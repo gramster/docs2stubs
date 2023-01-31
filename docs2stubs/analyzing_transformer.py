@@ -7,7 +7,7 @@ import libcst as cst
 from .base_transformer import BaseTransformer
 from .utils import Sections, State, process_module, load_type_maps, save_fullmap, save_result, save_import_map, save_docstrings
 from .docstring_parser import NumpyDocstringParser
-from .traces import get_method_signature, get_toplevel_function_signature, init_trace_loader
+from .traces import get_method_signature, get_toplevel_function_signature, init_trace_loader, simplify_types
 from .type_normalizer import is_trivial, normalize_type, print_norm1
 
 
@@ -43,10 +43,10 @@ class AnalyzingTransformer(BaseTransformer):
             params=self._paramtyps,
             returns=self._returntyps,
             attrs=self._attrtyps)
-        state.trace_sigs[modname] = self._trace_sigs = {}
         self._state = state
         assert(state.counters is not None)
         self._counters = state.counters
+        self._trace_sig = None
 
     def _get_obj_name(self, obj) -> str:
         rtn = str(obj)
@@ -145,14 +145,14 @@ class AnalyzingTransformer(BaseTransformer):
         if self.at_top_level_function_level():
             #context = name
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, name)
-            self._trace_sigs[context] = get_toplevel_function_signature(self._modname, name)
+            self._trace_sig = get_toplevel_function_signature(self._modname, name)
         elif self._classname and self.at_top_level_class_method_level():
             #context = f'{self._classname}.{name}'
             parent = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, self._classname)
             if parent:
                 if name in parent.__dict__:
                     obj = parent.__dict__[name]
-                    self._trace_sigs[context] = get_method_signature(self._modname, self._classname, name)
+                    self._trace_sig = get_method_signature(self._modname, self._classname, name)
                 else:
                     print(f'{self._fname}: Could not get obj for {context}')
 
@@ -181,6 +181,16 @@ class AnalyzingTransformer(BaseTransformer):
         doc = self._docs.get(context)
         if doc and doc.returns is not None:
             self._returntyps[context] = doc.returns
+            if self._trace_sig is not None and self._trace_sig._return_annotation != inspect._empty:
+                if len(doc.returns) == 1:
+                    rtype = list(doc.returns.values())[0]
+                    if rtype not in self._state.trace_return_types:
+                        self._state.trace_return_types[rtype] = set()
+                    self._state.trace_return_types[rtype].add(self._trace_sig._return_annotation)
+                elif len(doc.returns) > 1:
+                    # This should be a tuple; more complex to deal with
+                    pass
+        self._trace_sig = None
         return super().leave_FunctionDef(original_node, updated_node)
 
     def visit_Param(self, node: cst.Param) -> bool:
@@ -195,6 +205,12 @@ class AnalyzingTransformer(BaseTransformer):
                 ptype = param_docs.get(node.name.value, None)
                 if ptype is not None:
                     self._paramtyps[self.context()] = ptype
+                    if self._trace_sig is not None:
+                        p = self._trace_sig.parameters.get(node.name.value, None)
+                        if p is not None and p.annotation != inspect._empty:
+                            if ptype not in self._state.trace_param_types:
+                                self._state.trace_param_types[ptype] = set()
+                            self._state.trace_param_types[ptype].add(p.annotation)
         return rtn
 
 
@@ -222,17 +238,25 @@ def _post_process(m: str, state: State, include_counts: bool = False, dump_all =
     total_mapped = 0
     total_missed = 0
     trivials = {}
-    first = True # hacky way to tell we are in params
-    for result, freq, map in zip(results, freqs, maps):
+    for section, result, freq, map in zip(['params', 'returns', 'attrs'], results, freqs, maps):
         freq = cast(Counter[str], freq)
         map = cast(dict[str, str], map)
         for typ, cnt in freq.most_common():
             if typ in map:
                 total_mapped += cnt
             else:
-                normtype, _ = normalize_type(typ, m, imports, first)
+                tracetype = None
+                if section == 'params' and typ in state.trace_param_types:
+                    tracetype = str(simplify_types(state.trace_param_types[typ]))
+                elif section == 'returns' and typ in state.trace_return_types:
+                    tracetype = str(simplify_types(state.trace_return_types[typ]))
+                normtype, _ = normalize_type(typ, m, imports, section=='params')
                 if normtype is None:
-                    normtype = typ
+                    normtype = typ if tracetype is None else tracetype
+                elif normtype == tracetype:
+                    pass
+                elif tracetype is not None:
+                    normtype += '|' + tracetype
                 if not dump_all and is_trivial(typ, m, imports):
                     trivials[typ] = normtype
                     total_trivial += cnt
@@ -242,7 +266,6 @@ def _post_process(m: str, state: State, include_counts: bool = False, dump_all =
                         result.append(f'{cnt}#{typ}#{normtype}\n')
                     else:
                         result.append(f'{typ}#{normtype}\n')
-        first = False        
     print(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
     print('\nTRIVIALS\n')
     for k, v in trivials.items():
@@ -267,7 +290,7 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Fal
     init_trace_loader(trace_folder, m)
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),
-        {}, {}, {}, None)
+        {}, {}, None, {}, {})
     
     if process_module(m, state, 
             _analyze, _targeter, 

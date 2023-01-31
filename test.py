@@ -121,10 +121,10 @@ def test_get_signature_from_traces(pkg, module, fn):
 if __name__ == '__main__':
     pkg = 'sklearn'
     init_trace_loader('./tracing', pkg)
-    #test_analyzer(pkg)
+    test_analyzer(pkg)
     #test_normalize()
     #test_get_package_files()
     #test_stubber(pkg)
     #from docs2stubs.normalize import _is_string
     #print(_is_string("'balanced'"))
-    test_get_signature_from_traces(pkg, 'sklearn.base', 'is_classifier')
+    #test_get_signature_from_traces(pkg, 'sklearn.base', 'is_classifier')

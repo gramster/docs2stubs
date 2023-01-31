@@ -197,7 +197,8 @@ class DocstringParserBase(abc.ABC):
 
             self._is_in_section = True
             self._section_indent = self._get_current_indent()
-            self._sections[section.lower()](section)
+            if section.lower() in self._sections:
+                self._sections[section.lower()](section)
             self._is_in_section = False
             self._section_indent = 0
 
