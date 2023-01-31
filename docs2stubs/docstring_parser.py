@@ -109,7 +109,7 @@ class DocstringParserBase(abc.ABC):
             self._lines.next() # consume ----- part
         return section
 
-    def _skip_section(self, section: str):
+    def _skip_section(self, section: str) -> None:
         self._consume_to_next_section()
 
     def _partition_field_on_colon(self, line: str) -> tuple[str, str, str]:
@@ -184,7 +184,7 @@ class DocstringParserBase(abc.ABC):
         # Remove # from the docstrings as we use it as a CSV file separator
         self._lines = Deque(map(str.rstrip, docstring.replace('#','').splitlines()))
 
-    def parse(self, docstring: str) -> Sections:
+    def parse(self, docstring: str) -> Sections[dict[str,str]|None]:
         self._prep_parser(docstring)
         self._consume_to_next_section()
         while self._lines:
@@ -201,7 +201,7 @@ class DocstringParserBase(abc.ABC):
             self._is_in_section = False
             self._section_indent = 0
 
-        return Sections(params=self._parameters, 
+        return Sections[dict[str,str]|None](params=self._parameters, 
                         returns=self._returns,
                         attrs=self._attributes)
 
@@ -257,8 +257,8 @@ class NumpyDocstringParser(DocstringParserBase):
         if prefer_type and not _type:
             _type, _name = _name, _type
 
-        # Consume the description. Sometimes this will contain
-        # type information too, but there's no way to tell; safer
+        # Consume the description. Sometimes this will contain linewrapped
+        # type information too, but there's no good way to tell AFAIK; safer
         # to just discard it.
         self._consume_indented_block(self._get_indent(line) + 1)
         return _name, _type

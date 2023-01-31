@@ -125,7 +125,7 @@ def get_annotation(n: cst.CSTNode|None, is_param: bool) -> str|None:
 class MyApplyTypeAnnotationsVisitor(ApplyTypeAnnotationsVisitor):
 
     """ This is a kludge at class level but I didn't want to mess with __init__ """
-    fullmap: Sections|None = None
+    fullmap: Sections[dict[str,str]]|None = None
     module_name: str|None = None
 
     def _get_type_from_docstring(self, fullkey: str, is_return: bool) -> str:

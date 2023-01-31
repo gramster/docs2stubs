@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import Counter, namedtuple
 import glob
 import importlib
 import inspect
@@ -6,13 +6,35 @@ import os
 import pickle
 import re
 from types import ModuleType
-from typing import Callable
+from typing import Callable, Generic, NamedTuple, TypeVar, cast
 
 
 # I tried using a generic class from NamedTuple here but
 # pyright complains about not being able to do consistent
 # method ordering.
-Sections = namedtuple("Sections", "params returns attrs")
+
+T = TypeVar('T')
+
+class Sections(NamedTuple, Generic[T]):
+    params: T
+    returns: T
+    attrs: T
+
+# State object
+# counters: a Section of collections.Counter that count the frequency of each docstring
+# imports: dict mapping class names to containing module names
+# docstrings: dict mapping module name to Section, each Section has dicts mapping 'contexts' to type docstrings
+# trace_sigs: dict mapping module name to Section, each Section has dicts mapping 'contexts' 
+#     to inspect.Signatures derived from MonkeyType traces
+# maps: dict mapping docstring types to annotations read from .map files
+# 'contexts' are pseudo-pathnames identifying classes, functions, methods or parameters
+State = NamedTuple("State", [
+    ("counters", None|Sections[Counter[str]]), 
+    ("imports", dict[str, str]), 
+    ("docstrings", dict[str, Sections[dict[str, str]]]), 
+    ("trace_sigs", dict[str, dict[str, inspect.Signature]]),
+    ("maps", None|Sections[dict[str,str]])
+])
 
 
 def load_map(m: str, suffix: str|None = None) -> dict[str, str]:
@@ -28,8 +50,8 @@ def load_map(m: str, suffix: str|None = None) -> dict[str, str]:
     return map
 
 
-def load_type_maps(m: str) -> Sections:
-    return Sections(params=load_map(m, 'params'),
+def load_type_maps(m: str) -> Sections[dict[str,str]]:
+    return Sections[dict[str,str]](params=load_map(m, 'params'),
                     returns=load_map(m, 'returns'),
                     attrs=load_map(m, 'attrs'))
 
@@ -43,12 +65,12 @@ def load_import_map(m: str) -> dict[str, str]:
     return load_map(m, 'imports')
 
 
-def save_type_contexts(m:str, data: dict):
+def save_docstrings(m:str, data: dict):
     with open(f'analysis/{m}.analysis.pkl', 'wb') as f:
         pickle.dump(data, f)
 
 
-def load_type_contexts(m:str) -> dict:
+def load_docstrings(m:str) -> dict:
     with open(f'analysis/{m}.analysis.pkl', 'rb') as f:
         return pickle.load(f)
 
@@ -93,12 +115,12 @@ def save_result(target: str, result: str) -> None:
 # be replaced.
 
 def process_module(m: str, 
-        state: tuple,
+        state: State,
         processor: Callable, 
         targeter: Callable,
         post_processor: Callable|None = None, 
         include_submodules: bool = True,
-        **kwargs) -> None|tuple:
+        **kwargs) -> None|State:
 
     orig_m = m
     modules = [m]
@@ -137,7 +159,7 @@ def process_module(m: str,
         print(f"Processed file {file}")
 
     if post_processor:
-        result, rtn = post_processor(orig_m, state, **kwargs)
+        result = post_processor(orig_m, state, **kwargs)
         if isinstance(result, str):
             target = targeter(orig_m)
             save_result(target, result)
@@ -146,20 +168,26 @@ def process_module(m: str,
             save_result(targeter(orig_m, 'returns'), result.returns)
             save_result(targeter(orig_m, 'attrs'), result.attrs)
 
-        return rtn
     return state
 
 
-def save_fullmap(folder, module, params, returns, attrs):
-    for section, fullmap in zip(['params', 'returns', 'attrs'], [params, returns, attrs]):
+def save_fullmap(folder, module, fullmap: Sections[dict[str,str|dict[str,str]]]) -> None:
+    for section, sectionmap in zip(['params', 'returns', 'attrs'], fullmap):
+
         with open(f'{folder}/{module}.{section}.full', 'w') as f:
-            for k, v in fullmap.items():
-                f.write(f'{k}#{v}\n')
+            if section == 'returns':
+                sectionmap = cast(dict[str,dict[str,str]], sectionmap)
+                pass
+            else:
+                sectionmap = cast(dict[str,str], sectionmap)
+                for k, v in sectionmap.items():
+                    f.write(f'{k}#{v}\n')
 
                 
-def load_fullmap(folder, module):
-    rtn = Sections({}, {}, {})
+def load_fullmap(folder, module) -> Sections[dict[str, str]]:
+    rtn = Sections[dict[str, str]]({}, {}, {})
     for section, fullmap in zip(['params', 'returns', 'attrs'], rtn):
+        fullmap = cast(dict[str, str], fullmap)
         fname = f'{folder}/{module}.{section}.full'
         if os.path.exists(fname):
             with open(fname) as f:
@@ -167,11 +195,5 @@ def load_fullmap(folder, module):
                     line = line.strip()
                     if line:
                         k, v = line.strip().split('#')
-                        if section == 'returns': # Turn into a list/tuple
-                            k = k.split('/')[0]
-                            if k not in fullmap:
-                                fullmap[k] = []
-                            fullmap[k].append(v)
-                        else:
-                            fullmap[k] = v
+                        fullmap[k.strip()] = v.strip()
     return rtn

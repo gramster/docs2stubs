@@ -3,8 +3,8 @@ __doc__ = f"""
 docs2stubs.
 
 Usage:
-  docs2stubs analyze (package|module) [--include-counts] [--dump-all] <name>...
-  docs2stubs stub (package|module) [--strip-defaults] [--skip-analysis] [--stub_folder FOLDER] <name>...
+  docs2stubs analyze (package|module) [--include-counts] [--dump-all] [--trace_folder FOLDER] <name>...
+  docs2stubs stub (package|module) [--strip-defaults] [--skip-analysis] [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
   docs2stubs augment (package|module) [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
   docs2stubs test [<name>] <typestring>
   docs2stubs -h | --help
@@ -15,8 +15,8 @@ Options:
   --dump-all            Dump all types, including trivial cases.
   --strip-defaults      Replace parameter default values with ...
   --skip-analysis       Skip analysis and use existing analysis file.
-  --stub_folder FOLDER  Folder where stubs are stored [default: {os.getcwd()}/typings].
-  --trace_folder FOLDER Folder where traces are stored [default: {os.getcwd()}].
+  --stub_folder FOLDER  Folder where stubs are stored [default: typings].
+  --trace_folder FOLDER Folder where traces are stored [default: tracing].
   <name>                The target package or module (e.g. matplotlib.pyplot).
 
 The package/module needs to be installed in the environment from which
@@ -93,13 +93,15 @@ def main():
       if arguments['analyze']:
         include_counts = arguments['--include-counts']
         dump_all = arguments['--dump-all']
-        analyze_module(n, include_submodules=include_submodules, include_counts=include_counts, dump_all=dump_all)
+        trace_folder = arguments['--trace_folder']
+        analyze_module(n, include_submodules=include_submodules, include_counts=include_counts, dump_all=dump_all, trace_folder=trace_folder)
       elif arguments['stub']:
         strip_defaults = arguments['--strip-defaults']
         skip_analysis = arguments['--skip-analysis']
         stub_folder = arguments['--stub_folder']
+        trace_folder = arguments['--trace_folder']
         stub_module(n, include_submodules=include_submodules, \
-            strip_defaults=strip_defaults, skip_analysis=skip_analysis, stub_folder=stub_folder)
+            strip_defaults=strip_defaults, skip_analysis=skip_analysis, stub_folder=stub_folder, trace_folder=trace_folder)
       elif arguments['augment']:
         stub_folder = arguments['--stub_folder']
         trace_folder = arguments['--trace_folder']

@@ -1,3 +1,4 @@
+from collections import Counter
 import re
 from types import ModuleType
 import libcst as cst
@@ -7,20 +8,19 @@ from black.mode import Mode
 from .analyzing_transformer import analyze_module
 from .type_normalizer import is_trivial, normalize_type
 from .base_transformer import BaseTransformer
-from .utils import Sections, load_map, load_type_contexts, load_type_maps, process_module
+from .traces import init_trace_loader
+from .utils import Sections, State, load_map, load_docstrings, load_type_maps, process_module
 
 
 class StubbingTransformer(BaseTransformer):
-    def __init__(self, modname: str, fname: str, 
-        maps: Sections, 
-        imports: dict[str, str], 
-        typs: dict[str, Sections], 
+    def __init__(self, modname: str, fname: str, state: State,
         strip_defaults=False, 
         infer_types_from_defaults=False):
         super().__init__(modname, fname)
-        self._maps = maps
-        self._classes = imports
-        self._typs: Sections = typs[modname]
+        self._state = state
+        assert(state.maps is not None)
+        self._maps: Sections[dict[str, str]] = state.maps
+        self._docstrings: Sections[dict[str,str]] = state.docstrings[modname]
         self._strip_defaults: bool = strip_defaults
         self._infer_types: bool = infer_types_from_defaults
         self._method_names = set()
@@ -112,10 +112,10 @@ class StubbingTransformer(BaseTransformer):
             # We still call the normalizer, just to get the imports, althought there is a chance
             # these could now be wrong
             typ = map[doctyp]
-            _, imports = normalize_type(typ, self._modname, self._classes, is_param)
+            _, imports = normalize_type(typ, self._modname, self._state.imports, is_param)
             how = 'mapped'
-        elif is_trivial(doctyp, self._modname, self._classes):
-            typ, imports = normalize_type(doctyp, self._modname, self._classes, is_param)
+        elif is_trivial(doctyp, self._modname, self._state.imports):
+            typ, imports = normalize_type(doctyp, self._modname, self._state.imports, is_param)
             how = 'trivial'   
         return typ, imports, how
 
@@ -129,7 +129,7 @@ class StubbingTransformer(BaseTransformer):
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
     ) -> cst.CSTNode:
-        doctyp = self._typs.params.get(self.context())
+        doctyp = self._docstrings.params.get(self.context())
         super().leave_Param(original_node, updated_node)
         annotation = original_node.annotation
         default = original_node.default
@@ -198,7 +198,7 @@ class StubbingTransformer(BaseTransformer):
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
         """Remove function bodies and add return type annotations """
-        doctyp = self._typs.returns.get(self.context())
+        doctyp = self._docstrings.returns.get(self.context())
         annotation = original_node.returns
         super().leave_FunctionDef(original_node, updated_node)
         if self.in_function(): 
@@ -207,22 +207,8 @@ class StubbingTransformer(BaseTransformer):
 
         if not annotation and doctyp:
             map = self._maps.returns
-            v = []
-            for t in doctyp.values():
-                typ, imp, how = self.fixtype(t, map)
-                if typ:
-                    v.append(typ)
-                    self.update_imports(imp)
-                else:
-                    print(f'Could not annotate {self.context()}-> from {doctyp}')
-                    v = None
-                    break
-            
-            if v:
-                if len(v) > 1:
-                    rtntyp = 'tuple[' + ', '.join(v) + ']'
-                else:
-                    rtntyp = v[0]
+            rtntyp, imp, how = self.fixtype(doctyp, map)
+            if rtntyp is not None:
                 try: 
                     n = updated_node.with_changes(body=cst.parse_statement("..."), 
                         returns=cst.Annotation(annotation=cst.parse_expression(rtntyp))) 
@@ -278,13 +264,13 @@ class StubbingTransformer(BaseTransformer):
             return updated_node
     
          
-def patch_source(m: str, fname: str, source: str, maps: Sections, imports: dict, typs: dict, strip_defaults: bool = False) -> str|None:
+def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
     except Exception as e:
         return None
 
-    patcher = StubbingTransformer(m, fname, maps, imports, typs, strip_defaults=strip_defaults)
+    patcher = StubbingTransformer(m, fname, state, strip_defaults=strip_defaults)
     modified = cstree.visit(patcher)
 
     import_statements = ''
@@ -302,8 +288,8 @@ def patch_source(m: str, fname: str, source: str, maps: Sections, imports: dict,
     return format_str(code, mode=Mode()) 
 
 
-def _stub(mod: ModuleType, m: str, fname: str, source: str, state: tuple, **kwargs) -> str|None:
-    return patch_source(m, fname, source, state[0], state[1], state[2], **kwargs)
+def _stub(mod: ModuleType, m: str, fname: str, source: str, state: State, **kwargs) -> str|None:
+    return patch_source(m, fname, source, state, **kwargs)
 
 
 _stub_folder = 'typings'
@@ -314,21 +300,22 @@ def _targeter(fname: str) -> str:
 
 
 def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,
-stub_folder: str = "typings") -> None:
+stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     global _stub_folder
     _stub_folder = stub_folder
+    init_trace_loader(trace_folder, m)
     imports = load_map(m, 'imports')
     if skip_analysis:
-        rtn = (load_type_maps(m), imports, load_type_contexts(m))
+        state = State(None, imports, load_docstrings(m), {}, load_type_maps(m))
     else:   
-        rtn = analyze_module(m, include_submodules=include_submodules)
-    if rtn is not None:
-        imports = rtn[1]
+        state = analyze_module(m, include_submodules=include_submodules)
+    if state is not None:
+        imports = state.imports
         if imports:
             # Add any extra imports paths found in the imports file
             for k, v in imports.items():
-                if k not in rtn[1]:
-                    rtn[1][k] = v
-        process_module(m, rtn, _stub, _targeter, include_submodules=include_submodules,
+                if k not in state.imports:
+                    state.imports[k] = v
+        process_module(m, state, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
 
