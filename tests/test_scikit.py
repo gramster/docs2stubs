@@ -1,22 +1,7 @@
 import pytest
 from docs2stubs.type_normalizer import check_normalizer
 from hamcrest import assert_that, equal_to
-
-
-def tcheck(input: str, expected_type: str, expected_imports: dict|None, \
-        modname: str|None=None):
-      trivial, type, imports = check_normalizer(input, modname)
-      assert_that(trivial)
-      assert_that(type, equal_to(expected_type))
-      assert_that(imports, equal_to(expected_imports))
-
-      
-def ntcheck(input: str, expected_type: str, expected_imports: dict|None, \
-        modname: str = "sklearn"):
-      trivial, type, imports = check_normalizer(input, modname)
-      assert_that(not trivial)
-      assert_that(type, equal_to(expected_type))
-      assert_that(imports, equal_to(expected_imports))
+from .test_normalize import tcheck, ntcheck
 
   
 def test_basic_type():

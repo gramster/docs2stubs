@@ -85,10 +85,11 @@ _trivial_cache = {}
 
 
 def is_trivial(s, modname: str, classes: set|dict|None = None):
-    if s in _trivial_cache:
-        return _trivial_cache[s]
+    key = f'{modname}.{s}'
+    if key in _trivial_cache:
+        return _trivial_cache[key]
     rtn = _is_trivial(s, modname, classes)
-    _trivial_cache[s] = rtn
+    _trivial_cache[key] = rtn
     return rtn
 
 
@@ -235,16 +236,17 @@ _normalize_cache = {}
 
 def normalize_type(s: str, modname: str|None = None, classes: dict|None = None, is_param: bool = False) -> tuple[str|None, dict[str, list[str]]]:
     try:
-        if s in _normalize_cache:
-            return _normalize_cache[s]
+        key = f'{modname}.{s}?{is_param}'
+        if key in _normalize_cache:
+            return _normalize_cache[key]
         rtn = parse_type(remove_shape(s), modname, classes, is_param)
-        _normalize_cache[s] = rtn
+        _normalize_cache[key] = rtn
         return rtn
     except Exception as e:
         return None, {}
     
 
-def check_normalizer(typ: str, m: str|None=None, classes: dict|None = None):
+def check_normalizer(typ: str, is_param: bool, m: str|None=None, classes: dict|None = None):
     if m is None:
         m = ''
     if classes is None:
@@ -253,6 +255,6 @@ def check_normalizer(typ: str, m: str|None=None, classes: dict|None = None):
             classes = load_map(m, 'imports')
 
     trivial = is_trivial(typ, m, classes)
-    normalized = normalize_type(typ, m, classes)
+    normalized = normalize_type(typ, m, classes, is_param)
 
     return trivial, normalized[0], normalized[1]

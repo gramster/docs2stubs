@@ -1,22 +1,12 @@
-import os
-from typing_extensions import reveal_type
+#import os
+import pytest
+from docs2stubs.docstring_parser import NumpyDocstringParser 
+#import tempfile
+from hamcrest import assert_that, equal_to
 
-from docs2stubs.traces import init_trace_loader
 
 
-def test_normalize():
-    from docs2stubs.type_normalizer import check_normalizer, load_map
-    #x = 'iterator over dict of str to any'
-    x = 'list of tuple'
-    print(check_normalizer(x, False, 'sklearn'))
-
-def test_type_parser() -> None:
-    from docs2stubs.type_parser import parse_type
-    x = 'list of tuple'
-    print(parse_type(x))
-
-def test_doc_parser(): 
-    from docs2stubs.docstring_parser import NumpyDocstringParser
+def test_parser1(): 
     x = """
             Create legend handles and labels for a PathCollection.
 
@@ -79,58 +69,42 @@ def test_doc_parser():
             The string labels for elements of the legend.
     """
 
-        
     rtn = NumpyDocstringParser().parse(x)
-    for i, k in enumerate(['Params', 'Returns', 'Attrs']):
-        sec = rtn[i]
-        if sec:
-            print(k)
-            print('-' * len(k))
-            for (n, r, t) in sec:
-                print(f'  name {n}: raw {r}, normalized {t}')
+    assert_that(rtn.params, equal_to(
+         {'prop': '{"colors", "sizes"}', 
+          'num': 'int, None, "auto", array-like, or `~.ticker.Locator`', 
+          'fmt': 'str, `~matplotlib.ticker.Formatter`, or None', 
+          'func': 'function', 
+          '**kwargs': ''
+          }
+    ))
+    assert_that(rtn.returns, equal_to(
+        {'handles': 'list of `.Line2D`',
+         'labels': 'list of str'
+        }
+    ))
+    assert_that(rtn.attrs, equal_to(None))
 
 
-def test_analyzer(m: str = 'matplotlib'):
-    from docs2stubs import analyze_module
-    analyze_module(m)
+def test_parser2():
+    x ="""The Euler line of the triangle.
 
+        The line which passes through circumcenter, centroid and orthocenter.
 
-def test_stubber(m: str = 'matplotlib'):
-    from docs2stubs import stub_module
-    stub_module(m)
+        Returns
+        =======
 
+        eulerline : Line (or Point for equilateral triangles in which case all
+                    centers coincide)
 
-def test_get_package_files(m = 'matplotlib'):
-    from docs2stubs.utils import get_module_and_children
-    modules = [m]
-    while modules:
-        m = modules.pop()
-        mod, file, submodules = get_module_and_children(m)
-        if not mod or not file:
-            continue
-        modules.extend(submodules)
-        print(f'\n{m}\n{"="*len(m)}')
-        f = file
-        i = f.find('/site-packages/')
-        if i > 0:
-            f = f[i+15:]
-        print(f)
-
-
-def test_get_signature_from_traces(pkg, module, fn):
-    from docs2stubs.traces import get_toplevel_function_signature
-    sig = get_toplevel_function_signature(module, fn)
-    print(sig)
-
-
-if __name__ == '__main__':
-    pkg = 'sklearn'
-    init_trace_loader('./tracing', pkg)
-    #test_analyzer(pkg)
-    #test_normalize()
-    test_type_parser()
-    #test_get_package_files()
-    #test_stubber(pkg)
-    #from docs2stubs.normalize import _is_string
-    #print(_is_string("'balanced'"))
-    #test_get_signature_from_traces(pkg, 'sklearn.base', 'is_classifier')
+        Examples
+        ========
+    
+    """
+    rtn = NumpyDocstringParser().parse(x)
+    assert_that(rtn.params, equal_to(None))
+    assert_that(rtn.returns, equal_to(
+        {'eulerline': 'Line (or Point for equilateral triangles in which case all',
+        }
+    ))
+    assert_that(rtn.attrs, equal_to(None))

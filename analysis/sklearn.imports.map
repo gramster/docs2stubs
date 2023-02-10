@@ -332,6 +332,8 @@ OneVsOneClassifier#sklearn.multiclass
 OutputCodeClassifier#sklearn.multiclass
 SelfTrainingClassifier#sklearn.semi_supervised._self_training
 BaseLabelPropagation#sklearn.semi_supervised._label_propagation
+LabelPropagation#sklearn.semi_supervised._label_propagation
+LabelSpreading#sklearn.semi_supervised._label_propagation
 ExponentialDispersionModel#sklearn._loss.glm_distribution
 TweedieDistribution#sklearn._loss.glm_distribution
 NormalDistribution#sklearn._loss.glm_distribution

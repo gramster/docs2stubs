@@ -59,7 +59,7 @@ def load_map(m: str, suffix: str|None = None) -> dict[str, str]:
         with open(mapfile) as f:
             for line in f:
                 parts = line.strip().split('#')    
-                # First field is optional count, so 
+                # First field is optional count and triviality flag, so 
                 # index from the end.            
                 map[parts[-2]] = parts[-1]
     return map

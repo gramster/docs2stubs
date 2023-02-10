@@ -3,7 +3,7 @@ __doc__ = f"""
 docs2stubs.
 
 Usage:
-  docs2stubs analyze (package|module) [--include-counts] [--dump-all] [--trace_folder FOLDER] <name>...
+  docs2stubs analyze (package|module) [--skip-trivial] [--trace_folder FOLDER] <name>...
   docs2stubs stub (package|module) [--strip-defaults] [--skip-analysis] [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
   docs2stubs augment (package|module) [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
   docs2stubs test [<name>] <typestring>
@@ -11,8 +11,7 @@ Usage:
   docs2stubs --version
 
 Options:
-  --include-counts      Include frequency count as first field.
-  --dump-all            Dump all types, including trivial cases.
+  --skip-trivial        Exclude trivial cases from the map files.
   --strip-defaults      Replace parameter default values with ...
   --skip-analysis       Skip analysis and use existing analysis file.
   --stub_folder FOLDER  Folder where stubs are stored [default: typings].
@@ -34,9 +33,6 @@ be used when stubbing to determine what imports might need to be added.
 
 Separate files are generated for each of parameters, return types, or
 attributes (the <what> in the filenames above).
-
-If `--include-counts` is specified, then the output files include the
-frequency counts in the first field.
 
 After analysis a 'human in the loop' pass of the .map file is 
 recommended to do further cleanup of the normalized forms. Once the 
@@ -91,10 +87,9 @@ def main():
     include_submodules = False if arguments['module'] else True
     for n in name:
       if arguments['analyze']:
-        include_counts = arguments['--include-counts']
-        dump_all = arguments['--dump-all']
+        dump_all = not arguments['--skip-trivial']
         trace_folder = arguments['--trace_folder']
-        analyze_module(n, include_submodules=include_submodules, include_counts=include_counts, dump_all=dump_all, trace_folder=trace_folder)
+        analyze_module(n, include_submodules=include_submodules, dump_all=dump_all, trace_folder=trace_folder)
       elif arguments['stub']:
         strip_defaults = arguments['--strip-defaults']
         skip_analysis = arguments['--skip-analysis']

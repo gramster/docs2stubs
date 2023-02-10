@@ -1,8 +1,13 @@
 from collections import Counter
 import inspect
+import re
 from types import ModuleType
 from typing import Any, cast
 import libcst as cst
+import numpy as np
+import pandas as pd
+import scipy
+
 
 from .base_transformer import BaseTransformer
 from .utils import Sections, State, process_module, load_type_maps, save_fullmap, save_result, save_import_map, save_docstrings
@@ -227,7 +232,63 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: State, **k
     return state
 
 
-def _post_process(m: str, state: State, include_counts: bool = False, dump_all = False) -> Sections[str]:
+from typing import _GenericAlias as GenericAlias, _UnionGenericAlias as UnionType, _type_repr # type: ignore
+
+
+_qualname = re.compile(r'[A-Za-z_\.]*\.([A-Za-z_][A-Za-z_0-9]*)')
+
+
+def _adjust_name(name: str) -> str:
+    if name in ['List', 'Dict', 'Tuple', 'Set']:
+        return name.lower()
+    return name
+
+
+def _get_repr(typ, arraylike: bool = False, matrixlike: bool=False):
+    if isinstance(typ, UnionType):
+        return '|'.join([_get_repr(a) for a in typ.__args__])
+    elif isinstance(typ, GenericAlias) and typ._name and typ.__args__:
+        # List, Tuple, etc
+        if arraylike and typ._name == 'List':
+            return 'ArrayLike'
+        return f'{_adjust_name(typ._name)}[{", ".join([_get_repr(a) for a in typ.__args__])}]'
+    if arraylike and (typ == np.ndarray or typ == pd.Series):
+        return 'ArrayLike'
+    if matrixlike and typ in [np.ndarray, pd.DataFrame, scipy.sparse.spmatrix, scipy.sparse.csr_matrix, scipy.sparse.csc_matrix]: # type: ignore 
+        return 'MatrixLike'
+    if typ == np.int64 or typ == np.uint64:
+        return 'Int'
+    if typ == np.float32 or typ == np.float64:
+        return 'Float'
+    typ = _type_repr(typ).replace('NoneType', 'None')
+    # Remove module qualifications from classes
+    typ = _qualname.sub('\\1', typ)
+    return typ
+
+
+def _combine_types(sigtype: set[type], doctype: str|None) -> str:
+    simplified = simplify_types(sigtype)
+    arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
+    matrixlike = doctype is not None and doctype.find('MatrixLike') >= 0
+    # This relies heaviliy on typing module internals
+    if not isinstance(simplified, UnionType):
+        simplified = _get_repr(simplified, arraylike, matrixlike)
+        return simplified if doctype is None or doctype == simplified else f'{simplified}|{doctype}'
+    
+    components = [_get_repr(a, arraylike, matrixlike) for a in simplified.__args__] # type: ignore
+    # Remove some redundant types
+    if 'Float' in components:
+        components = [c for c in components if c not in ['Int', 'int', 'float', 'None']]
+    elif 'Int' in components:
+        components = [c for c in components if c not in ['int', 'None']]
+    else:
+        components = [c for c in components if c != 'None']
+    if doctype is not None:
+        components.append(doctype)
+    return '|'.join(set(components))
+
+
+def _post_process(m: str, state: State, include_counts: bool = True, dump_all = True) -> Sections[str]:
     print("Analyzing and normalizing types...")
     maps = load_type_maps(m)
     results = [[], [], []]
@@ -245,27 +306,26 @@ def _post_process(m: str, state: State, include_counts: bool = False, dump_all =
             if typ in map:
                 total_mapped += cnt
             else:
-                tracetype = None
-                if section == 'params' and typ in state.trace_param_types:
-                    tracetype = str(simplify_types(state.trace_param_types[typ]))
-                elif section == 'returns' and typ in state.trace_return_types:
-                    tracetype = str(simplify_types(state.trace_return_types[typ]))
                 normtype, _ = normalize_type(typ, m, imports, section=='params')
+                sigtype = None
+                if section == 'params' and typ in state.trace_param_types:
+                    sigtype = state.trace_param_types[typ]
+                elif section == 'returns' and typ in state.trace_return_types:
+                    sigtype = state.trace_return_types[typ]
                 if normtype is None:
-                    normtype = typ if tracetype is None else tracetype
-                elif normtype == tracetype:
-                    pass
-                elif tracetype is not None:
-                    normtype += '|' + tracetype
-                if not dump_all and is_trivial(typ, m, imports):
+                    normtype = typ if sigtype is None else _combine_types(sigtype, None)
+                elif sigtype is not None:
+                    normtype = _combine_types(sigtype, normtype)
+                trivial = is_trivial(typ, m, imports)
+                if not dump_all and trivial:
                     trivials[typ] = normtype
                     total_trivial += cnt
                 else:
                     total_missed += cnt
                     if include_counts:
-                        result.append(f'{cnt}#{typ}#{normtype}\n')
+                        result.append(f'{"@" if trivial else ""}{cnt}#{typ}#{normtype}\n')
                     else:
-                        result.append(f'{typ}#{normtype}\n')
+                        result.append(f'{"@" if trivial else ""}#{typ}#{normtype}\n')
     print(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
     print('\nTRIVIALS\n')
     for k, v in trivials.items():
@@ -285,7 +345,7 @@ def _targeter(m: str, suffix: str) -> str:
     return f"analysis/{m}.{suffix}.map.missing"
 
 
-def analyze_module(m: str, include_submodules: bool = True, include_counts = False, dump_all = False, trace_folder='tracing') -> None|State:
+def analyze_module(m: str, include_submodules: bool = True, include_counts = True, dump_all = True, trace_folder='tracing') -> None|State:
     print("Gathering docstrings")
     init_trace_loader(trace_folder, m)
     state = State(
