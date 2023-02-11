@@ -16,7 +16,7 @@ _ident = re.compile(r'^[A-Za-z_][A-Za-z_0-9\.]*$')
 #_arraylike = re.compile(r'^array(\-)?(like)? ?(( of|,) shape[ ]*\([^)]*\))?$')
 #_filelike = re.compile(r'^file(-)?like$')
 #_pathlike = re.compile(r'^path(-)?like$')
-_shaped = re.compile(r'^(.*)( shape)([ =][\[\(])([^\]\)]*)([\]\)])([ ]*or[ ]*\([^\)]*\))*(.*)$', flags=re.IGNORECASE)
+_shaped = re.compile(r'^(.*)( shape)([ =][\[\(])([^\]\)]*)([\]\)])([ ]*or[ ]*\(([^\)]*)\))*(.*)$', flags=re.IGNORECASE)
 
 # Start with {, end with }, comma-separated quoted words
 #_single_restricted = re.compile(r'^{([ ]*[\"\'][A-Za-z0-9\-_]+[\"\'][,]?)+}$') 
@@ -66,17 +66,20 @@ _basic_types = {
 }
 
 
-def remove_shape(s: str) -> str:
+def sanitize_shape(s: str) -> str:
     if m:=_shaped.match(s):
         # Drop group 6 and everything except commas from group 4
         # This will change:
         #    {ndarray, sparse matrix} of shape (n_samples, n_classes) or (M, N)
         # to:
-        #    {ndarray, sparse matrix} of shape (,)
-        first_shape = m.group(4)
-        parts = first_shape.split(',')
-        first_shape = ','.join('N' * len(parts))
-        return m.group(1) + m.group(2) + ' (' + first_shape + ')' + m.group(7)
+        #    {ndarray, sparse matrix} of shape (N,N) @ (N,N)
+        #
+        # This is easier for the parser to handle.
+        first_shape = ','.join(['N' if p else '' for p in m.group(4).split(',')])
+        if m.group(7):
+            second_shape = ','.join(['N' if p else '' for p in m.group(7).split(',')])
+            return m.group(1) + m.group(2) + ' (' + first_shape + ') @ (' + second_shape + ')' + m.group(8)
+        return m.group(1) + m.group(2) + ' (' + first_shape + ')' + m.group(8)
     else:
         return s
 
@@ -108,7 +111,7 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
     classes - a set of class names or dictionary keyed on classnames 
     """
     s = s.strip()
-    sl = remove_shape(s.lower())
+    sl = sanitize_shape(s.lower())
     if sl.endswith(" objects"):
         sl = sl[:-8]
 
@@ -239,7 +242,7 @@ def normalize_type(s: str, modname: str|None = None, classes: dict|None = None, 
         key = f'{modname}.{s}?{is_param}'
         if key in _normalize_cache:
             return _normalize_cache[key]
-        rtn = parse_type(remove_shape(s), modname, classes, is_param)
+        rtn = parse_type(sanitize_shape(s), modname, classes, is_param)
         _normalize_cache[key] = rtn
         return rtn
     except Exception as e:

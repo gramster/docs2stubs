@@ -43,14 +43,12 @@ array_kind: [A|AN] [SPARSE | _LPAREN SPARSE _RPAREN] ARRAYLIKE
           | [A|AN] [SPARSE | _LPAREN SPARSE _RPAREN] ARRAY 
           | ARRAYS 
           | SPARSE
-dimension: _DIM ((OR | _SLASH) _DIM)* 
+dimension: dim ((OR | _SLASH) dim)* 
         | (NUMBER|NAME) _X (NUMBER|NAME) 
         | _LPAREN (NUMBER|NAME) _COMMA [NUMBER|NAME] [_COMMA [NUMBER|NAME]] _RPAREN
-        | ONED
-        | TWOD
-        | THREED
+dim: (ZEROD|ONED|TWOD|THREED)
 shape_qualifier: [[WITH|OF] SHAPE] [_EQUALS|OF] (SIZE|LENGTH) (QUALNAME|NUMBER|shape)
-               | [[WITH|OF] SHAPE] [_EQUALS|OF] shape (OR shape)* [dimension]
+               | [[WITH|OF] SHAPE] [_EQUALS|OF] shape (_AT shape)* [dimension]
                | SAME SHAPE AS QUALNAME
                | OF SHAPE QUALNAME
 shape: (_LPAREN|_LBRACKET) shape_element (_COMMA shape_element)* _COMMA? (_RPAREN|_RBRACKET)
@@ -175,15 +173,16 @@ UNION.2:     "union"i
 VALUE.2:     "value"i
 WITH.2:      "with"i
 WRITABLE.2:  "writeable"i | "writable"i
+ZEROD.2:     "0-d"i | "0d"i | "zero-dimensional"i
 
 
 _ARROW:     "->"
 _ASTERISK:  "*"
+_AT:        "@"
 _BACKTICK:  "`"
 _C_CONTIGUOUS: "C-contiguous"i
 _COLON:    ":"
 _COMMA:    ","
-_DIM:      "0-d"i | "1-d"i | "2-d"i | "3-d"i | "1d"i | "2d"i | "3d"i
 _ELLIPSIS: "..."
 _EQUALS:   "="
 _GRTRTHAN:  ">"
@@ -338,6 +337,7 @@ class Normalizer(Interpreter):
         arr_types = set()
         elt_type = None
         imports = set()
+        dimensions_mask = 0
         for child in tree.children:
             if isinstance(child, Token) and (child.type == 'NDARRAY' or child.type == 'NUMPY'):
                 if self._is_param:
@@ -361,15 +361,24 @@ class Normalizer(Interpreter):
                 elif subrule == 'basic_type' or subrule == 'type_qualifier':
                     elt_type, imp = self._visit_tree(child)
                     imports.update(imp)
+                elif subrule == 'shape_qualifier' or subrule == 'dimension':
+                    dimensions_mask = self._visit_tree(child)
+
+        if self._is_param and dimensions_mask & 2:
+            arr_types.add('MatrixLike')
+            imports.add(('MatrixLike', '._typing'))
+            if dimensions_mask & 1 == 0 and 'ArrayLike' in arr_types:
+                arr_types.remove('ArrayLike')
+
         if elt_type:
             if self._is_param and 'list' in arr_types:
                 arr_types.add('Sequence')
                 arr_types.remove('list')
                 imports.add(('Sequence', 'typing'))
             return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list', 'ndarray'] else f'{typ}' \
-                    for typ in arr_types]), imports
+                    for typ in sorted(arr_types)]), imports
         else:
-            return '|'.join(arr_types), imports
+            return '|'.join(sorted(arr_types)), imports
 
     def array_kinds(self, tree) -> tuple[set[str], set[tuple[str, str]]]:
         imports = set()
@@ -444,7 +453,62 @@ class Normalizer(Interpreter):
         # OF ARRAYS falls through here
         imports.add(('ArrayLike', 'numpy.typing'))
         return 'ArrayLike', imports
+    
+    def dimension(self, tree) -> int:
+        """
+          dimension: dim ((OR | _SLASH) dim)* 
+            | (NUMBER|NAME) _X (NUMBER|NAME) 
+            | _LPAREN (NUMBER|NAME) _COMMA [NUMBER|NAME] [_COMMA [NUMBER|NAME]] _RPAREN
+        """
+        dimensions = 0
+        numcnt = 0
+        for child in tree.children:
+            if isinstance(child, Tree):
+                dimensions |= self._visit_tree(child)
+            elif isinstance(child, Token):
+                if child.type == '_X':
+                    return 2
+                elif child.type == 'NUMBER' or child.type == 'NAME':
+                    numcnt += 1
+        if numcnt > 1:
+            return 2
+        return dimensions
+    
+    def dim(self, tree) -> int:
+        """
+        dim: (ZEROD|ONED|TWOD|THREED)
+        """
+        for child in tree.children:
+            if child.type == 'TWOD' or child.type == 'THREED':
+                return 2
+        return 1
+    
+    def shape_qualifier(self, tree) -> int:
+        """  
+          shape_qualifier: [[WITH|OF] SHAPE] [_EQUALS|OF] (SIZE|LENGTH) (QUALNAME|NUMBER|shape)
+            | [[WITH|OF] SHAPE] [_EQUALS|OF] shape (OR shape)* [dimension]
+            | SAME SHAPE AS QUALNAME
+            | OF SHAPE QUALNAME
+        """
+        dimensions_mask = 0
+        for child in tree.children:
+            if isinstance(child, Tree) and isinstance(child.data, Token):
+                tok = child.data
+                subrule = tok.value
+                if subrule == 'shape' or subrule == 'dimension':
+                    dimensions_mask |= self._visit_tree(child)
+        return dimensions_mask
 
+    def shape(self, tree):
+        """
+          shape: (_LPAREN|_LBRACKET) shape_element (_COMMA shape_element)* _COMMA? (_RPAREN|_RBRACKET)
+        """
+        dimensions = 0
+        for child in tree.children:
+            if isinstance(child, Tree):
+                dimensions += 1
+        return 2 if dimensions > 1 else 1
+    
     def basic_type(self, tree) -> tuple[str, set[str]]:
         """
         basic_type: ANY 
@@ -660,7 +724,7 @@ class Normalizer(Interpreter):
         if values:
             types.append(f'Literal[{",".join(values)}]')
             imp.add(('Literal', 'typing'))
-        return '|'.join(types), imp
+        return '|'.join(sorted(types)), imp
 
     def set_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
         """
@@ -727,11 +791,8 @@ class Normalizer(Interpreter):
                 type, imp = self._visit_tree(child)
                 types.add(type)
                 imports.update(imp)
-        return '|'.join(types), imports
-    
-    def shape(self, tree):
-        return None, None
-    
+        return '|'.join(sorted(types)), imports
+
 
 _lark = Lark(_grammar)
 _norm =  _norm = Normalizer()

@@ -31,6 +31,7 @@ def test_simple_normalizations():
     tcheck('array', "np.ndarray", {'numpy': []})
     tcheck('array', "ArrayLike", {'numpy.typing': ['ArrayLike']}, is_param=True)
     ntcheck("function", "Callable", {'typing': ['Callable']}, is_param=True)
+    tcheck("callable", "Callable", {'typing': ['Callable']}, is_param=True)
     tcheck("list of tuple", "list[tuple]", None)
     ntcheck("slice", "slice", None)
     ntcheck("None, `numpy.ndarray`", "np.ndarray|None", {'numpy':[]})

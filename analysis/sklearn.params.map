@@ -3,23 +3,23 @@
 @450#float#Float
 @275#array-like of shape (n_samples,)#ArrayLike
 219#{array-like, sparse matrix} of shape (n_samples, n_features)#ArrayLike|MatrixLike
-@200#array-like of shape (n_samples, n_features)#ArrayLike
+@200#array-like of shape (n_samples, n_features)#MatrixLike
 131#int, RandomState instance or None#Int|RandomState|None
 @107#str#str
 102#Ignored#Any
 @92#dict#dict
 @60#ndarray of shape (n_samples,)#ArrayLike
 @57#object#Any
-@42#int or float#float
+@42#int or float#int|float
 @39#str or callable#str|Callable
 @38#callable#Callable
-@38#array-like of shape (n_samples,) or (n_samples, n_outputs)#ArrayLike
+@38#array-like of shape (n_samples,) or (n_samples, n_outputs)#ArrayLike|MatrixLike
 35#int, RandomState instance#Int|RandomState
 @31#ndarray of shape (n_samples, n_features)#ArrayLike
 @31#array-like#ArrayLike
-26#{array-like, sparse matrix}, shape (n_samples, n_features)#ArrayLike|MatrixLike
+26#{array-like, sparse matrix}, shape (n_samples, n_features)#MatrixLike
 @23#array-like of shape (n_classes,)#ArrayLike
-23#array-like of str or None#ArrayLike|ArrayLike|None
+23#array-like of str or None#ArrayLike|None
 @22#iterable#Iterable
 @21#str or int#str|int
 @21#int or None#int|None
@@ -29,7 +29,7 @@
 @18#bool or int#bool|int
 18#int, cross-validation generator or an iterable#int|Generator|Iterable
 @18#array#ArrayLike|Float
-17#array-like of shape (n_samples_X, n_features) or list of object#ArrayLike
+17#array-like of shape (n_samples_X, n_features) or list of object#MatrixLike|ArrayLike
 @17#ndarray of shape (n_samples, K)#MatrixLike
 @16#array-like of shape (n_samples,) or (n_samples, n_targets)#ArrayLike|MatrixLike
 16#array-like, shape (n_samples, n_features)#MatrixLike
@@ -43,7 +43,7 @@
 @11#int or str#Int|str
 @11#float or int#Float
 11#sparse matrix of shape (n_samples, n_features)#MatrixLike
-10#pair of floats >= 0 or "fixed"#pair of floats >= 0 or "fixed"|str|tuple[float, float]
+10#pair of floats >= 0 or "fixed"#Literal["fixed"]|tuple[float, float]
 10#non-negative float#float
 @9#array-like of shape (n_samples, n_components)#MatrixLike
 9#int array, shape = [n_samples]#ArrayLike
