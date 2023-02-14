@@ -1,6 +1,7 @@
 from collections import Counter
 import re
 from types import ModuleType
+from typing import cast
 import libcst as cst
 from black import format_str
 from black.mode import Mode
@@ -20,7 +21,7 @@ class StubbingTransformer(BaseTransformer):
         self._state = state
         assert(state.maps is not None)
         self._maps: Sections[dict[str, str]] = state.maps
-        self._docstrings: Sections[dict[str,str]] = state.docstrings[modname]
+        self._docstrings: Sections[dict[str,str]|dict[str,dict[str,str]]] = state.docstrings[modname]
         self._strip_defaults: bool = strip_defaults
         self._infer_types: bool = infer_types_from_defaults
         self._method_names = set()
@@ -129,7 +130,7 @@ class StubbingTransformer(BaseTransformer):
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
     ) -> cst.CSTNode:
-        doctyp = self._docstrings.params.get(self.context())
+        doctyp = cast(str, self._docstrings.params.get(self.context()))
         super().leave_Param(original_node, updated_node)
         annotation = original_node.annotation
         default = original_node.default
@@ -198,7 +199,7 @@ class StubbingTransformer(BaseTransformer):
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.CSTNode:
         """Remove function bodies and add return type annotations """
-        doctyp = self._docstrings.returns.get(self.context())
+        doctyp = cast(dict[str,str], self._docstrings.returns.get(self.context()))
         annotation = original_node.returns
         super().leave_FunctionDef(original_node, updated_node)
         if self.in_function(): 
@@ -207,8 +208,22 @@ class StubbingTransformer(BaseTransformer):
 
         if not annotation and doctyp:
             map = self._maps.returns
-            rtntyp, imp, how = self.fixtype(doctyp, map)
-            if rtntyp is not None:
+            v = []
+            for t in doctyp.values():
+                typ, imp, how = self.fixtype(t, map)
+                if typ:
+                    v.append(typ)
+                    self.update_imports(imp)
+                else:
+                    print(f'Could not annotate {self.context()}-> from {doctyp}')
+                    v = None
+                    break
+            
+            if v:
+                if len(v) > 1:
+                    rtntyp = 'tuple[' + ', '.join(v) + ']'
+                else:
+                    rtntyp = v[0]
                 try: 
                     n = updated_node.with_changes(body=cst.parse_statement("..."), 
                         returns=cst.Annotation(annotation=cst.parse_expression(rtntyp))) 

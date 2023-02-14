@@ -44,7 +44,7 @@ class AnalyzingTransformer(BaseTransformer):
         self._attrtyps: dict[str, str] = {}
         self._paramtyps: dict[str, str] = {}
         self._returntyps: dict[str, dict[str, str]] = {}
-        state.docstrings[modname] = Sections[dict[str,Any]](
+        state.docstrings[modname] = Sections[dict[str,str]|dict[str,dict[str,str]]](
             params=self._paramtyps,
             returns=self._returntyps,
             attrs=self._attrtyps)
@@ -350,7 +350,11 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Tru
     init_trace_loader(trace_folder, m)
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),
-        {}, {}, None, {}, {})
+        {}, 
+        {}, 
+        load_type_maps(m), 
+        {}, 
+        {})
     
     if process_module(m, state, 
             _analyze, _targeter, 

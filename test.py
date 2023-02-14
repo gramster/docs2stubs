@@ -128,9 +128,11 @@ if __name__ == '__main__':
     init_trace_loader('./tracing', pkg)
     #test_analyzer(pkg)
     #test_normalize()
-    test_type_parser()
+    #test_type_parser()
     #test_get_package_files()
-    #test_stubber(pkg)
+    test_stubber(pkg)
     #from docs2stubs.normalize import _is_string
     #print(_is_string("'balanced'"))
     #test_get_signature_from_traces(pkg, 'sklearn.base', 'is_classifier')
+    #from tests.test_scikit import test_sk_params
+    #test_sk_params()

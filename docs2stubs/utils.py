@@ -44,7 +44,7 @@ class Sections(Generic[T]):
 State = NamedTuple("State", [
     ("counters", None|Sections[Counter[str]]), 
     ("imports", dict[str, str]), 
-    ("docstrings", dict[str, Sections[dict[str, str]]]), 
+    ("docstrings", dict[str, Sections[dict[str, str]|dict[str,dict[str,str]]]]), 
     #("trace_sigs", dict[str, dict[str, inspect.Signature]]),
     ("maps", None|Sections[dict[str,str]]),
     ("trace_param_types", dict[str, set[type]]),
