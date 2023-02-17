@@ -1,7 +1,8 @@
 from collections import Counter
+import inspect
 import re
 from types import ModuleType
-from typing import cast
+from typing import Literal, cast
 import libcst as cst
 from black import format_str
 from black.mode import Mode
@@ -9,7 +10,7 @@ from black.mode import Mode
 from .analyzing_transformer import analyze_module
 from .type_normalizer import is_trivial, normalize_type
 from .base_transformer import BaseTransformer
-from .traces import init_trace_loader
+from .traces import combine_types, get_toplevel_function_signature, init_trace_loader
 from .utils import Sections, State, load_map, load_docstrings, load_type_maps, process_module
 
 
@@ -28,6 +29,7 @@ class StubbingTransformer(BaseTransformer):
         self._local_class_names = set()
         self._need_imports: dict[str, str] = {} # map class -> module to import from
         self._ident_re = re.compile(r'([A-Za-z_][A-Za-z0-9_]*)')
+        self._trace_sigs = state.trace_sigs[modname] if modname in state.trace_sigs else {}
 
     @staticmethod
     def get_value_type(node: cst.CSTNode) -> str|None:
@@ -105,7 +107,8 @@ class StubbingTransformer(BaseTransformer):
         value=self.get_assign_value(original_node)
         return updated_node.with_changes(value=value)
 
-    def fixtype(self, doctyp: str, map: dict[str, str], is_param: bool = False):
+    def fixtype(self, doctyp: str, map: dict[str, str], is_param: bool = False) -> \
+            tuple[str | None, dict[str, list[str]], Literal['mapped', 'trivial', '']]:
         typ = None
         imports = {}
         how = ''
@@ -127,15 +130,66 @@ class StubbingTransformer(BaseTransformer):
             for cls in classlist:
                 self._need_imports[cls] = module
 
+
+    def _get_new_annotation(self, which: str, nodename: str, trace_context: str, doctyp: str|None, \
+                            valtyp: str|None = None):
+        trace_annotation = None
+        if trace_context in self._trace_sigs:
+            _trace_sig = self._trace_sigs[trace_context]
+            if _trace_sig is not None:
+                if nodename:
+                    p = _trace_sig.parameters.get(nodename, None)
+                    if p is not None and p.annotation != inspect._empty:
+                        trace_annotation = p.annotation
+                else:
+                    trace_annotation = _trace_sig.return_annotation
+
+        typ = None
+        if doctyp:
+            typ, imports, how = self.fixtype(doctyp, self._maps.params, True)
+            if typ:
+                if imports:
+                    self.update_imports(imports)
+
+                # If the default value is None, make sure we include it in the type
+                is_optional = 'None' in typ.split('|')
+                if not is_optional and valtyp == 'None' and typ != 'Any' and typ != 'None':
+                    typ += '|None'
+
+        n = None
+        if trace_annotation is None:
+            if typ == 'None':
+                print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; would be None')
+            elif typ is None:
+                if self._infer_types and valtyp and valtyp != 'None':
+                    # Use the inferred type from default value as long as it is not None
+                    annotation = cst.Annotation(annotation=cst.Name(valtyp))
+                else:
+                    print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
+            else:
+                try:
+                    n = cst.Annotation(annotation=cst.parse_expression(typ))
+                    print(f'Annotated {which} {trace_context}.{nodename} with {typ} from doctyp {doctyp}')
+                except:
+                    print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from doctyp {doctyp}; fails to parse')
+        else:
+            try:
+                typ = combine_types(trace_annotation, typ)
+                n = cst.Annotation(annotation=cst.parse_expression(typ))
+                print(f'Annotated {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}')
+            except:
+                print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
+        return n
+
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
     ) -> cst.CSTNode:
-        doctyp = cast(str, self._docstrings.params.get(self.context()))
+        param_context = self.context()
         super().leave_Param(original_node, updated_node)
+        function_context = self.context()
         annotation = original_node.annotation
         default = original_node.default
         valtyp = None
-        is_optional = False
 
         if default:
             valtyp = StubbingTransformer.get_value_type(default) # Inferred type from default
@@ -143,32 +197,12 @@ class StubbingTransformer(BaseTransformer):
                 # Default is something too complex for a stub or should be stripped; replace with '...'
                 default = cst.parse_expression("...")
 
-        if doctyp and not annotation:
-            typ, imports, how = self.fixtype(doctyp, self._maps.params, True)
-            if typ == 'None':
-                print(f'Could not annotate parameter {self.context()} from {doctyp}; would be None')
-            elif typ:
-                if imports:
-                    self.update_imports(imports)
-
-                # If the default value is None, make sure we include it in the type
-                is_optional = 'None' in typ.split('|')
-                if not is_optional and valtyp == 'None' and typ != 'Any':
-                    typ += '|None'
-
-                print(f'Annotated {self.context()} with {typ} from {doctyp} ({how})')
-                try:
-                    annotation = cst.Annotation(annotation=cst.parse_expression(typ))
-                except:
-                    print(f'Could not annotate parameter {self.context()} with {typ} ({how}); fails to parse')
-            else:
-                print(f'Could not annotate parameter {self.context()} from {doctyp}; no mapping')
-
-        if self._infer_types and valtyp and not annotation and valtyp != 'None':
-            # Use the inferred type from default value as long as it is not None
-            annotation = cst.Annotation(annotation=cst.Name(valtyp))
-            
-        return updated_node.with_changes(annotation=annotation, default=default)
+        if not annotation:
+            annotation = self._get_new_annotation("parameter", original_node.name.value, function_context,
+                                                   cast(str, self._docstrings.params.get(param_context)), valtyp)
+            if annotation:
+                return updated_node.with_changes(annotation=annotation, default=default)
+        return updated_node.with_changes(default=default)
 
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
         # Record the names of top-level classes
@@ -181,6 +215,10 @@ class StubbingTransformer(BaseTransformer):
         if not self.in_class():
             # Clear the method name set
             self._method_names = set()
+            # Check if the class has an empty body and insert '...' statement if so
+            if len(original_node.body.body) == 0:
+                newbody = updated_node.body.with_changes(body=[cst.parse_statement('...')])
+                return updated_node.with_changes(body=newbody)
             return updated_node
         else:
             # Nested class; return ...
@@ -197,43 +235,43 @@ class StubbingTransformer(BaseTransformer):
 
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
-    ) -> cst.CSTNode:
+    ) -> cst.CSTNode|cst.RemovalSentinel:
         """Remove function bodies and add return type annotations """
-        doctyp = cast(dict[str,str], self._docstrings.returns.get(self.context()))
+        context = self.context()
+        name = original_node.name.value
+        doctyp = cast(dict[str,str], self._docstrings.returns.get(context))
         annotation = original_node.returns
         super().leave_FunctionDef(original_node, updated_node)
-        if self.in_function(): 
-            # Nested function; return ...
-            return cst.parse_statement('...')
+        if (name.startswith('_') and not name.startswith('__')) or self.in_function(): 
+            # Nested or private function; return nothing (TODO: could this be None?)
+            return cst.RemoveFromParent()
 
-        if not annotation and doctyp:
-            map = self._maps.returns
-            v = []
-            for t in doctyp.values():
-                typ, imp, how = self.fixtype(t, map)
-                if typ:
-                    v.append(typ)
-                    self.update_imports(imp)
-                else:
-                    print(f'Could not annotate {self.context()}-> from {doctyp}')
-                    v = None
-                    break
+        if not annotation:
+            rtntyp = None
+            if doctyp:
+                map = self._maps.returns
+                v = []
+                for t in doctyp.values():
+                    typ, imp, how = self.fixtype(t, map)
+                    if typ:
+                        v.append(typ)
+                        self.update_imports(imp)
+                    else:
+                        print(f'Could not annotate {context}-> from {doctyp}')
+                        v = None
+                        break
+                
+                if v:
+                    if len(v) > 1:
+                        rtntyp = 'tuple[' + ', '.join(v) + ']'
+                    else:
+                        rtntyp = v[0]
+
+            annotation = self._get_new_annotation("function", '', context, rtntyp)
+            if annotation:
+                print(f'Annotating {self.context}-> as {annotation}')   
+                return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation) 
             
-            if v:
-                if len(v) > 1:
-                    rtntyp = 'tuple[' + ', '.join(v) + ']'
-                else:
-                    rtntyp = v[0]
-                try: 
-                    n = updated_node.with_changes(body=cst.parse_statement("..."), 
-                        returns=cst.Annotation(annotation=cst.parse_expression(rtntyp))) 
-                    print(f'Annotating {self.context()}-> as {rtntyp}')   
-                    return n
-                except:
-                    print(f'Could not annotate {self.context()}-> as {rtntyp}: parse failed')
-            else:
-                print(f'Could not annotate {self.context()}-> from {doctyp}') 
-
         # Remove the body only
         return updated_node.with_changes(body=cst.parse_statement("..."))
 
@@ -297,6 +335,8 @@ def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: 
                 ityps.append(k)
         # TODO: make these relative imports if appropriate
         import_statements += f'from {module} import {",".join(ityps)}\n'
+        
+    import_statements += f'from {m[:m.find(".")]}._typing import Int, Float, MatrixLike\n\n'
     #print(f"Add imports: {import_statements}")
 
     code = import_statements + modified.code
@@ -321,7 +361,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     init_trace_loader(trace_folder, m)
     imports = load_map(m, 'imports')
     if skip_analysis:
-        state = State(None, imports, load_docstrings(m), load_type_maps(m), {}, {})
+        state = State(None, imports, load_docstrings(m), load_type_maps(m), {}, {}, {})
     else:   
         state = analyze_module(m, include_submodules=include_submodules)
     if state is not None:

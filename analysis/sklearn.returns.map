@@ -43,7 +43,7 @@
 @4#np.ndarray of shape (n_thresholds,)#np.ndarray
 @4#:class:`~sklearn.metrics.ConfusionMatrixDisplay`#ConfusionMatrixDisplay
 @4#:class:`~sklearn.metrics.PrecisionRecallDisplay`#PrecisionRecallDisplay
-4#float (if average is not None) or array of float, shape =        [n_unique_labels]#Float|np.ndarray
+4#float (if average is not None) or array of float, shape =        [n_unique_labels]#float|np.ndarray
 @3#array-like of shape (n_samples, n_features)#np.ndarray
 @3#array-like or tuple of array-like#np.ndarray|tuple[np.ndarray, ...]
 3#returns an instance of self.#Self

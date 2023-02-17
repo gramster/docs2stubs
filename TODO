@@ -12,6 +12,7 @@
 - [x] remove private methods
 - [ ] support 'common' map files
 - [x] print context in log 
+- [ ] save/restore the state object instead of multiple disparate files
 
 - [ ] See if some of the remapped types coming out of analyzer need tweaking based on output of above, and do that
 - [ ] Allow the full map (or something like it) to be used for fine grain support of type overrides

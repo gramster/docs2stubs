@@ -3,14 +3,21 @@
 # I want to incorporate this into the docs2stubs CST tree
 # walker, I want to be able to access the traced types directly.
 
-from typing import IO, Optional, Tuple, List, Dict, Any, Iterable, cast, Type
+
+from typing import (
+    IO, Optional, Tuple, List, Dict, Any, Iterable, cast, Type, 
+    _GenericAlias as GenericAlias, _UnionGenericAlias as UnionType, _type_repr # type: ignore
+)
+
 
 # A variant of the SQL store that uses counts instead of timestamps.
 # This is duplicated in the tracing directory, so need to refactor
 # at some point to avoid that.
 
 import datetime
+from inspect import Signature
 import os
+import re
 import sqlite3
 import sys
 import atexit
@@ -22,6 +29,10 @@ from monkeytype.tracing import CallTrace
 from monkeytype.config import DefaultConfig
 from monkeytype.stubs import build_module_stubs_from_traces
 from monkeytype.typing import shrink_types
+
+import numpy as np
+import pandas as pd
+import scipy
 
 
 DEFAULT_TABLE = "monkeytype_call_traces"
@@ -128,7 +139,6 @@ class SQLiteDedupStore(CallTraceStore):
             return [row[0] for row in cur.fetchall() if row[0]]
 
 
-
 def _load_module_traces(
     db, 
     module, stderr: IO[str], verbose: bool = False
@@ -176,7 +186,7 @@ def _get_module_stubs(dbpath: str, pkg: str, module: str):
     return _stubs[module]
 
 
-def get_toplevel_function_signature(module: str, function: str):
+def get_toplevel_function_signature(module: str, function: str) -> Signature|None:
     stubs = _get_module_stubs(_dbpath, _pkg, module)
     if stubs:
         try:
@@ -185,7 +195,7 @@ def get_toplevel_function_signature(module: str, function: str):
             return None
     return None
 
-def get_method_signature(module: str, class_: str, method: str):
+def get_method_signature(module: str, class_: str, method: str) -> Signature|None:
     stubs = _get_module_stubs(_dbpath, _pkg, module)
     if stubs:
         try:
@@ -199,3 +209,84 @@ def simplify_types(ts: set[Type]):
 
 def render_type(t: Type) -> str:
     return '';
+
+
+_qualname = re.compile(r'[A-Za-z_\.]*\.([A-Za-z_][A-Za-z_0-9]*)')
+
+
+def _adjust_name(name: str) -> str:
+    if name in ['List', 'Dict', 'Tuple', 'Set']:
+        return name.lower()
+    return name
+
+
+def _get_repr(typ, arraylike: bool = False, matrixlike: bool=False):
+    if isinstance(typ, UnionType):
+        return '|'.join([_get_repr(a) for a in typ.__args__])
+    elif isinstance(typ, GenericAlias) and typ._name and typ.__args__:
+        # List, Tuple, etc
+        if arraylike and typ._name == 'List':
+            return 'ArrayLike'
+        return f'{_adjust_name(typ._name)}[{", ".join([_get_repr(a) for a in typ.__args__])}]'
+    if arraylike and (typ == np.ndarray or typ == pd.Series):
+        return 'ArrayLike'
+    if matrixlike and typ in [np.ndarray, pd.DataFrame, scipy.sparse.spmatrix, scipy.sparse.csr_matrix, scipy.sparse.csc_matrix]: # type: ignore 
+        return 'MatrixLike'
+    if typ == np.int64 or typ == np.uint64:
+        return 'Int'
+    if typ == np.float32 or typ == np.float64:
+        return 'Float'
+    if typ == np.ndarray:
+        return 'np.ndarray'  # As MonkeyType would render it ndarray
+    typ = _type_repr(typ).replace('NoneType', 'None')
+    # Remove module qualifications from classes
+    typ = _qualname.sub('\\1', typ)
+    return typ
+
+
+def combine_types(sigtype: type, doctype: str|None) -> str:
+    arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
+    matrixlike = doctype is not None and doctype.find('MatrixLike') >= 0
+    # This relies heaviliy on typing module internals
+    if isinstance(sigtype, UnionType):
+        components = [_get_repr(a, arraylike, matrixlike) for a in sigtype.__args__] # type: ignore
+    else:
+        components = [_get_repr(sigtype, arraylike, matrixlike)]
+    
+    if doctype is not None:
+        # Very simple parser to split apart the doctype union. If we find a '[' we
+        # find and skip to closing ']', handling any nested '[' and ']' pairs.
+        # Else we split on '|'.
+        i = 0
+        start = 0
+        while i < len(doctype):
+            if doctype[i] == '[':
+                i += 1
+                depth = 1
+                while i < len(doctype) and depth > 0:
+                    if doctype[i] == '[':
+                        depth += 1
+                    elif doctype[i] == ']':
+                        depth -= 1
+                    i += 1
+            else:
+                if doctype[i] == '|':
+                    components.append(doctype[start:i])
+                    start = i + 1
+                i += 1
+        components.append(doctype[start:i])
+
+    # Remove some redundant types
+    if len(components) > 1:
+        if 'Float' in components:
+            components = [c for c in components if c not in ['Int', 'int', 'float']]
+        elif 'Int' in components:
+            components = [c for c in components if c != 'int']
+        if 'str' in components and doctype and doctype.find('Literal') >= 0:
+            components = [c for c in components if c !=  'str']
+        if 'Any' in components:
+            components = [c for c in components if c !=  'Any']
+    components = [c for c in components if c != 'None']
+
+    result = '|'.join(set(components))
+    return result

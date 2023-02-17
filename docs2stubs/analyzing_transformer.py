@@ -12,7 +12,7 @@ import scipy
 from .base_transformer import BaseTransformer
 from .utils import Sections, State, process_module, load_type_maps, save_fullmap, save_result, save_import_map, save_docstrings
 from .docstring_parser import NumpyDocstringParser
-from .traces import get_method_signature, get_toplevel_function_signature, init_trace_loader, simplify_types
+from .traces import get_method_signature, get_toplevel_function_signature
 from .type_normalizer import is_trivial, normalize_type, print_norm1
 
 
@@ -48,10 +48,10 @@ class AnalyzingTransformer(BaseTransformer):
             params=self._paramtyps,
             returns=self._returntyps,
             attrs=self._attrtyps)
+        self._trace_sigs = state.trace_sigs[modname] = {}
         self._state = state
         assert(state.counters is not None)
         self._counters = state.counters
-        self._trace_sig = None
 
     def _get_obj_name(self, obj) -> str:
         rtn = str(obj)
@@ -148,16 +148,14 @@ class AnalyzingTransformer(BaseTransformer):
         context = self.context()
         parent = None
         if self.at_top_level_function_level():
-            #context = name
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, name)
-            self._trace_sig = get_toplevel_function_signature(self._modname, name)
+            self._trace_sigs[context] = get_toplevel_function_signature(self._modname, name)
         elif self._classname and self.at_top_level_class_method_level():
-            #context = f'{self._classname}.{name}'
             parent = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, self._classname)
             if parent:
                 if name in parent.__dict__:
                     obj = parent.__dict__[name]
-                    self._trace_sig = get_method_signature(self._modname, self._classname, name)
+                    self._trace_sigs[context] = get_method_signature(self._modname, self._classname, name)
                 else:
                     print(f'{self._fname}: Could not get obj for {context}')
 
@@ -186,16 +184,6 @@ class AnalyzingTransformer(BaseTransformer):
         doc = self._docs.get(context)
         if doc and doc.returns is not None:
             self._returntyps[context] = doc.returns
-            if self._trace_sig is not None and self._trace_sig._return_annotation != inspect._empty:
-                if len(doc.returns) == 1:
-                    rtype = list(doc.returns.values())[0]
-                    if rtype not in self._state.trace_return_types:
-                        self._state.trace_return_types[rtype] = set()
-                    self._state.trace_return_types[rtype].add(self._trace_sig._return_annotation)
-                elif len(doc.returns) > 1:
-                    # This should be a tuple; more complex to deal with
-                    pass
-        self._trace_sig = None
         return super().leave_FunctionDef(original_node, updated_node)
 
     def visit_Param(self, node: cst.Param) -> bool:
@@ -210,12 +198,6 @@ class AnalyzingTransformer(BaseTransformer):
                 ptype = param_docs.get(node.name.value, None)
                 if ptype is not None:
                     self._paramtyps[self.context()] = ptype
-                    if self._trace_sig is not None:
-                        p = self._trace_sig.parameters.get(node.name.value, None)
-                        if p is not None and p.annotation != inspect._empty:
-                            if ptype not in self._state.trace_param_types:
-                                self._state.trace_param_types[ptype] = set()
-                            self._state.trace_param_types[ptype].add(p.annotation)
         return rtn
 
 
@@ -230,62 +212,6 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: State, **k
     except Exception as e:
         raise Exception(f"Failed to analyze file: {fname}: {e}")
     return state
-
-
-from typing import _GenericAlias as GenericAlias, _UnionGenericAlias as UnionType, _type_repr # type: ignore
-
-
-_qualname = re.compile(r'[A-Za-z_\.]*\.([A-Za-z_][A-Za-z_0-9]*)')
-
-
-def _adjust_name(name: str) -> str:
-    if name in ['List', 'Dict', 'Tuple', 'Set']:
-        return name.lower()
-    return name
-
-
-def _get_repr(typ, arraylike: bool = False, matrixlike: bool=False):
-    if isinstance(typ, UnionType):
-        return '|'.join([_get_repr(a) for a in typ.__args__])
-    elif isinstance(typ, GenericAlias) and typ._name and typ.__args__:
-        # List, Tuple, etc
-        if arraylike and typ._name == 'List':
-            return 'ArrayLike'
-        return f'{_adjust_name(typ._name)}[{", ".join([_get_repr(a) for a in typ.__args__])}]'
-    if arraylike and (typ == np.ndarray or typ == pd.Series):
-        return 'ArrayLike'
-    if matrixlike and typ in [np.ndarray, pd.DataFrame, scipy.sparse.spmatrix, scipy.sparse.csr_matrix, scipy.sparse.csc_matrix]: # type: ignore 
-        return 'MatrixLike'
-    if typ == np.int64 or typ == np.uint64:
-        return 'Int'
-    if typ == np.float32 or typ == np.float64:
-        return 'Float'
-    typ = _type_repr(typ).replace('NoneType', 'None')
-    # Remove module qualifications from classes
-    typ = _qualname.sub('\\1', typ)
-    return typ
-
-
-def _combine_types(sigtype: set[type], doctype: str|None) -> str:
-    simplified = simplify_types(sigtype)
-    arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
-    matrixlike = doctype is not None and doctype.find('MatrixLike') >= 0
-    # This relies heaviliy on typing module internals
-    if not isinstance(simplified, UnionType):
-        simplified = _get_repr(simplified, arraylike, matrixlike)
-        return simplified if doctype is None or doctype == simplified else f'{simplified}|{doctype}'
-    
-    components = [_get_repr(a, arraylike, matrixlike) for a in simplified.__args__] # type: ignore
-    # Remove some redundant types
-    if 'Float' in components:
-        components = [c for c in components if c not in ['Int', 'int', 'float', 'None']]
-    elif 'Int' in components:
-        components = [c for c in components if c not in ['int', 'None']]
-    else:
-        components = [c for c in components if c != 'None']
-    if doctype is not None:
-        components.append(doctype)
-    return '|'.join(set(components))
 
 
 def _post_process(m: str, state: State, include_counts: bool = True, dump_all = True) -> Sections[str]:
@@ -307,15 +233,6 @@ def _post_process(m: str, state: State, include_counts: bool = True, dump_all = 
                 total_mapped += cnt
             else:
                 normtype, _ = normalize_type(typ, m, imports, section=='params')
-                sigtype = None
-                if section == 'params' and typ in state.trace_param_types:
-                    sigtype = state.trace_param_types[typ]
-                elif section == 'returns' and typ in state.trace_return_types:
-                    sigtype = state.trace_return_types[typ]
-                if normtype is None:
-                    normtype = typ if sigtype is None else _combine_types(sigtype, None)
-                elif sigtype is not None:
-                    normtype = _combine_types(sigtype, normtype)
                 trivial = is_trivial(typ, m, imports)
                 if not dump_all and trivial:
                     trivials[typ] = normtype
@@ -345,15 +262,15 @@ def _targeter(m: str, suffix: str) -> str:
     return f"analysis/{m}.{suffix}.map.missing"
 
 
-def analyze_module(m: str, include_submodules: bool = True, include_counts = True, dump_all = True, trace_folder='tracing') -> None|State:
+def analyze_module(m: str, include_submodules: bool = True, include_counts = True, dump_all = True) -> None|State:
     print("Gathering docstrings")
-    init_trace_loader(trace_folder, m)
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),
         {}, 
         {}, 
         load_type_maps(m), 
         {}, 
+        {},
         {})
     
     if process_module(m, state, 
