@@ -345,8 +345,8 @@ class Normalizer(Interpreter):
                     imports.add(('ArrayLike', 'numpy.typing'))
                 else:
                     # TODO: if we have an elt type, we can use NDArray from numpy.typing
-                    arr_types.add('np.ndarray')
-                    imports.add(('', 'numpy'))
+                    arr_types.add('ndarray')
+                    imports.add(('ndarray', 'numpy'))
             elif isinstance(child, Tree) and isinstance(child.data, Token):
                 tok = child.data
                 subrule = tok.value
@@ -366,7 +366,7 @@ class Normalizer(Interpreter):
 
         if self._is_param and dimensions_mask & 2:
             arr_types.add('MatrixLike')
-            imports.add(('MatrixLike', '._typing'))
+            imports.add(('MatrixLike', f'{self._tlmodule}._typing'))
             if dimensions_mask & 1 == 0 and 'ArrayLike' in arr_types:
                 arr_types.remove('ArrayLike')
 
@@ -375,7 +375,7 @@ class Normalizer(Interpreter):
                 arr_types.add('Sequence')
                 arr_types.remove('list')
                 imports.add(('Sequence', 'typing'))
-            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list', 'ndarray'] else f'{typ}' \
+            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list', 'ndarray', 'np.ndarray'] else f'{typ}' \
                     for typ in sorted(arr_types)]), imports
         else:
             return '|'.join(sorted(arr_types)), imports
@@ -405,8 +405,8 @@ class Normalizer(Interpreter):
                         arr_type = 'ArrayLike'
                         imports.add(('ArrayLike', 'numpy.typing'))
                     else:
-                        arr_type = 'np.ndarray'
-                        imports.add(('', 'numpy'))
+                        arr_type = 'ndarray'
+                        imports.add(('ndarray', 'numpy'))
                 elif child.type == 'SEQUENCE':
                     arr_type = 'Sequence'
                     imports.add(('Sequence', 'typing'))
@@ -429,8 +429,8 @@ class Normalizer(Interpreter):
                 arr_type = 'ArrayLike'
                 imports.add(('ArrayLike', 'numpy.typing'))
             else:
-                arr_type = 'np.ndarray'
-                imports.add(('', 'numpy'))
+                arr_type = 'ndarray'
+                imports.add(('ndarray', 'numpy'))
 
         return arr_type, imports
 
@@ -578,8 +578,10 @@ class Normalizer(Interpreter):
         # Now we need to normalize the name and find the imports
         x = cname.rfind('.')
         if x > 0:
-            imp.add((cname[x+1:], cname[:x]))
-            cname = cname[x+1:]
+            t, m = cname[x+1:], cname[:x]
+            if m not in ['np', 'pd']:
+                imp.add((t, m))
+                cname = t
         elif self._classes and cname in self._classes:
             imp.add((cname, self._classes[cname]))
 

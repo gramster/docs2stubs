@@ -129,7 +129,7 @@
 3#iterable of iterables#Iterable[Iterable]
 @3#{'C', 'F'}#Literal['C','F']
 3#list of str of shape (n_features,)#Sequence[str]
-3#int or np.nan#int|np.nan
+3#int or np.nan#int|float
 3#iterable or array-like, depending on transformers#Iterable|ArrayLike
 @3#array-like of shape (n_samples, n_outputs)#MatrixLike
 @3#{'arpack', 'lobpcg', 'amg'}#Literal['arpack','lobpcg','amg']
@@ -240,7 +240,7 @@
 2#float, optional#float|None
 2#bool, optional#bool|None
 @2#float or array-like of shape (n_features,)#float|ArrayLike
-2#int, float, str, np.nan or None#int|float|str|np.nan|None
+2#int, float, str, np.nan or None#int|float|str|None
 @2#float or array-like of shape (n_targets,)#float|ArrayLike
 @2#ndarray of shape (n_classes, n_features)#MatrixLike
 @2#{'l2', 'l1', 'elasticnet'}#Literal['l2','l1','elasticnet']
@@ -406,7 +406,7 @@
 @1#list of tuple#Sequence[tuple]
 @1#array-like of shape (n_samples, n_transformed_features)#MatrixLike
 1#list of Estimator objects#Sequence[Estimator]
-1#list of (str, transformer) tuples#Sequence[tuple[str, Transformer]]
+1#list of (str, transformer) tuples#Sequence[tuple[str, TransformerMixin]]
 1#list of estimators#Sequence[Estimator]
 1#{array-like, sparse graph} of shape (n_samples, n_samples)#MatrixLike
 @1#{'nearest_neighbors', 'rbf', 'precomputed',                 'precomputed_nearest_neighbors'} or callable#Literal['nearest_neighbors','rbf','precomputed','precomputed_nearest_neighbors']|Callable
@@ -419,18 +419,18 @@
 @1#{'hinge', 'squared_hinge'}#Literal['hinge','squared_hinge']
 @1#{'ovr', 'crammer_singer'}#Literal['ovr','crammer_singer']
 @1#{'epsilon_insensitive', 'squared_epsilon_insensitive'}#Literal['epsilon_insensitive','squared_epsilon_insensitive']
-@1#{dict, 'balanced'}#Literal['balanced'|Mapping]
+@1#{dict, 'balanced'}#Literal['balanced']|Mapping
 @1#{'squared_hinge', 'log'}#Literal['squared_hinge','log']
 1#{array-like, sparse matrix} of shape (n_samples, n_features)                 or (n_samples, n_samples)#MatrixLike
 @1#array-like of shape (n_samples, n_features) or                 (n_samples_test, n_samples_train)#MatrixLike
-1#ndarray or DataFrame, shape (n_samples, n_features)#MatrixLike|DataFrame
+1#ndarray or DataFrame, shape (n_samples, n_features)#MatrixLike
 1#array-like or None, shape (n_samples, ) or (n_samples, n_classes)#ArrayLike|None|MatrixLike
 @1#list of Bunch#Sequence[Bunch]
 1#list of (int,) or list of (int, int)#Sequence[int]|Sequence[tuple[int,int]]
 @1#dict or None#Mapping|None
-1#{array-like, sparse matrix, dataframe} of shape (n_samples, 2)#MatrixLike|DataFrame
+1#{array-like, sparse matrix, dataframe} of shape (n_samples, 2)#MatrixLike
 @1#{'auto', 'predict_proba', 'decision_function',                 'predict'}#Literal['auto','predict_proba','decision_function','predict']
-1#{array-like or dataframe} of shape (n_samples, n_features)#MatrixLike|DataFrame
+1#{array-like or dataframe} of shape (n_samples, n_features)#MatrixLike
 @1#array-like of {int, str}#Sequence[tuple[int, str]]
 @1#{'auto', 'recursion', 'brute'}#Literal['auto','recursion','brute']
 @1#{'forward', 'backward'}#Literal['forward','backward']
@@ -439,7 +439,7 @@
 @1#{'percentile', 'k_best', 'fpr', 'fdr', 'fwe'}#Literal['percentile','k_best','fpr','fdr','fwe']
 1#float or int depending on the feature selection mode#float|int 
 @1#str or float#str|float
-1#non-zero int, inf, -inf#int|np.inf|-np.inf
+1#non-zero int, inf, -inf#int|float
 @1#int, callable#int|Callable
 @1#array of shape [n_samples]#ArrayLike
 @1#str, callable or None#str|Callable|None
@@ -492,8 +492,8 @@
 @1#str or list of str#str|Sequence[str]
 1#str, list of str or tuple of str#str|Sequence[str]|tuple[str, ...]
 @1#{'serial', 'parallel', 'single'}#Literal['serial','parallel','single']
-1#list of estimators or `_VisualBlock`s or a single estimator#Sequewnce[Estimator]|Sequence[_VisualBlock]|Estimator
-1#list of str, str, or None#Sequene[str]|str|None
+1#list of estimators or `_VisualBlock`s or a single estimator#Sequence[Estimator]|Sequence[_VisualBlock]|Estimator
+1#list of str, str, or None#Sequence[str]|str|None
 @1#dict, 'balanced' or None#str|Mapping|Literal['balanced']|None
 1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_outputs)#ArrayLike|MatrixLike
 @1#array-like of shape (n_subsample,)#ArrayLike
@@ -512,7 +512,7 @@
 @1#{'ascending', 'descending', 'roman', 'arabic',             'random'}#Literal['ascending','descending','roman','arabic','random']
 @1#{'nan_euclidean'} or callable#Literal['nan_euclidean']|Callable
 1#array-like shape of (n_samples, n_features)#MatrixLike
-1#int, float, str, np.nan, None or pandas.NA#int|float|str|np.nan|pd.NA|None
+1#int, float, str, np.nan, None or pandas.NA#int|float|str|pd.NA|None
 1#str or numerical value#str|int|float
 1#array-like of shape                 (n_samples, n_features + n_features_missing_indicator)#MatrixLike
 @1#{'missing-only', 'all'}#Literal['missing-only','all']
@@ -649,7 +649,7 @@
 @1#TreeNode#TreeNode
 @1#ndarray of shape (n_samples, n_features), dtype=np.uint8#MatrixLike
 1#ndarray, dtype=np.uint32#ArrayLike
-1#bool or ndarray, dtype=bool#ndarray|bool|ArrayLike
+1#bool or ndarray, dtype=bool#np.ndarray|bool|ArrayLike
 @1#array-like of shape (n_features,), dtype=int#ArrayLike
 @1#array-like of floats#ArrayLike
 @1#{'squared_error', 'absolute_error', 'poisson', 'quantile'}#Literal['squared_error','absolute_error','poisson','quantile']
@@ -680,7 +680,7 @@
 1#str, type, list of type#str|type|Sequence[type]
 @1#array-like of shape (n_samples_Y,) or (n_samples_Y, 1)             or (1, n_samples_Y)#ArrayLike|MatrixLike
 @1#array-like of shape (n_samples_X,) or (n_samples_X, 1)             or (1, n_samples_X)#ArrayLike|MatrixLike
-1#np.nan or int#np.nan|int
+1#np.nan or int#int|float
 @1#array-like of shape (n_samples_X, 2)#MatrixLike
 @1#array-like of shape (n_samples_Y, 2)#MatrixLike
 1#{ndarray, sparse matrix} of shape (n_samples_X, n_features)#MatrixLike
@@ -700,7 +700,7 @@
 @1#array-like of shape (n_classes)#ArrayLike
 @1#{'linear', 'quadratic'}#Literal['linear','quadratic']
 @1#{'micro', 'macro', 'samples', 'weighted',             'binary'} or None#Literal['micro','macro','samples','weighted','binary']|None
-!1#"warn", {0.0, 1.0}#Literal[0.0,1.0]|Literal["warn"]
+!1#"warn", {0.0, 1.0}#float|Literal["warn"]
 @1#{'binary', 'micro', 'macro', 'samples', 'weighted'}#Literal['binary','micro','macro','samples','weighted']
 1#tuple or set, for internal use#tuple|set
 @1#array-like of shape (n_labels,)#ArrayLike

@@ -220,43 +220,88 @@ def _adjust_name(name: str) -> str:
     return name
 
 
-def _get_repr(typ, arraylike: bool = False, matrixlike: bool=False):
+def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=False) -> tuple[str, set[tuple[str, str]]]:
+    imports = set()
     if isinstance(typ, UnionType):
-        return '|'.join([_get_repr(a) for a in typ.__args__])
+        components = []
+        for a in typ.__args__:
+            t, i = _get_repr(tlmodule, a)
+            components.append(t)
+            imports.update(i)
+        typ = '|'.join(components)
     elif isinstance(typ, GenericAlias) and typ._name and typ.__args__:
         # List, Tuple, etc
         if arraylike and typ._name == 'List':
-            return 'ArrayLike'
-        return f'{_adjust_name(typ._name)}[{", ".join([_get_repr(a) for a in typ.__args__])}]'
-    if arraylike and (typ == np.ndarray or typ == pd.Series):
-        return 'ArrayLike'
-    if matrixlike and typ in [np.ndarray, pd.DataFrame, scipy.sparse.spmatrix, scipy.sparse.csr_matrix, scipy.sparse.csc_matrix]: # type: ignore 
-        return 'MatrixLike'
-    if typ == np.int64 or typ == np.uint64:
-        return 'Int'
-    if typ == np.float32 or typ == np.float64:
-        return 'Float'
-    if typ == np.ndarray:
-        return 'np.ndarray'  # As MonkeyType would render it ndarray
-    typ = _type_repr(typ).replace('NoneType', 'None')
-    # Remove module qualifications from classes
-    typ = _qualname.sub('\\1', typ)
-    return typ
+            imports.add(('ArrayLike', f'{tlmodule}._typing'))
+            typ = 'ArrayLike'
+        else:
+            components = []
+            for a in typ.__args__:
+                t, i = _get_repr(tlmodule, a)
+                components.append(t)
+                imports.update(i)
+            typ = f'{_adjust_name(typ._name)}[{", ".join(components)}]'
+    elif arraylike and (typ == np.ndarray or typ == pd.Series):
+        imports.add(('ArrayLike', f'{tlmodule}._typing'))
+        typ = 'ArrayLike'
+    elif matrixlike and typ in [np.ndarray, pd.DataFrame, scipy.sparse.spmatrix, scipy.sparse.csr_matrix, scipy.sparse.csc_matrix]: # type: ignore 
+        imports.add(('MatrixLike', f'{tlmodule}._typing'))
+        typ = 'MatrixLike'
+    elif typ == np.int64 or typ == np.uint64:
+        imports.add(('Int', f'{tlmodule}._typing'))
+        typ =  'Int'
+    elif typ == np.float32 or typ == np.float64:
+        imports.add(('Float', f'{tlmodule}._typing'))
+        typ = 'Float'
+    else:
+        # TODO: get the imports
+        typ = _type_repr(typ).replace('NoneType', 'None')
+        if typ.find('[') < 0 and typ.find('.') > 0:
+            module, name = typ.rsplit('.', 1)
+            imports.add((name, module))
+            typ = name
 
+    return typ, imports
 
-def combine_types(sigtype: type, doctype: str|None) -> str:
+    
+def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: str|None, remove_none: bool = False) -> tuple[str, set[tuple[str, str]]]:
+    # TODO: figure out the needed imports and return those too
     arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
     matrixlike = doctype is not None and doctype.find('MatrixLike') >= 0
-    # This relies heaviliy on typing module internals
+    imports = set()
+    components = []
+    imps = {
+        'Axes': 'matplotlib.axes',
+        'BaseEstimator': 'sklearn.base',
+        'Estimator': f'{tlmodule}._typing',
+        'Figure': 'matplotlib.figure',
+    }
+    # Include the default value type
+    if valtyp is not None:
+        components.append(valtyp)
+
+    # This relies on typing module internals
     if isinstance(sigtype, UnionType):
-        components = [_get_repr(a, arraylike, matrixlike) for a in sigtype.__args__] # type: ignore
-    else:
-        components = [_get_repr(sigtype, arraylike, matrixlike)]
+        for a in sigtype.__args__:  # type: ignore
+            t, i = _get_repr(tlmodule, a, arraylike, matrixlike)
+            components.append(t)
+            imports.update(i)
+        if len(components) > 5:
+            # TODO: if components is very long, see if there are classes that have a common
+            # base class and use that instead. Ideally go down structurally into components
+            # (e.g. dict[str, A] and dict[str, B] could be dict[str, A|B] and then dict[str, base(A, B)]).
+            pass
+    elif sigtype is not None:
+        t, i = _get_repr(tlmodule, sigtype, arraylike, matrixlike)
+        components = [t]
+        imports.update(i)
     
     if doctype is not None:
         # Very simple parser to split apart the doctype union. If we find a '[' we
         # find and skip to closing ']', handling any nested '[' and ']' pairs.
         # Else we split on '|'.
+        # Note: in theory we should have already added the imports for these so 
+        # don't need to do it here.
         i = 0
         start = 0
         while i < len(doctype):
@@ -276,17 +321,64 @@ def combine_types(sigtype: type, doctype: str|None) -> str:
                 i += 1
         components.append(doctype[start:i])
 
-    # Remove some redundant types
-    if len(components) > 1:
-        if 'Float' in components:
-            components = [c for c in components if c not in ['Int', 'int', 'float']]
-        elif 'Int' in components:
-            components = [c for c in components if c != 'int']
-        if 'str' in components and doctype and doctype.find('Literal') >= 0:
-            components = [c for c in components if c !=  'str']
-        if 'Any' in components:
-            components = [c for c in components if c !=  'Any']
-    components = [c for c in components if c != 'None']
+
+    if 'Any' in components:
+        components = ['Any']
+        imports.add(('Any', 'typing'))
+    else:
+        if remove_none:
+            components = [c for c in components if c != 'None']
+        if len(components) > 1:
+            # Remove some redundant types
+            if 'Float' in components:
+                components = [c for c in components if c not in ['Int', 'int', 'float']]
+                imports.add(('Float', f'{tlmodule}._typing'))
+            elif 'Int' in components:
+                components = [c for c in components if c != 'int']
+                imports.add(('Int', f'{tlmodule}._typing'))
+            if 'str' in components and doctype and doctype.find('Literal') >= 0:
+                components = [c for c in components if c !=  'str']
+                imports.add(('Literal', 'typing'))
+
+        # Add the imports for the types we are using in case they are not already present
+        if arraylike:
+            imports.add(('ArrayLike', f'{tlmodule}._typing'))
+        if matrixlike:
+            imports.add(('MatrixLike', f'{tlmodule}._typing'))
+        for c in components:
+            if c.find('[') >= 0:
+                continue
+            if c.find('.') > 0:
+                module, name = c.rsplit('.', 1)
+                if module == 'np':
+                    module = 'numpy'
+                elif module == 'pd':
+                    module = 'pandas'
+                imports.add((name, module))
+            else:
+                # TODO: maybe we need to pass the class info from the state object to 
+                # do this properly. For now I am doing some common ones used in mapping
+                # file. A better long term solution is to add imports to the mapping file.
+                if c in imps:
+                    imports.add((c, imps[c]))
 
     result = '|'.join(set(components))
-    return result
+
+    if result.find('RandomState') >= 0:
+        imports.add(('RandomState', 'numpy.random'))
+    if result.find('Float') >= 0:
+        imports.add(('Float', f'{tlmodule}._typing'))
+    if result.find('Int') >= 0:
+        imports.add(('Int', f'{tlmodule}._typing'))
+    if result.find('Type[') >= 0:
+        imports.add(('Type', 'typing'))
+
+    # Claassifier, Regressor, Memory
+
+    if len(result) >= 200: 
+        # Somewhat arbitrary to avoid some pathological cases
+        result = 'Any'
+        imports = set()
+        imports.add(('Type', 'typing'))
+
+    return result, imports

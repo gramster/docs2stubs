@@ -89,7 +89,7 @@ def main():
       if arguments['analyze']:
         dump_all = not arguments['--skip-trivial']
         trace_folder = arguments['--trace_folder']
-        analyze_module(n, include_submodules=include_submodules, dump_all=dump_all, trace_folder=trace_folder)
+        analyze_module(n, include_submodules=include_submodules, dump_all=dump_all)
       elif arguments['stub']:
         strip_defaults = arguments['--strip-defaults']
         skip_analysis = arguments['--skip-analysis']

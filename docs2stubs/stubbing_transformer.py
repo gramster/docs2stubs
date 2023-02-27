@@ -14,12 +14,15 @@ from .traces import combine_types, get_toplevel_function_signature, init_trace_l
 from .utils import Sections, State, load_map, load_docstrings, load_type_maps, process_module
 
 
+_tlmodule: str = ''  # top-level module; kludge added late that would be a pain to plumb through all the way
+
 class StubbingTransformer(BaseTransformer):
-    def __init__(self, modname: str, fname: str, state: State,
+    def __init__(self, tlmodule: str, modname: str, fname: str, state: State,
         strip_defaults=False, 
         infer_types_from_defaults=False):
         super().__init__(modname, fname)
         self._state = state
+        self._tlmodule = tlmodule
         assert(state.maps is not None)
         self._maps: Sections[dict[str, str]] = state.maps
         self._docstrings: Sections[dict[str,str]|dict[str,dict[str,str]]] = state.docstrings[modname]
@@ -131,8 +134,9 @@ class StubbingTransformer(BaseTransformer):
                 self._need_imports[cls] = module
 
 
-    def _get_new_annotation(self, which: str, nodename: str, trace_context: str, doctyp: str|None, \
-                            valtyp: str|None = None):
+    def _get_new_annotation(self, nodename: str, trace_context: str, doctyp: str|None, \
+                            valtyp: str|None = None, remove_none: bool = False):
+        which, isparam = ("parameter", True) if nodename else ("function", False)
         trace_annotation = None
         if trace_context in self._trace_sigs:
             _trace_sig = self._trace_sigs[trace_context]
@@ -146,7 +150,7 @@ class StubbingTransformer(BaseTransformer):
 
         typ = None
         if doctyp:
-            typ, imports, how = self.fixtype(doctyp, self._maps.params, True)
+            typ, imports, how = self.fixtype(doctyp, self._maps.params, isparam)
             if typ:
                 if imports:
                     self.update_imports(imports)
@@ -157,28 +161,26 @@ class StubbingTransformer(BaseTransformer):
                     typ += '|None'
 
         n = None
-        if trace_annotation is None:
-            if typ == 'None':
-                print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; would be None')
-            elif typ is None:
+
+        try:
+            typ, imports = combine_types(self._tlmodule, trace_annotation, typ, valtyp, remove_none)
+            if typ is None or (isparam and typ == 'None'):
                 if self._infer_types and valtyp and valtyp != 'None':
                     # Use the inferred type from default value as long as it is not None
                     annotation = cst.Annotation(annotation=cst.Name(valtyp))
-                else:
-                    print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
+                elif isparam:
+                    print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping or default value')
+            elif typ is None:
+                print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
             else:
-                try:
-                    n = cst.Annotation(annotation=cst.parse_expression(typ))
-                    print(f'Annotated {which} {trace_context}.{nodename} with {typ} from doctyp {doctyp}')
-                except:
-                    print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from doctyp {doctyp}; fails to parse')
-        else:
-            try:
-                typ = combine_types(trace_annotation, typ)
+                for k, v in imports:
+                    if v == 'np':
+                        v = 'numpy'
+                    self._need_imports[k] = v
                 n = cst.Annotation(annotation=cst.parse_expression(typ))
                 print(f'Annotated {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}')
-            except:
-                print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
+        except:
+            print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
         return n
 
     def leave_Param(
@@ -189,17 +191,18 @@ class StubbingTransformer(BaseTransformer):
         function_context = self.context()
         annotation = original_node.annotation
         default = original_node.default
-        valtyp = None
+        defaultvaltyp = None
 
         if default:
-            valtyp = StubbingTransformer.get_value_type(default) # Inferred type from default
-            if (not valtyp or self._strip_defaults):
+            defaultvaltyp = StubbingTransformer.get_value_type(default) # Inferred type from default
+            if (not defaultvaltyp or self._strip_defaults):
                 # Default is something too complex for a stub or should be stripped; replace with '...'
                 default = cst.parse_expression("...")
 
         if not annotation:
-            annotation = self._get_new_annotation("parameter", original_node.name.value, function_context,
-                                                   cast(str, self._docstrings.params.get(param_context)), valtyp)
+            annotation = self._get_new_annotation(original_node.name.value, function_context,
+                                                   cast(str, self._docstrings.params.get(param_context)), defaultvaltyp,
+                                                   remove_none = (defaultvaltyp != 'None'))
             if annotation:
                 return updated_node.with_changes(annotation=annotation, default=default)
         return updated_node.with_changes(default=default)
@@ -245,7 +248,18 @@ class StubbingTransformer(BaseTransformer):
         if (name.startswith('_') and not name.startswith('__')) or self.in_function(): 
             # Nested or private function; return nothing (TODO: could this be None?)
             return cst.RemoveFromParent()
-
+        decorators = []
+        keep = ['abstractmethod', 'classmethod', 'dataclass_transform', 'deprecated', 'final', 'override', 'property', 'staticmethod']
+        try:
+            for d in original_node.decorators:
+                if isinstance(d.decorator, cst.Attribute) and d.decorator.attr.value in keep:
+                    decorators.append(d.deep_clone())
+                elif isinstance(d.decorator, cst.Name) and d.decorator.value in keep:
+                    decorators.append(d.deep_clone())
+                elif isinstance(d.decorator, cst.Call) and d.decorator.func.value in keep: # type: ignore
+                     decorators.append(d.deep_clone())
+        except:
+            pass
         if not annotation:
             rtntyp = None
             if doctyp:
@@ -267,26 +281,49 @@ class StubbingTransformer(BaseTransformer):
                     else:
                         rtntyp = v[0]
 
-            annotation = self._get_new_annotation("function", '', context, rtntyp)
+            annotation = self._get_new_annotation('', context, rtntyp)
             if annotation:
                 print(f'Annotating {self.context}-> as {annotation}')   
-                return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation) 
+                return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation, \
+                                                 decorators=decorators)
             
         # Remove the body only
-        return updated_node.with_changes(body=cst.parse_statement("..."))
+        return updated_node.with_changes(body=cst.parse_statement("..."), decorators=decorators)
+
+    def _get_module_name_from_node(self, n: cst.Attribute|cst.Name) -> str:
+        if isinstance(n, cst.Attribute):
+            return self._get_module_name_from_node(n.value) + '.' + n.attr.value
+        else:
+            return n.value
 
     def leave_SimpleStatementLine(
         self,
         original_node: cst.SimpleStatementLine,
         updated_node: cst.SimpleStatementLine,
     ) -> cst.CSTNode:
+        # Save the imports for later use
+        keep = [] # for "from foo import *""
+        for node in updated_node.body:
+            if isinstance(node, cst.ImportFrom):
+                node = cast(cst.ImportFrom, node)
+                if not node.module:
+                    continue
+                m = self._get_module_name_from_node(node.module)
+                if node.relative:
+                    m = '.' * len(node.relative) + m
+                if isinstance(node.names, cst.ImportStar):
+                    keep.append(node)
+                else:
+                    for t in node.names:
+                        if t.asname:
+                            self._need_imports[f'{t.name.value} as {t.asname.name.value}'] = m
+                        else:
+                            self._need_imports[t.name.value] = m
+
         newbody = [
             node
-            for node in updated_node.body
-            if any(
-                isinstance(node, cls)
-                for cls in [cst.Assign, cst.AnnAssign, cst.Import, cst.ImportFrom]
-            )
+            for node in updated_node.body 
+            if isinstance(node, cst.Assign) or isinstance(node, cst.AnnAssign) or isinstance(node, cst.Import) or node in keep
         ]
         return updated_node.with_changes(body=newbody)
 
@@ -315,36 +352,93 @@ class StubbingTransformer(BaseTransformer):
             return updated_node.with_changes(asname=cst.AsName(name=cst.Name(original_node.name.value)))
         else:
             return updated_node
+
+
+def make_imports_relative(m: str, module: str, fname: str) -> str:
+    """Make a module name _module_ relative to the current file _fname_ in module _m_. """
+    # Find the longest common prefix of m and module
+    parts_m = m.split('.')
+    parts_module = module.split('.')
+    i = 0
+    while i < min(len(parts_m), len(parts_module)):
+        if parts_m[i] != parts_module[i]:
+            break
+        i += 1
+    if i == 0:
+        # Independent modules
+        return module
+    # For the parts not in common in m, add a '..'
+    rel = '.' * (len(parts_m) - i)
+    if fname.endswith('__init__.py'):
+        rel += '.'
+    rel += '.'.join(parts_module[i:])
+    return rel
     
          
-def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
+def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
     except Exception as e:
         return None
 
-    patcher = StubbingTransformer(m, fname, state, strip_defaults=strip_defaults)
+    patcher = StubbingTransformer(tlmodule, m, fname, state, strip_defaults=strip_defaults)
     modified = cstree.visit(patcher)
+    modified_code = modified.code
+
+    # TODO: all the import handling is getting messy and scattered around. It may make sense to 
+    # remove it all except in handling import statements in stubber and in tracer.combine_types. In the
+    # latter we could search the final annotation with an regexp to get all identifiers, and then 
+    # add all the necessary imports for those, and report where ambiguous. We'd still process
+    # the results collected here to create the import statements, of course.
 
     import_statements = ''
-    #print(f"Need imports: {patcher._need_imports}")
     for module in set(patcher._need_imports.values()):
+        if module == 'typing':
+            # We deal with typing separately below.
+            continue
+
         ityps = []
         for k, v in patcher._need_imports.items():
-            if v == module:
+            if not k:
+                continue
+            x = k.rfind(' ')
+            t = k if x < 0 else k[x+1:]  # Use the asname when searching code for use.
+            if v == module and modified_code.find(t) >= 0:
                 ityps.append(k)
-        # TODO: make these relative imports if appropriate
-        import_statements += f'from {module} import {",".join(ityps)}\n'
-        
-    import_statements += f'from {m[:m.find(".")]}._typing import Int, Float, MatrixLike\n\n'
-    #print(f"Add imports: {import_statements}")
 
+        if module == 'np':
+            module = 'numpy'
+        elif module == 'pd':
+            module = 'pandas'
+
+        if len(ityps) > 0:
+            # TODO: check if the file exists and if not, comment out the import. Note 
+            # we must be careful here as the file may not have been created yet. May
+            # need to check against site-packages instead of typings.
+            relpath = make_imports_relative(m, module, fname)
+            if relpath:
+                import_statements += f'from {relpath} import {", ".join(ityps)}\n'
+            else:
+                pass
+
+    # TODO: long term we should update any that are using old typing stuff like Union, Tuple, etc.
+    typing_imports = ['Any', 'Callable', 'FileLike', 'IO', 'Iterable', 'Iterator', 'Literal', 'Mapping', 'Sequence', 'Type', 'TypeVar',
+                      'Dict', 'List', 'Optional', 'Set', 'Tuple', 'Union']
+                      
+    need = [t for t in typing_imports if modified_code.find(t) >= 0]
+    if need:
+        import_statements = f'from typing import {", ".join(need)}\n' + import_statements
+    
     code = import_statements + modified.code
-    return format_str(code, mode=Mode()) 
+    try:
+        return format_str(code, mode=Mode()) 
+    except Exception as e:
+        print(f'Error formatting stub of {fname}: {e}')
+        return code
 
 
 def _stub(mod: ModuleType, m: str, fname: str, source: str, state: State, **kwargs) -> str|None:
-    return patch_source(m, fname, source, state, **kwargs)
+    return patch_source(_tlmodule, m, fname, source, state, **kwargs)
 
 
 _stub_folder = 'typings'
@@ -356,8 +450,9 @@ def _targeter(fname: str) -> str:
 
 def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
-    global _stub_folder
+    global _stub_folder, _tlmodule
     _stub_folder = stub_folder
+    _tlmodule = m
     init_trace_loader(trace_folder, m)
     imports = load_map(m, 'imports')
     if skip_analysis:
@@ -374,3 +469,37 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
         process_module(m, state, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
 
+    with open(f'typings/{_tlmodule}/_typing.pyi', 'w') as f:
+        f.write('''
+# This file is generated by docs2stub. These types are intended
+# to simplify the stubs generated by docs2stub. They are not
+# intended to be used directly by other users.
+
+import decimal
+import io
+import numpy.typing
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator
+from typing import TypeAlias
+
+
+Decimal: TypeAlias = decimal.Decimal
+PythonScalar: TypeAlias = str | int | float | bool
+
+ArrayLike: TypeAlias = numpy.typing.ArrayLike
+MatrixLike: TypeAlias = np.ndarray | pd.DataFrame 
+FileLike: TypeAlias = io.IOBase
+PathLike: TypeAlias = str
+Int: TypeAlias = int | np.int8 | np.int16 | np.int32 | np.int64
+Float: TypeAlias = float | np.float16 | np.float32 | np.float64
+#RandomState: TypeAlias = np.random.RandomState
+
+PandasScalar: TypeAlias = pd.Period | pd.Timestamp | pd.Timedelta | pd.Interval
+Scalar: TypeAlias = PythonScalar | PandasScalar
+
+Estimator: TypeAlias = BaseEstimator
+
+Color = tuple[float, float, float] | str
+
+        ''')

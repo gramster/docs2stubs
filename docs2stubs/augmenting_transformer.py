@@ -101,12 +101,11 @@ def get_annotation(n: cst.CSTNode|None, is_param: bool) -> str|None:
     annotation = (''.join(state.tokens)).strip().\
             replace('List', 'list').\
             replace('Dict', 'dict').\
-            replace('ndarray', 'NDArray').\
             replace('Tuple', 'tuple')
     if is_param:
         annotation = annotation.replace('list', 'Sequence').\
             replace('dict', 'Mapping').\
-            replace('NDArray', 'ArrayLike')
+            replace('ndarray', 'ArrayLike')
 
     addnone = False
     if annotation.startswith('Optional['):
