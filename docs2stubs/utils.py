@@ -49,6 +49,7 @@ State = NamedTuple("State", [
     ("trace_param_types", dict[str, set[type]]),
     ("trace_return_types", dict[str, set[type]]),
     ("trace_sigs", dict[str, dict[str, inspect.Signature]]),
+    ("creturns", dict[str,str]), 
 ])
 
 

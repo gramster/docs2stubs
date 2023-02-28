@@ -167,7 +167,7 @@
 @3#array-like of shape (n_samples_Y, n_features)#MatrixLike
 3#matplotlib Axes#Axes
 3#int array-like of shape (n_samples,)#ArrayLike
-2#array-like of shape (n_samples, n_features) or BallTree#MatrixLike|BallTree
+2#array-like of shape (n_samples, n_features) or BallTree#MatrixLike|sklearn.neighbors._ball_tree.BallTree
 @2#{'distance', 'connectivity'}#Literal['distance','connectivity']
 @2#array-like of shape (n_samples_transform, n_features)#MatrixLike
 @2#array-like of shape (n_samples, n_targets)#MatrixLike
@@ -262,7 +262,7 @@
 2#array-like of shape (n_outputs,) or 'random'#ArrayLike|Literal['random']
 2#int, RandomState instance or None, optional (default=None)#int|RandomState|None
 2#ndarray, float32 or float64#ArrayLike|Float
-2#{dense matrix, sparse matrix, LinearOperator}#MatrixLike|LinearOperator
+2#{dense matrix, sparse matrix, LinearOperator}#MatrixLike|scipy.sparse.linalg.LinearOperator
 @2#tuple#tuple
 2#numpy data type#DType
 @2#bool or "auto"#bool|Literal["auto"]
@@ -341,7 +341,7 @@
 1#array-like of (n_samples, n_features)#MatrixLike
 1#{'auto', 'pca', 'lda', 'identity', 'random'} or ndarray of shape             (n_features_a, n_features_b)#Literal['auto','pca','lda','identity','random']|MatrixLike
 1#int or numpy.RandomState#int|RandomState
-!1#{manual label, 'most_frequent'}#Label|Literal['most_frequent']
+!1#{manual label, 'most_frequent'}#str
 @1#{'nipals', 'svd'}#Literal['nipals','svd']
 1#int, cross-validation generator, iterable or "prefit"#int|cross-validation generator|Iterable|Literal["prefit"]
 1#list of fitted estimator instances#list[IsotonicRegression|_SigmoidCalibration]|list of fitted estimator instances
@@ -410,12 +410,12 @@
 1#list of estimators#Sequence[Estimator]
 1#{array-like, sparse graph} of shape (n_samples, n_samples)#MatrixLike
 @1#{'nearest_neighbors', 'rbf', 'precomputed',                 'precomputed_nearest_neighbors'} or callable#Literal['nearest_neighbors','rbf','precomputed','precomputed_nearest_neighbors']|Callable
-!1#{array-like, sparse graph, BallTree, KDTree, NearestNeighbors}#csr_matrix|{array-like, sparse graph, BallTree, KDTree, NearestNeighbors}
-!1#{array-like, sparse graph, BallTree, KDTree}#ndarray|{array-like, sparse graph, BallTree, KDTree}
+!1#{array-like, sparse graph, BallTree, KDTree, NearestNeighbors}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|KDTree|NearestNeighbors
+!1#{array-like, sparse graph, BallTree, KDTree}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|KDTree
 1#array-like, shape (n_queries, n_features)#MatrixLike
 @1#{'random', 'pca'} or ndarray of shape (n_samples, n_components)#Literal['random','pca']|MatrixLike
 1#True#bool
-1#{array, matrix, sparse matrix, LinearOperator}#MatrixLike|LinearOperator
+1#{array, matrix, sparse matrix, LinearOperator}#MatrixLike|scipy.sparse.linalg.LinearOperator
 @1#{'hinge', 'squared_hinge'}#Literal['hinge','squared_hinge']
 @1#{'ovr', 'crammer_singer'}#Literal['ovr','crammer_singer']
 @1#{'epsilon_insensitive', 'squared_epsilon_insensitive'}#Literal['epsilon_insensitive','squared_epsilon_insensitive']
@@ -512,7 +512,7 @@
 @1#{'ascending', 'descending', 'roman', 'arabic',             'random'}#Literal['ascending','descending','roman','arabic','random']
 @1#{'nan_euclidean'} or callable#Literal['nan_euclidean']|Callable
 1#array-like shape of (n_samples, n_features)#MatrixLike
-1#int, float, str, np.nan, None or pandas.NA#int|float|str|pd.NA|None
+1#int, float, str, np.nan, None or pandas.NA#int|float|str|None
 1#str or numerical value#str|int|float
 1#array-like of shape                 (n_samples, n_features + n_features_missing_indicator)#MatrixLike
 @1#{'missing-only', 'all'}#Literal['missing-only','all']
@@ -528,7 +528,7 @@
 @1#{'constant', 'optimal', 'invscaling', 'adaptive'}#Literal['constant','optimal','invscaling','adaptive']
 1#array, shape (n_classes, n_features)#MatrixLike
 1#array, shape (n_classes,)#ArrayLike
-1#{ndarray, sparse matrix, LinearOperator} of shape         (n_samples, n_features)#MatrixLike|LinearOperator
+1#{ndarray, sparse matrix, LinearOperator} of shape         (n_samples, n_features)#MatrixLike|scipy.sparse.linalg.LinearOperator
 1#{float, ndarray of shape (n_targets,)}#float|ArrayLike
 1#{array-like, spare matrix} of shape (n_samples, n_features)#MatrixLike
 @1#{'auto', 'svd', 'eigen'}#Literal['auto','svd','eigen']
@@ -560,7 +560,7 @@
 @1#{'nan', 'clip', 'raise'}#Literal['nan','clip','raise']
 @1#int or array-like of int#int|Sequence[int]
 @1#float or ndarray of shape (n_components,), dtype=float#float|ArrayLike
-1#{sparse matrix, dense matrix, LinearOperator}#MatrixLike|LinearOperator
+1#{sparse matrix, dense matrix, LinearOperator}#MatrixLike|scipy.sparse.linalg.LinearOperator
 @1#scalar#Scalar
 @1#str or sequence of str#str|Sequence[str]
 1#a dictionary for environment variables#Mapping[str,str]
@@ -711,6 +711,6 @@
 @1#{"squared_error", "friedman_mse"}#Literal["squared_error","friedman_mse"]
 1#decision tree regressor or classifier#Regressor|Classifier
 @1#list of strings#Sequence[str]
-1#matplotlib axis#Axis
+1#matplotlib axis#Axes
 1#decision tree classifier#Classifier
 @1#object or str#Any

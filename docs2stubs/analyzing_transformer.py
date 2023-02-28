@@ -139,9 +139,6 @@ class AnalyzingTransformer(BaseTransformer):
         name = node.name.value
 
         if name.startswith('_') and not name.startswith('__'):
-            # TODO: make sure in this case we still call leave so that the stack
-            # is correct; I am 99% sure we do and this is just to prevent the children
-            # being visited.
             return False
         
         obj = None
@@ -271,7 +268,7 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Tru
         load_type_maps(m), 
         {}, 
         {},
-        {})
+        {}, {})
     
     if process_module(m, state, 
             _analyze, _targeter, 

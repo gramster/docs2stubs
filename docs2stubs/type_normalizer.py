@@ -102,10 +102,6 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
     type annotation, and thus need not be written to the map file for further
     tweaking.
 
-    TODO: this is probably too generous and matplotlib-specific. I think it needs to
-    be tightened to a smaller set. Because of that I am temporarily inserting a 
-    return False at the start and will then revisit the rest.
-
     s - the type docstring to check
     modname - the module name
     classes - a set of class names or dictionary keyed on classnames 

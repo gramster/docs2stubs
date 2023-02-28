@@ -644,7 +644,6 @@ class Normalizer(Interpreter):
 
     def generator_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
         """ generator_type: GENERATOR [OF type] """
-        # TODO: the type
         imports = set()
         imports.add(('Generator', 'collections.abc'))
         for child in tree.children:
@@ -807,7 +806,7 @@ def parse_type(s: str, modname: str|None = None, classes: dict|None = None, is_p
     try:
     #if True:
         tree = _lark.parse(s)
-        #print(tree.pretty()) # TODO: remove
+        #print(tree.pretty()) # Sometimes useful for debugging to uncomment this
         _norm.configure(modname, classes, is_param)
         n = _norm.visit(tree)
         imps = {}

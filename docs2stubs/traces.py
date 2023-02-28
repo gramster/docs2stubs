@@ -254,7 +254,6 @@ def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=Fals
         imports.add(('Float', f'{tlmodule}._typing'))
         typ = 'Float'
     else:
-        # TODO: get the imports
         typ = _type_repr(typ).replace('NoneType', 'None')
         if typ.find('[') < 0 and typ.find('.') > 0:
             module, name = typ.rsplit('.', 1)
@@ -264,21 +263,12 @@ def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=Fals
     return typ, imports
 
     
-def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: str|None, remove_none: bool = False) -> tuple[str, set[tuple[str, str]]]:
-    # TODO: figure out the needed imports and return those too
+def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: str|None) -> tuple[str, set[tuple[str, str]]]:
+
     arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
     matrixlike = doctype is not None and doctype.find('MatrixLike') >= 0
     imports = set()
     components = []
-    imps = {
-        'Axes': 'matplotlib.axes',
-        'BaseEstimator': 'sklearn.base',
-        'Estimator': f'{tlmodule}._typing',
-        'Figure': 'matplotlib.figure',
-    }
-    # Include the default value type
-    if valtyp is not None:
-        components.append(valtyp)
 
     # This relies on typing module internals
     if isinstance(sigtype, UnionType):
@@ -290,6 +280,7 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
             # TODO: if components is very long, see if there are classes that have a common
             # base class and use that instead. Ideally go down structurally into components
             # (e.g. dict[str, A] and dict[str, B] could be dict[str, A|B] and then dict[str, base(A, B)]).
+            # For now we just make really long annotations into Any.
             pass
     elif sigtype is not None:
         t, i = _get_repr(tlmodule, sigtype, arraylike, matrixlike)
@@ -321,33 +312,58 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
                 i += 1
         components.append(doctype[start:i])
 
-
     if 'Any' in components:
         components = ['Any']
         imports.add(('Any', 'typing'))
-    else:
-        if remove_none:
-            components = [c for c in components if c != 'None']
-        if len(components) > 1:
-            # Remove some redundant types
-            if 'Float' in components:
-                components = [c for c in components if c not in ['Int', 'int', 'float']]
-                imports.add(('Float', f'{tlmodule}._typing'))
-            elif 'Int' in components:
-                components = [c for c in components if c != 'int']
-                imports.add(('Int', f'{tlmodule}._typing'))
-            if 'str' in components and doctype and doctype.find('Literal') >= 0:
-                components = [c for c in components if c !=  'str']
-                imports.add(('Literal', 'typing'))
+        return 'Any', imports
+    
+    # Include the default value type
+    if valtyp is not None:
+        components.append(valtyp)
 
-        # Add the imports for the types we are using in case they are not already present
-        if arraylike:
-            imports.add(('ArrayLike', f'{tlmodule}._typing'))
-        if matrixlike:
-            imports.add(('MatrixLike', f'{tlmodule}._typing'))
-        for c in components:
-            if c.find('[') >= 0:
-                continue
+    if len(components) > 1:
+        # Remove some redundant types
+        if 'Float' in components:
+            components = [c for c in components if c not in ['Int', 'int', 'float']]
+            imports.add(('Float', f'{tlmodule}._typing'))
+        elif 'Int' in components:
+            components = [c for c in components if c != 'int']
+            imports.add(('Int', f'{tlmodule}._typing'))
+
+
+        if 'str' in components and doctype and doctype.find('Literal') >= 0:
+            # Remove str and fold in the literals into one
+            newc = []
+            lits = []
+            for c in components:
+                if c.startswith('Literal['):
+                    lits.append(c[8:-1].replace('"', "'"))
+                elif c != 'str':
+                    newc.append(c)
+            newvals = ', '.join(set(lits))
+            if len(newvals.split(',')) < 2: # Less than two options means we're probably missing details; fall back to str
+                newc.append('str')
+            else:
+                newc.append(f'Literal[{newvals}]')
+            components = newc
+
+    # Replace Literal with str if there is only one option. Else 
+    # remove str if there are more than one option.
+    newc = []
+    lits = []
+    has_str = False
+    has_literal = False
+    for c in components:
+        if c.find('[') >= 0:
+            if c.startswith('Literal['):
+                has_literal = True
+                lits.append(c[8:-1])
+            elif c == 'str':
+                has_str = True
+            else:
+                newc.append(c)
+        else:
+            newc.append(c)
             if c.find('.') > 0:
                 module, name = c.rsplit('.', 1)
                 if module == 'np':
@@ -355,30 +371,56 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
                 elif module == 'pd':
                     module = 'pandas'
                 imports.add((name, module))
-            else:
-                # TODO: maybe we need to pass the class info from the state object to 
-                # do this properly. For now I am doing some common ones used in mapping
-                # file. A better long term solution is to add imports to the mapping file.
-                if c in imps:
-                    imports.add((c, imps[c]))
+
+    newlitvals = ', '.join(lits)
+    if len(newlitvals.split(',')) >= 2:
+        newc.append(f'Literal[{newlitvals}]')
+    elif has_str or has_literal:
+       newc.append('str')
+    components = newc
 
     result = '|'.join(set(components))
 
-    if result.find('RandomState') >= 0:
-        imports.add(('RandomState', 'numpy.random'))
-    if result.find('Float') >= 0:
-        imports.add(('Float', f'{tlmodule}._typing'))
-    if result.find('Int') >= 0:
-        imports.add(('Int', f'{tlmodule}._typing'))
-    if result.find('Type[') >= 0:
-        imports.add(('Type', 'typing'))
-
-    # Claassifier, Regressor, Memory
-
-    if len(result) >= 200: 
-        # Somewhat arbitrary to avoid some pathological cases
+    if False and len(result) >= 200:  # remove False to enable this 
+        # Somewhat arbitrary cutoff to avoid some pathological cases
         result = 'Any'
         imports = set()
-        imports.add(('Type', 'typing'))
+
+    else:
+        # Kludge: fix some possibly missing imports. Shouldn't be needed if everything
+        # else worked :-(
+        # TODO: use a regexp to extract identifiers instead of looping through each time.
+        # TODO: we could do _all_ the import collecting here and leave it out elsewhere.
+
+        extras = {
+            'RandomState': 'numpy.random',
+            'ArrayLike': f'{tlmodule}._typing',
+            'MatrixLike': f'{tlmodule}._typing',
+            'Float': f'{tlmodule}._typing',
+            'Int': f'{tlmodule}._typing',
+            'BaseEstimator': 'sklearn.base',
+            'Classifier': f'{tlmodule}._typing',
+            'Estimator': f'{tlmodule}._typing',
+            'Regressor': f'{tlmodule}._typing',
+            'Axes': 'matplotlib.axes',
+            'Figure': 'matplotlib.figure',
+            'Memory': 'joblib',
+            'DType': 'numpy',
+            'MinCovDet': 'sklearn.covariance',
+            'Colormap': 'matplotlib.colors',
+
+        }
+
+        for k, v in extras.items():
+            if result.find(k) >= 0:
+                imports.add((k, v))
+
+        # TODO: check the following types: Label, Batch, module, sklearn.cluster.
+        # They are being used without the needed imports.
+        # from ._random import sample_without_replacement
+        # class loguniform(scipy.stats.reciprocal):
+        # from .murmurhash import murmurhash3_32 as murmurhash3_32
+
+
 
     return result, imports
