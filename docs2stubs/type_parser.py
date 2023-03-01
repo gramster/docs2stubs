@@ -375,7 +375,7 @@ class Normalizer(Interpreter):
                 arr_types.add('Sequence')
                 arr_types.remove('list')
                 imports.add(('Sequence', 'typing'))
-            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list', 'ndarray', 'np.ndarray'] else f'{typ}' \
+            return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list'] else f'{typ}' \
                     for typ in sorted(arr_types)]), imports
         else:
             return '|'.join(sorted(arr_types)), imports

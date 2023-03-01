@@ -17,6 +17,11 @@ from .utils import Sections, State, load_map, load_docstrings, load_type_maps, p
 
 _tlmodule: str = ''  # top-level module; kludge added late that would be a pain to plumb through all the way
 
+_total_return_annotations = 0  
+_total_return_annotations_missing = 0
+_total_param_annotations = 0  
+_total_param_annotations_missing = 0
+
 class StubbingTransformer(BaseTransformer):
     def __init__(self, tlmodule: str, modname: str, fname: str, state: State,
         strip_defaults=False, 
@@ -124,14 +129,14 @@ class StubbingTransformer(BaseTransformer):
         imports = {}
         how = ''
         if doctyp in map:
-            # We still call the normalizer, just to get the imports, althought there is a chance
-            # these could now be wrong
             typ = map[doctyp]
+            # We still call the normalizer, if only to get the imports.
+            # TODO: if we move import handling elsewhere we can remove this.
             _, imports = normalize_type(typ, self._modname, self._state.imports, is_param)
             how = 'mapped'
         elif is_trivial(doctyp, self._modname, self._state.imports):
             typ, imports = normalize_type(doctyp, self._modname, self._state.imports, is_param)
-            how = 'trivial'   
+            how = 'trivial'
         return typ, imports, how
 
     def update_imports(self, imports: dict[str, list[str]]):
@@ -140,7 +145,6 @@ class StubbingTransformer(BaseTransformer):
         for module, classlist in imports.items():
             for cls in classlist:
                 self._need_imports[cls] = module
-
 
     def _get_new_annotation(self, nodename: str, trace_context: str, doctyp: str|None, \
                             valtyp: str|None = None):
@@ -158,16 +162,18 @@ class StubbingTransformer(BaseTransformer):
 
         typ = None
         if doctyp:
-            typ, imports, how = self.fixtype(doctyp, self._maps.params, isparam)
-            if typ:
-                if imports:
-                    self.update_imports(imports)
+            if isparam:
+                typ, imports, how = self.fixtype(doctyp, self._maps.params if isparam else self._maps.returns, isparam)
+                if typ:
+                    if imports:
+                        self.update_imports(imports)
 
-                # If the default value is None, make sure we include it in the type
-                is_optional = 'None' in typ.split('|')
-                if not is_optional and valtyp == 'None' and typ != 'Any' and typ != 'None':
-                    typ += '|None'
-
+                    # If the default value is None, make sure we include it in the type
+                    is_optional = 'None' in typ.split('|')
+                    if not is_optional and valtyp == 'None' and typ != 'Any' and typ != 'None':
+                        typ += '|None'
+            else:
+                typ = doctyp  # Already exanded when we dealt with the return tuple in leaveFunctionDef
         n = None
 
         try:
@@ -175,18 +181,20 @@ class StubbingTransformer(BaseTransformer):
             if typ is None or (isparam and typ == 'None'):
                 if self._infer_types and valtyp and valtyp != 'None':
                     # Use the inferred type from default value as long as it is not None
-                    annotation = cst.Annotation(annotation=cst.Name(valtyp))
+                    n = cst.Annotation(annotation=cst.Name(valtyp))
                 elif isparam:
                     print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping or default value')
-            elif typ is None:
-                print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
-            else:
+            elif typ:
                 for k, v in imports:
                     if v == 'np':
                         v = 'numpy'
+                    elif v == 'pd':
+                        v = 'pandas'
                     self._need_imports[k] = v
                 n = cst.Annotation(annotation=cst.parse_expression(typ))
                 print(f'Annotated {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}')
+            else:
+                print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
         except:
             print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
         return n
@@ -211,8 +219,13 @@ class StubbingTransformer(BaseTransformer):
             annotation = self._get_new_annotation(original_node.name.value, function_context,
                                                 cast(str, self._docstrings.params.get(param_context)), 
                                                 defaultvaltyp)
-            if annotation:
-                return updated_node.with_changes(annotation=annotation, default=default)
+            
+        global _total_param_annotations, _total_param_annotations_missing
+        if annotation:
+            _total_param_annotations += 1
+            return updated_node.with_changes(annotation=annotation, default=default)
+        
+        _total_param_annotations_missing += 1
         return updated_node.with_changes(default=default)
 
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
@@ -297,9 +310,11 @@ class StubbingTransformer(BaseTransformer):
             '__dir__':  'list[str]',
         }
 
-        if not annotation:
+        if not annotation or name in dunders:
             rtntyp = None
-            if doctyp:
+            if name in dunders:
+                rtntyp = dunders[name]
+            elif doctyp:
                 map = self._maps.returns
                 v = []
                 for t in doctyp.values():
@@ -317,25 +332,23 @@ class StubbingTransformer(BaseTransformer):
                     else:
                         rtntyp = v[0]
             else:
-                # If its a dunder method we can make a good guess in most cases
-                if name in dunders:
-                    rtntyp = dunders[name]
-                else:
-                    pass
-                    # TODO: maybe one day....
-                    # Try to infer it from the body, or if this is an overload in a derived class,
-                    # infer from the base class.
-                    #rtntyp = self._infer_return_type(original_node.body)
-                    #if rtntyp:
-                    #    print(f'Inferred return type {rtntyp} for {context}')
+                pass
+                # TODO: maybe one day....
+                # Try to infer it from the body, or if this is an overload in a derived class,
+                # infer from the base class.
+                #rtntyp = self._infer_return_type(original_node.body)
+                #if rtntyp:
+                #    print(f'Inferred return type {rtntyp} for {context}')
                 
             annotation = self._get_new_annotation('', context, rtntyp)
 
+        global _total_return_annotations, _total_return_annotations_missing
         if annotation:
+            _total_return_annotations += 1
             print(f'Annotating {self.context}-> as {annotation}')   
             return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation, \
                                                 decorators=decorators)
-            
+        _total_return_annotations_missing += 1    
         self._noreturns.append(ckey)
         # Remove the body only
         return updated_node.with_changes(body=cst.parse_statement("..."), decorators=decorators)
@@ -424,7 +437,7 @@ def make_imports_relative(m: str, module: str, fname: str) -> str:
     rel += '.'.join(parts_module[i:])
     return rel
     
-         
+
 def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
@@ -471,7 +484,8 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
                 pass
 
     # TODO: long term we should update any that are using old typing stuff like Union, Tuple, etc.
-    typing_imports = ['Any', 'Callable', 'FileLike', 'IO', 'Iterable', 'Iterator', 'Literal', 'Mapping', 'NamedTuple', 'Sequence', 'Type', 'TypeVar',
+    typing_imports = ['Any', 'Callable', 'FileLike', 'IO', 'Iterable', 'Iterator', 'Literal', 'Mapping', 'NamedTuple', 
+                      'Self', 'Sequence', 'SupportsIndex', 'Type', 'TypeVar',
                       'Dict', 'List', 'Optional', 'Set', 'Tuple', 'Union']
                       
     need = [t for t in typing_imports if modified_code.find(t) >= 0]
@@ -523,6 +537,9 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
 
         process_module(m, state, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
+
+    print(f'Annotated {_total_param_annotations} parameters and {_total_return_annotations} returns')
+    print(f'Failed to annotate {_total_param_annotations_missing} parameters and {_total_return_annotations_missing} returns')
 
     with open(f'typings/{_tlmodule}/_typing.pyi', 'w') as f:
         f.write('''

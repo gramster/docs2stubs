@@ -399,6 +399,7 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
             'Float': f'{tlmodule}._typing',
             'Int': f'{tlmodule}._typing',
             'BaseEstimator': 'sklearn.base',
+            'BaseCrossValidator': 'sklearn.model_selection',
             'Classifier': f'{tlmodule}._typing',
             'Estimator': f'{tlmodule}._typing',
             'Regressor': f'{tlmodule}._typing',
@@ -408,7 +409,9 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
             'DType': 'numpy',
             'MinCovDet': 'sklearn.covariance',
             'Colormap': 'matplotlib.colors',
-
+            'spmatrix': 'scipy.sparse',
+            'Number': 'numbers',
+            'KDTree': 'sklearn.neighbors',
         }
 
         for k, v in extras.items():
