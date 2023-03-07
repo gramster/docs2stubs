@@ -11,6 +11,7 @@ from black.mode import Mode
 from .analyzing_transformer import analyze_module
 from .type_normalizer import is_trivial, normalize_type
 from .base_transformer import BaseTransformer
+from .sklearn_native import write_sklearn_native_stubs
 from .traces import combine_types, get_toplevel_function_signature, init_trace_loader
 from .utils import Sections, State, load_map, load_docstrings, load_type_maps, process_module
 
@@ -21,11 +22,13 @@ _total_return_annotations = 0
 _total_return_annotations_missing = 0
 _total_param_annotations = 0  
 _total_param_annotations_missing = 0
+_total_attr_annotations = 0  
+_total_attr_annotations_missing = 0
 
 class StubbingTransformer(BaseTransformer):
     def __init__(self, tlmodule: str, modname: str, fname: str, state: State,
         strip_defaults=False, 
-        infer_types_from_defaults=False):
+        infer_types_from_defaults=True):
         super().__init__(modname, fname)
         self._state = state
         self._tlmodule = tlmodule
@@ -38,9 +41,13 @@ class StubbingTransformer(BaseTransformer):
         self._method_names = set()
         self._local_class_names = set()
         self._need_imports: dict[str, str] = {} # map class -> module to import from
-        self._ident_re = re.compile(r'([A-Za-z_][A-Za-z0-9_]*)')
+        self._ident_re = re.compile(r'[A-Za-z_][A-Za-z0-9_]*')
+        self._class_re = re.compile(r'class [A-Za-z_][A-Za-z0-9_]*')
         self._trace_sigs = state.trace_sigs[modname] if modname in state.trace_sigs else {}
         self._noreturns = []
+        self._dropped_decorators = set()  # Decorators that were dropped because they were not supported
+        # We collect those just to log them in case we are missing something we should have kept.
+        self._keep_imports = set()  # Things that were explicitly imported in the original source
 
     @staticmethod
     def get_value_type(node: cst.CSTNode) -> str|None:
@@ -89,40 +96,6 @@ class StubbingTransformer(BaseTransformer):
             new_value = cst.parse_expression("...")  
         return new_value
 
-    def get_assign_props(self, node: cst.Assign) -> tuple[str|None, cst.BaseExpression]:
-         typ = StubbingTransformer.get_value_type(node.value)
-         value=self.get_assign_value(node)
-         return typ, value
-
-    def leave_Assign(
-        self, original_node: cst.Assign, updated_node: cst.Assign
-    ) -> cst.CSTNode:
-        # If this is an __all__ assignment, we want to preserve it
-        if len(original_node.targets) == 1:
-            target0 = original_node.targets[0].target
-            if isinstance(target0, cst.Name) and target0.value == '__all__':
-                return updated_node
-        
-        typ, value = self.get_assign_props(original_node)
-        # Make sure the assignment was not to a tuple before
-        # changing to AnnAssign
-        # TODO: if this is an attribute, see if it had an annotation in 
-        # the class docstring and use that
-        if typ is not None and len(original_node.targets) == 1:
-            try:
-                return cst.AnnAssign(target=original_node.targets[0].target,
-                    annotation=cst.Annotation(annotation=cst.Name(typ)),
-                    value=value)
-            except:
-                pass
-        return updated_node.with_changes(value=value)
-
-    def leave_AnnAssign(
-        self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
-    ) -> cst.CSTNode:
-        value=self.get_assign_value(original_node)
-        return updated_node.with_changes(value=value)
-
     def fixtype(self, doctyp: str, map: dict[str, str], is_param: bool = False) -> \
             tuple[str | None, dict[str, list[str]], Literal['mapped', 'trivial', '']]:
         typ = None
@@ -146,9 +119,14 @@ class StubbingTransformer(BaseTransformer):
             for cls in classlist:
                 self._need_imports[cls] = module
 
-    def _get_new_annotation(self, nodename: str, trace_context: str, doctyp: str|None, \
+    def _get_new_annotation(self, which: Literal['attribute', 'parameter', 'return'], 
+                            nodename: str, trace_context: str, doctyp: str|None, \
                             valtyp: str|None = None):
-        which, isparam = ("parameter", True) if nodename else ("function", False)
+        map = {
+            'attribute': self._maps.attrs,
+            'parameter': self._maps.params,
+            'return': self._maps.returns,
+        }[which]
         trace_annotation = None
         if trace_context in self._trace_sigs:
             _trace_sig = self._trace_sigs[trace_context]
@@ -162,8 +140,8 @@ class StubbingTransformer(BaseTransformer):
 
         typ = None
         if doctyp:
-            if isparam:
-                typ, imports, how = self.fixtype(doctyp, self._maps.params if isparam else self._maps.returns, isparam)
+            if which != 'return':  # Return types are already handled in leaveFunctionDef
+                typ, imports, how = self.fixtype(doctyp, map, which == 'parameter')
                 if typ:
                     if imports:
                         self.update_imports(imports)
@@ -173,16 +151,16 @@ class StubbingTransformer(BaseTransformer):
                     if not is_optional and valtyp == 'None' and typ != 'Any' and typ != 'None':
                         typ += '|None'
             else:
-                typ = doctyp  # Already exanded when we dealt with the return tuple in leaveFunctionDef
+                typ = doctyp
         n = None
 
         try:
             typ, imports = combine_types(self._tlmodule, trace_annotation, typ, valtyp)
-            if typ is None or (isparam and typ == 'None'):
+            if typ is None or (which != 'return' and typ == 'None'):
                 if self._infer_types and valtyp and valtyp != 'None':
                     # Use the inferred type from default value as long as it is not None
                     n = cst.Annotation(annotation=cst.Name(valtyp))
-                elif isparam:
+                elif which != 'return':
                     print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping or default value')
             elif typ:
                 for k, v in imports:
@@ -198,6 +176,52 @@ class StubbingTransformer(BaseTransformer):
         except:
             print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
         return n
+
+    def leave_Assign(
+        self, original_node: cst.Assign, updated_node: cst.Assign
+    ) -> cst.CSTNode|cst.RemovalSentinel:
+        # If not at top level or top-level class level, we don't want to do anything
+        if not self.at_top_level() and not self.at_top_level_class_level():
+            return cst.RemoveFromParent()
+        
+        # If this is an __all__ assignment, we want to preserve it
+        if len(original_node.targets) == 1:
+            target0 = original_node.targets[0].target
+            if isinstance(target0, cst.Name) and target0.value == '__all__':
+                return updated_node
+
+        value=self.get_assign_value(original_node)
+        if  len(original_node.targets) > 1:
+            # We don't handle multiple targets for stubbing for now.
+            # TODO: fix this; see the augmenter
+            return updated_node.with_changes(value=value)
+    
+        target = original_node.targets[0].target
+
+        # If the assignment includes [] we want to drop it.
+        if isinstance(target, cst.Subscript):
+            return cst.RemoveFromParent()
+
+        global _total_attr_annotations, _total_attr_annotations_missing
+        try:
+            context = f'{self.context()}.{target.value}' # type: ignore
+            doctyp = cast(str|None, self._docstrings.attrs.get(context)) if self.at_top_level_class_level() else None
+            valtyp = StubbingTransformer.get_value_type(original_node.value)
+            annotation = self._get_new_annotation('attribute', '', context, doctyp, valtyp)
+            if annotation:
+                node = cst.AnnAssign(target=target, annotation=annotation, value=value)
+                _total_attr_annotations += 1
+                return node
+        except:
+            pass
+        _total_attr_annotations_missing += 1
+        return updated_node.with_changes(value=value)
+
+    def leave_AnnAssign(
+        self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
+    ) -> cst.CSTNode:
+        value=self.get_assign_value(original_node)
+        return updated_node.with_changes(value=value)
 
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
@@ -216,7 +240,7 @@ class StubbingTransformer(BaseTransformer):
                 default = cst.parse_expression("...")
 
         if not annotation:
-            annotation = self._get_new_annotation(original_node.name.value, function_context,
+            annotation = self._get_new_annotation('parameter', original_node.name.value, function_context,
                                                 cast(str, self._docstrings.params.get(param_context)), 
                                                 defaultvaltyp)
             
@@ -277,18 +301,33 @@ class StubbingTransformer(BaseTransformer):
         
         # Remove decorators that are not needed in stubs
         decorators = []
-        keep = ['abstractmethod', 'classmethod', 'dataclass_transform', 'deprecated', 'final', 'override', 'property', 'staticmethod']
+        keep = ['abstractmethod', 'classmethod', 'dataclass_transform', 'deprecated', 'final', 'override', 'property', 'setter', 'staticmethod']
         try:
             for d in original_node.decorators:
-                if isinstance(d.decorator, cst.Attribute) and d.decorator.attr.value in keep:
-                    decorators.append(d.deep_clone())
-                elif isinstance(d.decorator, cst.Name) and d.decorator.value in keep:
-                    decorators.append(d.deep_clone())
-                elif isinstance(d.decorator, cst.Call) and d.decorator.func.value in keep: # type: ignore
-                     decorators.append(d.deep_clone())
+                if isinstance(d.decorator, cst.Attribute):
+                    if d.decorator.attr.value in keep:
+                        decorators.append(d.deep_clone())
+                    else:
+                        self._dropped_decorators.add(d.decorator.attr.value)
+                elif isinstance(d.decorator, cst.Name):
+                    if d.decorator.value in keep:
+                        if d.decorator.value == 'property' and not doctyp:
+                            # Property with no docstring; we may get it from class docstring
+                            doctyp = cast(dict[str,str], self._docstrings.attrs.get(context))
+                            if doctyp:
+                                doctyp = {"" : doctyp}
+                        decorators.append(d.deep_clone())
+                    else:
+                        self._dropped_decorators.add(d.decorator.value)
+                elif isinstance(d.decorator, cst.Call):
+                    if d.decorator.func.value in keep: # type: ignore
+                        decorators.append(d.deep_clone())
+                    else:
+                        self._dropped_decorators.add(d.decorator.func.value)  # type: ignore
         except:
             pass
 
+        # Handle known return types for dunder methods.
         dunders = {
             '__init__': 'None',
             '__len__':  'int',
@@ -318,7 +357,7 @@ class StubbingTransformer(BaseTransformer):
                 map = self._maps.returns
                 v = []
                 for t in doctyp.values():
-                    typ, imp, how = self.fixtype(t, map)
+                    typ, imp, how = self.fixtype(cast(str, t), map)
                     if typ:
                         v.append(typ)
                         self.update_imports(imp)
@@ -340,7 +379,7 @@ class StubbingTransformer(BaseTransformer):
                 #if rtntyp:
                 #    print(f'Inferred return type {rtntyp} for {context}')
                 
-            annotation = self._get_new_annotation('', context, rtntyp)
+            annotation = self._get_new_annotation('return', '', context, rtntyp)
 
         global _total_return_annotations, _total_return_annotations_missing
         if annotation:
@@ -355,7 +394,7 @@ class StubbingTransformer(BaseTransformer):
 
     def _get_module_name_from_node(self, n: cst.Attribute|cst.Name) -> str:
         if isinstance(n, cst.Attribute):
-            return self._get_module_name_from_node(n.value) + '.' + n.attr.value
+            return self._get_module_name_from_node(n.value) + '.' + n.attr.value  # type: ignore
         else:
             return n.value
 
@@ -364,14 +403,16 @@ class StubbingTransformer(BaseTransformer):
         original_node: cst.SimpleStatementLine,
         updated_node: cst.SimpleStatementLine,
     ) -> cst.CSTNode:
-        # Save the imports for later use
+        # Save the "from foo impprt bar" imports for later use. We will remove them from
+        # the tree here and then re-inject them later when we add all the necessary imports. 
+        # The aim is to remove unused or duplicate imports.
         keep = [] # for "from foo import *""
         for node in updated_node.body:
             if isinstance(node, cst.ImportFrom):
                 node = cast(cst.ImportFrom, node)
-                if not node.module:
-                    continue
-                m = self._get_module_name_from_node(node.module)
+                #if not node.module:
+                #    continue
+                m = self._get_module_name_from_node(node.module) if node.module else ''
                 if node.relative:
                     m = '.' * len(node.relative) + m
                 if isinstance(node.names, cst.ImportStar):
@@ -379,9 +420,14 @@ class StubbingTransformer(BaseTransformer):
                 else:
                     for t in node.names:
                         if t.asname:
-                            self._need_imports[f'{t.name.value} as {t.asname.name.value}'] = m
+                            n = f'{t.name.value} as {t.asname.name.value}' # type: ignore
                         else:
-                            self._need_imports[t.name.value] = m
+                            n = t.name.value
+                        n = cast(str, n)
+                        self._need_imports[n] = m
+                        if not n.startswith('_'):
+                            # keep only the part after " as " if that is present
+                            self._keep_imports.add(n[n.rfind(' ')+1:])
 
         newbody = [
             node
@@ -408,17 +454,23 @@ class StubbingTransformer(BaseTransformer):
     def leave_ImportAlias(
         self, original_node: cst.ImportAlias, updated_node: cst.ImportAlias
     ) -> cst.ImportAlias:
-        # If the containing file is an __init__.py, then we need to
-        # then we need to add the alias to the import statement if not
-        # present.
+        # For __init__ files, change "import foo" to "import foo as foo",
+        # which is needed in stubs.
         if self._fname.endswith('__init__.py') and original_node.asname is None and isinstance(original_node.name, cst.Name):
             return updated_node.with_changes(asname=cst.AsName(name=cst.Name(original_node.name.value)))
         else:
             return updated_node
 
 
+_stub_folder = 'typings'
+_dropped_decorators = set()
+
+
 def make_imports_relative(m: str, module: str, fname: str) -> str:
     """Make a module name _module_ relative to the current file _fname_ in module _m_. """
+    # We can import from same module but don't try import from the same file
+    if m == module and (fname == '__init__.py' or fname.endswith(m + '.pyi')):
+        return ''
     # Find the longest common prefix of m and module
     parts_m = m.split('.')
     parts_module = module.split('.')
@@ -435,6 +487,8 @@ def make_imports_relative(m: str, module: str, fname: str) -> str:
     if fname.endswith('__init__.py'):
         rel += '.'
     rel += '.'.join(parts_module[i:])
+    if rel == '':
+        rel = '.'  # See if this fixes MinCovDet in covariance/_elliptic_envelope.py
     return rel
     
 
@@ -447,11 +501,20 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
     patcher = StubbingTransformer(tlmodule, m, fname, state, strip_defaults=strip_defaults)
     modified = cstree.visit(patcher)
     modified_code = modified.code
+    _dropped_decorators.update(patcher._dropped_decorators)
 
     with open(f'analysis/{tlmodule}.creturns.map.missing', 'a') as f:
         for context in patcher._noreturns:
             f.write(f'1#{context}#\n')
-                    
+
+    # get all the identifiers in the modified code using a regular expression.
+    # We use this to tell if an import is used. TODO: it would be better to gather this
+    # from annotations and base classes as we walk the tree.
+    # We strip off the module name (or other similar cruft) from the identifiers, and 
+    # exclude any that are names of classes defined in the current file.
+    classes = set([x[6:] for x in patcher._class_re.findall(modified_code)]) 
+    idents = set([x[x.rfind('.')+1:] for x in patcher._ident_re.findall(modified_code) if x not in classes]) 
+
     import_statements = ''
     for module in set(patcher._need_imports.values()):
         if module == 'typing':
@@ -464,8 +527,11 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
                 continue
             x = k.rfind(' ')
             t = k if x < 0 else k[x+1:]  # Use the asname when searching code for use.
-            if v == module and modified_code.find(t) >= 0:
-                ityps.append(k)
+            # We only retain imports if they are used in the code, or this is an __init__.py file,
+            # or they were explict imports in the original code.
+            if v == module:
+                if t in patcher._keep_imports or fname.endswith('__init__.pyi') or t in idents:
+                    ityps.append(k)
 
         if module == 'np':
             module = 'numpy'
@@ -473,10 +539,6 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
             module = 'pandas'
 
         if len(ityps) > 0:
-            # TODO: check if the file exists and if not, comment out the import. Note 
-            # we must be careful here as the file may not have been created yet. May
-            # need to check against site-packages instead of typings. This is mostly
-            # to remove imports from Cython modules. 
             relpath = make_imports_relative(m, module, fname)
             if relpath:
                 import_statements += f'from {relpath} import {", ".join(ityps)}\n'
@@ -488,7 +550,7 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
                       'Self', 'Sequence', 'SupportsIndex', 'Type', 'TypeVar',
                       'Dict', 'List', 'Optional', 'Set', 'Tuple', 'Union']
                       
-    need = [t for t in typing_imports if modified_code.find(t) >= 0]
+    need = [t for t in typing_imports if t in idents]
     if need:
         import_statements = f'from typing import {", ".join(need)}\n' + import_statements
     
@@ -504,9 +566,6 @@ def _stub(mod: ModuleType, m: str, fname: str, source: str, state: State, **kwar
     return patch_source(_tlmodule, m, fname, source, state, **kwargs)
 
 
-_stub_folder = 'typings'
-
-
 def _targeter(fname: str) -> str:
     return f'{_stub_folder}/{fname[fname.find("/site-packages/") + 15 :]}i'
 
@@ -515,11 +574,14 @@ def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = 
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     global _stub_folder, _tlmodule
     _stub_folder = stub_folder
-    _tlmodule = m
-    init_trace_loader(trace_folder, m)
-    imports = load_map(m, 'imports')
+    if m.find('.') < 0:
+        _tlmodule = m
+    else:
+        _tlmodule = m[:m.find('.')]
+    init_trace_loader(trace_folder, _tlmodule)
+    imports = load_map(_tlmodule, 'imports')
     if skip_analysis:
-        state = State(None, imports, load_docstrings(m), load_type_maps(m), {}, {}, {}, {})
+        state = State(None, imports, load_docstrings(_tlmodule), load_type_maps(_tlmodule), {}, {}, {}, {})
     else:   
         state = analyze_module(m, include_submodules=include_submodules)
     if state is not None:
@@ -530,16 +592,21 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
                 if k not in state.imports:
                     state.imports[k] = v
 
-        state.creturns.update(load_map(m, 'creturns'))
-        creturns = f'analysis/{m}.creturns.map.missing'
+        state.creturns.update(load_map(_tlmodule, 'creturns'))
+        creturns = f'analysis/{_tlmodule}.creturns.map.missing'
         if os.path.exists(creturns):
             os.remove(creturns)
 
         process_module(m, state, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
 
-    print(f'Annotated {_total_param_annotations} parameters and {_total_return_annotations} returns')
-    print(f'Failed to annotate {_total_param_annotations_missing} parameters and {_total_return_annotations_missing} returns')
+    print(f'Annotated {_total_param_annotations} parameters, {_total_attr_annotations} attributes and {_total_return_annotations} returns')
+    print(f'Failed to annotate {_total_param_annotations_missing} parameters, {_total_attr_annotations_missing} attributes and {_total_return_annotations_missing} returns')
+
+    if _dropped_decorators:
+        print(f'Dropped decorators:')
+        for d in _dropped_decorators:
+            print(f'  {d}')
 
     with open(f'typings/{_tlmodule}/_typing.pyi', 'w') as f:
         f.write('''
@@ -552,7 +619,8 @@ import io
 import numpy.typing
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
+from .base import BaseEstimator, ClassifierMixin, RegressorMixin
+from scipy.sparse import spmatrix
 from typing import TypeAlias
 
 
@@ -560,7 +628,7 @@ Decimal: TypeAlias = decimal.Decimal
 PythonScalar: TypeAlias = str | int | float | bool
 
 ArrayLike: TypeAlias = numpy.typing.ArrayLike
-MatrixLike: TypeAlias = np.ndarray | pd.DataFrame 
+MatrixLike: TypeAlias = np.ndarray | pd.DataFrame | spmatrix
 FileLike: TypeAlias = io.IOBase
 PathLike: TypeAlias = str
 Int: TypeAlias = int | np.int8 | np.int16 | np.int32 | np.int64
@@ -576,3 +644,5 @@ Regressor: TypeAlias = RegressorMixin
 Color = tuple[float, float, float] | str
 
         ''')
+    if m == 'sklearn':
+        write_sklearn_native_stubs()

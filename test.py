@@ -130,7 +130,7 @@ if __name__ == '__main__':
     #test_normalize()
     #test_type_parser()
     #test_get_package_files()
-    test_stubber(pkg)
+    test_stubber('sklearn')
     #from docs2stubs.normalize import _is_string
     #print(_is_string("'balanced'"))
     #test_get_signature_from_traces(pkg, 'sklearn.base', 'is_classifier')

@@ -95,17 +95,28 @@ class AnalyzingTransformer(BaseTransformer):
     def _analyze_obj(self, obj, context: str) -> Sections[dict[str,str]|None]:
         doc = None
         rtn = Sections[dict[str,str]|None](params=None, returns=None, attrs=None)
+
+        # Get and parse the docstring for the object. This uses inspect and so doesn't work for 
+        # attributes that are documented in the class docstring. We handle those at the
+        # end.
         if obj:
             doc = inspect.getdoc(obj)
             if doc:
                 rtn = self._parser.parse(doc)
         
+        # Update the counters for the docstrings we found
         for section, counter in zip(rtn, self._counters):
             if section:
                 section = cast(dict[str,str], section)
                 counter = cast(Counter[str], counter)
                 for typ in section.values():
                     counter[typ] += 1
+
+        # If we have attribute docstrings, we fake up the contexts and save them here.
+        if rtn.attrs:
+            for k, v in rtn.attrs.items():
+                self._attrtyps[f'{context}.{k}'] = v
+
         return rtn
 
     @staticmethod

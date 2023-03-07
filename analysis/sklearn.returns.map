@@ -9,7 +9,7 @@
 @23#np.ndarray of shape (n_samples_X, n_samples_Y)#ndarray
 @22#np.ndarray of shape (n_features,)#ndarray
 @21#np.ndarray of shape (n_samples, n_classes)#ndarray
-18#{ndarray, sparse matrix} of shape (n_samples, n_features)#ndarray|csr_matrix
+18#{ndarray, sparse matrix} of shape (n_samples, n_features)#ndarray|scipy.sparse.spmatrix
 13#self#Self
 13#tuple if ``return_X_y`` is True#tuple
 @11#np.ndarray of shape (n_features, n_features)#ndarray
@@ -28,13 +28,13 @@
 @6#array of shape (n_ticks, n_cv_folds)#ndarray
 @6#np.ndarray of shape (n_samples,) or (n_samples, n_classes)#ndarray
 @5#np.ndarray of shape (n_samples,) or (n_samples, n_targets)#ndarray
-5#{ndarray, sparse matrix} of shape (n_samples, n_classes)#ndarray|csr_matrix
+5#{ndarray, sparse matrix} of shape (n_samples, n_classes)#ndarray|scipy.sparse.spmatrix
 5#array, shape (n_samples,)#ndarray
 5#array-like, shape (n_samples, n_components)#ndarray
 @5#array of shape (n_samples, n_classes)#ndarray
-5#sparse matrix of shape (n_samples, n_features)#csr_matrix
+5#sparse matrix of shape (n_samples, n_features)#scipy.sparse.spmatrix
 @5#np.ndarray of shape (n_samples, K)#ndarray
-4#sparse matrix of shape (n_samples, n_samples)#matrix|spmatrix
+4#sparse matrix of shape (n_samples, n_samples)#scipy.sparse.spmatrix
 @4#array-like of shape (n_samples,) or (n_samples, n_outputs)#ndarray
 4#array-like, shape (n_samples, n_features)#ndarray
 @4#np.ndarray of shape (n_alphas,)#ndarray
@@ -48,7 +48,7 @@
 3#returns an instance of self.#Self
 @3#:class:`~sklearn.inspection.PartialDependenceDisplay`#PartialDependenceDisplay
 @3#np.ndarray of shape (n_classes,)#ndarray
-3#{ndarray, sparse matrix}#spmatrix|ndarray
+3#{ndarray, sparse matrix}#scipy.sparse.spmatrix|ndarray
 @3#np.ndarray of shape (n_features,), dtype=floating#ndarray
 @3#np.ndarray of shape (n_samples,) or (n_samples, n_outputs)#ndarray
 3#np.ndarray of shape coef.shape#ndarray
@@ -59,9 +59,9 @@
 @3#np.ndarray of shape (n_clusters, n_features)#ndarray
 3#array of integers, shape: n_samples#ndarray
 @3#:class:`~sklearn.metrics.DetCurveDisplay`#DetCurveDisplay
-2#sparse matrix of shape (n_samples_transform, n_samples_fit)#spmatrix
+2#sparse matrix of shape (n_samples_transform, n_samples_fit)#scipy.sparse.spmatrix
 @2#np.ndarray of shape (n_queries, n_neighbors)#ndarray
-2#sparse-matrix of shape (n_queries, n_samples_fit)#spmatrix
+2#sparse-matrix of shape (n_queries, n_samples_fit)#scipy.sparse.spmatrix
 2#np.ndarray of shape (n_samples,) of arrays#ndarray
 @2#np.ndarray of shape (n_queries,) or (n_queries, n_outputs)#ndarray
 2#np.ndarray of shape (n_bins,) or smaller#ndarray
@@ -74,11 +74,11 @@
 2#dict of str to any#dict[str, Any]
 @2#list of tuples#ndarray
 2#list of str of shape (n_output_features,)#list[str]
-2#{ndarray, sparse matrix} of shape                 (n_samples, n_encoded_features)#ndarray|spmatrix
+2#{ndarray, sparse matrix} of shape                 (n_samples, n_encoded_features)#ndarray|scipy.sparse.spmatrix
 2#mapping of string to any#dict[str, Any]
-@2#np.ndarray of shape (n_samples, n_transformed_features)#ndarray|csr_matrix
+@2#np.ndarray of shape (n_samples, n_transformed_features)#ndarray
 @2#list of strings#ndarray
-2#array-like or sparse matrix of                 shape (n_samples, sum_n_components)#ndarray|spmatrix
+2#array-like or sparse matrix of                 shape (n_samples, sum_n_components)#ndarray|scipy.sparse.spmatrix
 @2#np.ndarray of shape (n_features, n_classes)#ndarray
 2#np.ndarray of shape  (n_classes * (n_classes - 1) / 2)#ndarray
 @2#:class:`~sklearn.inspection.DecisionBoundaryDisplay`#DecisionBoundaryDisplay
@@ -92,10 +92,10 @@
 @2#None#None
 @2#np.ndarray of shape (n_features,) or (n_samples,), dtype=floating#ndarray
 2#np.ndarray of shape (n_features,), dtype={np.float32, np.float64}#ndarray
-@2#array-like#ndarray|csr_matrix
+@2#array-like#ndarray
 @2#list#ndarray
 2#list of size n_outputs of ndarray of size (n_classes,)#list[ndarray]
-2#{ndarray, sparse matrix} of shape (n_samples, n_features)         or (n_samples, n_features_with_missing)#ndarray|spmatrix
+2#{ndarray, sparse matrix} of shape (n_samples, n_features)         or (n_samples, n_features_with_missing)#ndarray|scipy.sparse.spmatrix
 2#array-like, shape (n_samples,)#ndarray
 @2#np.ndarray of shape (n_features, n_alphas) or             (n_targets, n_features, n_alphas)#ndarray
 @2#list of int#list[int]
@@ -112,11 +112,11 @@
 @2#np.ndarray of shape (n_clusters, X.shape[0])#ndarray
 @2#np.ndarray of shape (n_clusters, X.shape[1])#ndarray
 2#ndarry of shape (n_samples,)#ndarray
-2#{array-like, sparse matrix} of                 shape (n_samples, sum_n_components)#ndarray|spmatrix
+2#{array-like, sparse matrix} of                 shape (n_samples, sum_n_components)#ndarray|scipy.sparse.spmatrix
 @2#array of shape (n_samples,) or (n_samples, n_classes)#ndarray
 2#arrays of shape (n_samples,) or (n_samples, n_classes)#ndarray
-2#sparse matrix of (n_samples, n_features)#csr_matrix
-2#{array, sparse matrix}#spmatrix|ndarray
+2#sparse matrix of (n_samples, n_features)#scipy.sparse.spmatrix
+2#{array, sparse matrix}#scipy.sparse.spmatrix|ndarray
 @2#np.ndarray of shape (n_clusters,)#ndarray
 @2#np.ndarray of shape (n_samples, n_clusters)#ndarray
 @2#np.ndarray of shape (n_nodes-1, 2)#ndarray
@@ -124,9 +124,9 @@
 @2#np.ndarray of shape (n_samples,) or (n_samples, n_output)#ndarray
 @2#np.ndarray of shape (n_samples, n_estimators)#ndarray
 @2#TreeNode#TreeNode
-2#sparse matrix of shape (n_samples, n_nodes)#spmatrix
+2#sparse matrix of shape (n_samples, n_nodes)#scipy.sparse.spmatrix
 2#np.ndarray of shape (n_samples, n_classes), or a list of such arrays#ndarray
-2#sparse matrix of shape (n_samples, n_out)#spmatrix
+2#sparse matrix of shape (n_samples, n_out)#scipy.sparse.spmatrix
 @2#np.ndarray of shape (n_thresholds + 1,)#ndarray
 @2#np.ndarray of shape (>2,)#ndarray
 2#{array-like, sparse matrix} of shape (n_samples_X, n_features)#ndarray
@@ -161,24 +161,24 @@
 @1#np.ndarray of shape (n_samples,), dtype=np.int64#ndarray
 @1#np.ndarray of shape (n_rows, n_cols)#ndarray
 !1#a cross-validator instance.#BaseCrossValidator
-1#list, length=2 * len(arrays)#ndarray|csr_matrix|DataFrame|list
+1#list, length=2 * len(arrays)#list
 1#dict of float arrays of shape (n_splits,)#dict[str, ndarray]
 1#np.ndarray of float of shape=(len(list(cv)),)#ndarray
 @1#array of shape (n_permutations,)#ndarray
 @1#array of shape (n_unique_ticks,)#ndarray
 1#iterator over dict of str to any#Iterator[dict[str, Any]]
 @1#np.ndarray of shape (n_samples,) or (n_samples, n_classes)                 or (n_samples, n_classes * (n_classes-1) / 2)#ndarray
-1#{ndarray, sparse matrix} of shape (n_samples,)#ndarray|spmatrix
-1#array or CSR matrix, shape (n_samples, n_classes)#ndarray|csr_matrix
-1#{ndarray, sparse matrix} of shape (n_samples, NP)#ndarray|spmatrix
+1#{ndarray, sparse matrix} of shape (n_samples,)#ndarray|scipy.sparse.spmatrix
+1#array or CSR matrix, shape (n_samples, n_classes)#ndarray|scipy.sparse.csr_matrix
+1#{ndarray, sparse matrix} of shape (n_samples, NP)#ndarray|scipy.sparse.spmatrix
 @1#np.ndarray of shape (n_samples, n_features * n_splines)#ndarray
-1#{ndarray, sparse matrix}, dtype={np.float32, np.float64}#ndarray|csr_matrix
+1#{ndarray, sparse matrix}, dtype={np.float32, np.float64}#ndarray|scipy.sparse.spmatrix
 1#np.ndarray, dtype={np.float32, np.float64}#ndarray
 @1#np.ndarray of shape (n_output_features,)#ndarray
 @1#np.ndarray of shape (n_samples, ) if axis=1 else (n_features, )#ndarray
 @1#np.ndarray of shape (n_samples1, n_samples2)#ndarray
-1#{ndarray, sparse matrix} of shape (n_samples, n_features + 1)#ndarray|spmatrix
-1#{ndarray, sparse matrix} of (n_samples, n_features)#ndarray|spmatrix
+1#{ndarray, sparse matrix} of shape (n_samples, n_features + 1)#ndarray|scipy.sparse.spmatrix
+1#{ndarray, sparse matrix} of (n_samples, n_features)#ndarray|scipy.sparse.spmatrix
 1#array, shape (n_samples, n_components)#ndarray
 1#array, shape (n_samples, n_features)#ndarray
 1#array, shape (nsamples,)#ndarray
@@ -188,7 +188,7 @@
 1#array-like, shape (n_queries, n_components)#ndarray
 @1#array of shape (n_samples, n_components)#ndarray
 1#array-like, shape (n_samples, n_neighbors)#ndarray
-1#sparse matrix in CSR format, shape = [n_samples, n_samples]#csr_matrix
+1#sparse matrix in CSR format, shape = [n_samples, n_samples]#scipy.sparse.csr_matrix
 1#array-like, shape [n_samples, n_components]#ndarray
 @1#np.ndarray of shape (n_samples, n_classes * (n_classes-1) / 2)#ndarray
 1#:class:`~sklearn.utils.Bunch` or dict of such instances#Bunch|dict[str,Bunch]
@@ -223,19 +223,19 @@
 1#list of int of size n_outputs#list[int]
 1#generator#Generator
 @1#array-like of shape (n_samples, n_output_features)#ndarray
-1#{ndarray, sparse matrix} of shape                 (n_samples, n_features_out)#ndarray|spmatrix
+1#{ndarray, sparse matrix} of shape                 (n_samples, n_features_out)#ndarray|scipy.sparse.spmatrix
 1#array, shape = [n_samples] or [n_samples, n_targets]#ndarray
 1#array-like, shape (n_samples, n_classes)#ndarray
 @1#np.ndarray of shape (n_features,) or (n_targets, n_features)#ndarray
 @1#float or ndarray of shape (n_targets,)#float|ndarray
 1#intercept_decay#tuple[ArrayDataset64|CSRDataset64, float]
-1#{array-like, sparse matrix} of shape (n_samples, n_outputs)#ndarray|spmatrix
+1#{array-like, sparse matrix} of shape (n_samples, n_outputs)#ndarray|scipy.sparse.spmatrix
 1#array of shape (n_samples, n_classes), or a list of n_outputs                 such arrays if n_outputs > 1.#ndarray|list[ndarray]
 @1#list of floats#ndarray|list[float]
 @1#int or ndarray of int#int|ndarray
-1#{ndarray, sparse matrix} of shape (n_samples, n_components)#csr_matrix|ndarray
-1#{ndarray, sparse matrix},                shape = (n_samples, n_features * (2*sample_steps - 1))#ndarray|spmatrix
-1#scipy.sparse matrix of shape (n_samples, n_features)#spmatrix
+1#{ndarray, sparse matrix} of shape (n_samples, n_components)#scipy.sparse.spmatrix|ndarray
+1#{ndarray, sparse matrix},                shape = (n_samples, n_features * (2*sample_steps - 1))#ndarray|scipy.sparse.spmatrix
+1#scipy.sparse matrix of shape (n_samples, n_features)#scipy.sparse.spmatrix
 1#np.ndarray of shape (n_samples,), or, in the multilabel a list of#ndarray
 @1#tuple#tuple
 1#1-D arrays#ndarray
@@ -245,7 +245,7 @@
 @1#np.ndarray of shape (n_features, n_components) or             (n_components, n_features)#ndarray
 @1#np.ndarray of shape (n_components, n_samples) or (n_samples, n_components)#ndarray
 @1#np.ndarray of shape (n_dim, n_dim)#ndarray
-1#sparse matrix of shape (dim, dim)#ndarray|spmatrix
+1#sparse matrix of shape (dim, dim)#ndarray|scipy.sparse.spmatrix
 1#3D array#ndarray
 @1#np.ndarray of shape (n_samples, n_samples) or                 (n_samples, n_samples, n_targets)#ndarray
 1#np.ndarray of shape (n_samples_X, n_samples), or             (n_samples_X, n_targets, n_samples)#ndarray|tuple
@@ -262,19 +262,18 @@
 1#C-contiguous array of shape (n_samples,) or array of shape             (n_samples, n_classes)#ndarray
 1#C-contiguous array of shape (n_samples,), array of shape#ndarray
 @1#array of shape (n_samples, 2)#ndarray
-1#np.ndarray or a sparse matrix class#spmatrix|ndarray
-1#np.ndarray or a sparse matrix class#spmatrix|ndarray
+1#np.ndarray or a sparse matrix class#scipy.sparse.spmatrix|ndarray
+1#np.ndarray or a sparse matrix class#scipy.sparse.spmatrix|ndarray
 @1#array of shape (n_patches, patch_height, patch_width) or         (n_patches, patch_height, patch_width, n_channels)#ndarray
 1#np.ndarray of shape image_size#ndarray
 @1#array of shape (n_patches, patch_height, patch_width) or              (n_patches, patch_height, patch_width, n_channels)#ndarray
 @1#list or None#list|None|frozenset
-@1#array of shape (n_samples, n_features)#csr_matrix|ndarray
+@1#array of shape (n_samples, n_features)#scipy.sparse.spmatrix|ndarray
 1#list of arrays of shape (n_samples,)#list[ndarray]
 1#list of dict_type objects of shape (n_samples,)#list[Mapping]
 1#list of length (n_features,)#list
-1#module#module
 1#np.ndarray of shape(n_samples,)#ndarray
-1#{array-like, sparse matrix} of shape (n_samples, n_clusters)#spmatrix|ndarray
+1#{array-like, sparse matrix} of shape (n_samples, n_clusters)#scipy.sparse.spmatrix|ndarray
 @1#np.ndarray of shape (n_samples, n_clusters) or (n_clusters,)#ndarray
 @1#np.ndarray of shape (n_samples, n_features) or (n_features,)#ndarray
 @1#np.ndarray of shape (n_core_samples,)#ndarray
@@ -302,7 +301,7 @@
 @1#np.ndarray of shape (n_samples_X, n_samples_X) or             (n_samples_X, n_samples_Y)#ndarray
 @1#np.ndarray of shape (n_samples_X, n_samples_X) or (n_samples_X, n_samples_Y)#ndarray
 @1#:class:`~sklearn.metrics.plot.DetCurveDisplay`#DetCurveDisplay
-1#{array-like, sparse}, shape=[n_classes_true, n_classes_pred]#csr_matrix|ndarray
+1#{array-like, sparse}, shape=[n_classes_true, n_classes_pred]#scipy.sparse.spmatrix|ndarray
 @1#np.ndarray of shape (2, 2), dtype=np.int64#ndarray
 1#float (upperlimited by 1.0)#float
 @1#np.ndarray of shape (n_classes, n_classes)#ndarray
@@ -447,3 +446,5 @@
 @1#ndarray of shape (select, n_features)#ndarray
 @1#ndarray of shape (select, n_features, n_features)#ndarray
 @1#ndarray of shape (select, n_samples)#ndarray
+@1#ndarray of shape (n_samples,) if n_classes == 2                else (n_samples, n_classes)#ndarray
+1#ndarray of shape (n_samples,), or, in the multilabel a list of#ndarray

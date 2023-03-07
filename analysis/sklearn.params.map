@@ -80,7 +80,7 @@
 @5#bool or 'allow-nan'#bool|Literal['allow-nan']
 5#estimator#Estimator
 @5#ndarray of shape (n_samples,) or (n_samples, n_targets)#ArrayLike|MatrixLike
-5#str or module#str|module
+5#str or module#str
 @5#Kernel#Kernel
 5#C-contiguous array of shape (n_samples,) or array of             shape (n_samples, n_classes)#ArrayLike|MatrixLike
 5#int > 1 or float between 0 and 1#int|float
@@ -263,13 +263,13 @@
 2#ndarray, float32 or float64#ArrayLike|Float
 2#{dense matrix, sparse matrix, LinearOperator}#MatrixLike|scipy.sparse.linalg.LinearOperator
 @2#tuple#tuple
-2#numpy data type#DType
+2#numpy data type#np.dtype
 @2#bool or "auto"#bool|Literal["auto"]
 2#tuple of slice#tuple[slice, ...]
 2#float, ndarray of shape (n_features,) or None#float|ArrayLike|None
 2#int or tuple of shape (2,), dtype=int#int|int|tuple[int,int]
 2#{'drop', 'passthrough'} or estimator#Literal['drop','passthrough']|Estimator
-2#column dtype or list of column dtypes#DType|Sequence[DType]
+2#column dtype or list of column dtypes#np.dtype|Sequence[np.dtype]
 2#function#Callable
 2#array-like of shape (n_samples_Y, n_features) or list of object#MatrixLike|Sequence
 @2#float or ndarray of shape (n_features,)#float|ArrayLike
@@ -614,11 +614,11 @@
 1#sparse matrix of shape n_samples, n_features)#MatrixLike
 1#sparse matrix of (n_samples, n_features)#MatrixLike
 1#Mapping or iterable over Mappings of shape (n_samples,)#Mapping[str,ArrayLike]|Iterator[Mapping[str,ArrayLike]]
-1#numpy dtype#DType
+1#numpy dtype#np.dtype
 1#iterable over iterable over raw features, length = n_samples#Iterator[Iterator]
 1#list of collected items#Sequence
 1#array-like of shape (n_seeds, n_features) or None#MatrixLike
-!1#int, instance of sklearn.cluster model#int|sklearn.cluster
+!1#int, instance of sklearn.cluster model#int
 @1#array-like of shape (n_samples, n_samples)#MatrixLike
 @1#{'k-means++', 'random'} or callable#Literal['k-means++','random']|Callable
 @1#{"lloyd", "elkan"}#Literal["lloyd","elkan"]

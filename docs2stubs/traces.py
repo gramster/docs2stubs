@@ -362,15 +362,16 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
                 has_str = True
             else:
                 newc.append(c)
+        elif c.find('.') > 0:
+            module, name = c.rsplit('.', 1)
+            if module == 'np':
+                module = 'numpy'
+            elif module == 'pd':
+                module = 'pandas'
+            imports.add((name, module))
+            newc.append(name)
         else:
             newc.append(c)
-            if c.find('.') > 0:
-                module, name = c.rsplit('.', 1)
-                if module == 'np':
-                    module = 'numpy'
-                elif module == 'pd':
-                    module = 'pandas'
-                imports.add((name, module))
 
     newlitvals = ', '.join(lits)
     if len(newlitvals.split(',')) >= 2:
@@ -387,8 +388,9 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         imports = set()
 
     else:
-        # Kludge: fix some possibly missing imports. Shouldn't be needed if everything
-        # else worked :-(
+        # Kludge: fix some possibly missing imports. Some of these are necessary because
+        # they have derived classes as opposed to annotations, and we are only collecting
+        # annotation imports. TODO: fix this.
         # TODO: use a regexp to extract identifiers instead of looping through each time.
         # TODO: we could do _all_ the import collecting here and leave it out elsewhere.
 
@@ -407,11 +409,11 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
             'Figure': 'matplotlib.figure',
             'Memory': 'joblib',
             'DType': 'numpy',
-            'MinCovDet': 'sklearn.covariance',
             'Colormap': 'matplotlib.colors',
             'spmatrix': 'scipy.sparse',
             'Number': 'numbers',
             'KDTree': 'sklearn.neighbors',
+            'MinCovDet': 'sklearn.covariance', # Should go away if we add imports from base classes
         }
 
         for k, v in extras.items():
