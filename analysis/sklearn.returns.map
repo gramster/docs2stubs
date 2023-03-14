@@ -448,3 +448,25 @@
 @1#ndarray of shape (select, n_samples)#ndarray
 @1#ndarray of shape (n_samples,) if n_classes == 2                else (n_samples, n_classes)#ndarray
 1#ndarray of shape (n_samples,), or, in the multilabel a list of#ndarray
+@2#:class:`~sklearn.model_selection.LearningCurveDisplay`#LearningCurveDisplay
+@2#ndarray of shape (n_features,) or (n_classes, n_features)#ndarray
+@2#float or ndarray of shape (n_classes,)#float|ndarray
+@2#:class:`~sklearn.metrics.PredictionErrorDisplay`#PredictionErrorDisplay
+2#ndarray of shape (n_samples, n_classes) or list of n_outputs             such arrays if n_outputs > 1#ndarray|list[ndarray]
+1#instance of _Constraint#_Constraint
+1#function or method#Callable
+1#int, float, ndarray of shape (n_samples,) or ndarray of shape (n_features,)#int|float|ndarray
+@1#ndarray of shape (n_components,)#ndarray
+@1#ndarray of shape (n_dof,) or (n_classes, n_dof)#ndarray
+@1#ndarray of shape (n_samples,) or             (n_samples, n_classes)#ndarray
+1#ndarray of shape (n_dof,), (n_classes, n_dof) or (n_classes * n_dof,)#ndarray
+1#:class:`Version` object or a :class:`LegacyVersion` object#Version|LegacyVersion
+1#ndarray of shape (n_samples,), or a list of tuples of length n_samples#ndarray
+1#list of arrays#list[ndarray]
+1#{ndarray, sparse matrix, dataframe}#pandas.DataFrame|ndarray|spmatrix
+1#{ndarray, dataframe, series}#pandas.DataFrame|ndarray|pandas.Series
+1#dataframe or None#pandas.DataFrame|None
+1#list of str or None#list[str]|None
+1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_classes)#np.ndarray
+1#True if the dispatcher can be used, else False.#bool
+@1#:class:`~sklearn.metrics.plot.PredictionErrorDisplay`#PredictionErrorDisplay

@@ -195,6 +195,7 @@ def get_toplevel_function_signature(module: str, function: str) -> Signature|Non
             return None
     return None
 
+
 def get_method_signature(module: str, class_: str, method: str) -> Signature|None:
     stubs = _get_module_stubs(_dbpath, _pkg, module)
     if stubs:
@@ -204,11 +205,10 @@ def get_method_signature(module: str, class_: str, method: str) -> Signature|Non
             return None
     return None
 
+
 def simplify_types(ts: set[Type]):
     return shrink_types(ts, MAX_TYPED_DICT_SIZE)
 
-def render_type(t: Type) -> str:
-    return '';
 
 
 _qualname = re.compile(r'[A-Za-z_\.]*\.([A-Za-z_][A-Za-z_0-9]*)')
@@ -287,6 +287,13 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         components = [t]
         imports.update(i)
     
+    # Again, check how long this type is and if it's too long, just drop the trace part.
+    # The threshhold here is a bit arbitrary but assume we want the type to fit comfortably
+    # on one line.
+    if sum(len(c) for c in components) > 65:
+        components = []
+        imports = set()
+
     if doctype is not None:
         # Very simple parser to split apart the doctype union. If we find a '[' we
         # find and skip to closing ']', handling any nested '[' and ']' pairs.
@@ -382,49 +389,43 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
 
     result = '|'.join(set(components))
 
-    if False and len(result) >= 200:  # remove False to enable this 
-        # Somewhat arbitrary cutoff to avoid some pathological cases
-        result = 'Any'
-        imports = set()
+    # Kludge: fix some possibly missing imports. Some of these are necessary because
+    # they have derived classes as opposed to annotations, and we are only collecting
+    # annotation imports. TODO: fix this.
+    # TODO: use a regexp to extract identifiers instead of looping through each time.
+    # TODO: we could do _all_ the import collecting here and leave it out elsewhere.
 
-    else:
-        # Kludge: fix some possibly missing imports. Some of these are necessary because
-        # they have derived classes as opposed to annotations, and we are only collecting
-        # annotation imports. TODO: fix this.
-        # TODO: use a regexp to extract identifiers instead of looping through each time.
-        # TODO: we could do _all_ the import collecting here and leave it out elsewhere.
+    extras = {
+        'RandomState': 'numpy.random',
+        'ArrayLike': f'{tlmodule}._typing',
+        'MatrixLike': f'{tlmodule}._typing',
+        'Float': f'{tlmodule}._typing',
+        'Int': f'{tlmodule}._typing',
+        'BaseEstimator': 'sklearn.base',
+        'BaseCrossValidator': 'sklearn.model_selection',
+        'Classifier': f'{tlmodule}._typing',
+        'Estimator': f'{tlmodule}._typing',
+        'Regressor': f'{tlmodule}._typing',
+        'Axes': 'matplotlib.axes',
+        'Figure': 'matplotlib.figure',
+        'Memory': 'joblib',
+        'DType': 'numpy',
+        'Colormap': 'matplotlib.colors',
+        'spmatrix': 'scipy.sparse',
+        'Number': 'numbers',
+        'KDTree': 'sklearn.neighbors',
+        'MinCovDet': 'sklearn.covariance', # Should go away if we add imports from base classes
+    }
 
-        extras = {
-            'RandomState': 'numpy.random',
-            'ArrayLike': f'{tlmodule}._typing',
-            'MatrixLike': f'{tlmodule}._typing',
-            'Float': f'{tlmodule}._typing',
-            'Int': f'{tlmodule}._typing',
-            'BaseEstimator': 'sklearn.base',
-            'BaseCrossValidator': 'sklearn.model_selection',
-            'Classifier': f'{tlmodule}._typing',
-            'Estimator': f'{tlmodule}._typing',
-            'Regressor': f'{tlmodule}._typing',
-            'Axes': 'matplotlib.axes',
-            'Figure': 'matplotlib.figure',
-            'Memory': 'joblib',
-            'DType': 'numpy',
-            'Colormap': 'matplotlib.colors',
-            'spmatrix': 'scipy.sparse',
-            'Number': 'numbers',
-            'KDTree': 'sklearn.neighbors',
-            'MinCovDet': 'sklearn.covariance', # Should go away if we add imports from base classes
-        }
+    for k, v in extras.items():
+        if result.find(k) >= 0:
+            imports.add((k, v))
 
-        for k, v in extras.items():
-            if result.find(k) >= 0:
-                imports.add((k, v))
-
-        # TODO: check the following types: Label, Batch, module, sklearn.cluster.
-        # They are being used without the needed imports.
-        # from ._random import sample_without_replacement
-        # class loguniform(scipy.stats.reciprocal):
-        # from .murmurhash import murmurhash3_32 as murmurhash3_32
+    # TODO: check the following types: Label, Batch, module, sklearn.cluster.
+    # They are being used without the needed imports.
+    # from ._random import sample_without_replacement
+    # class loguniform(scipy.stats.reciprocal):
+    # from .murmurhash import murmurhash3_32 as murmurhash3_32
 
 
 

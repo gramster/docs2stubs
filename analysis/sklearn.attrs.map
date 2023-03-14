@@ -250,7 +250,7 @@
 1#ExtraTreeRegressor instance#ExtraTreeRegressor
 1#list of ExtraTreeRegressor instances#list[ExtraTreeRegressor]
 @1#ndarray
-1#SplitInfo or None#SplitInfo|None
+1#SplitInfo or None#sklearn.ensemble._hist_gradient_boosting.splitting.SplitInfo|None
 @1#float or None#float|None
 1#array, shape = (n_classes,)#ndarray
 1#ndarray, dtype=np.uint32#ndarray
@@ -268,3 +268,24 @@
 1#OneHotEncoder instance#OneHotEncoder
 1#matplotlib AxesImage#matplotlib.AxesImage
 1#ndarray of shape (n_classes, n_classes), dtype=matplotlib Text,             or None#ndarray|None
+4#ndarray of shape coef.shape#ndarray
+3#list of matplotlib Artist or None#matplotlib.Artist|None
+@3#:class:`~sklearn.tree.ExtraTreeRegressor` instance#ExtraTreeRegressor
+2#list of shape (`n_iter_`,) or None#list|None
+@2#list of TreeNode#list[TreeNode]
+@1#ndarray of shape (n_samples,) or (n_samples, n_classes)#ndarray
+1#ndarray of shape (n_components,), dtype={np.float64, np.float32}#ndarray
+1#ndarray of shape (n_features, n_components),        dtype={np.float64, np.float32}#ndarray
+1#ndarray of shape (n_classes,) or list of ndarray if `y`         is of type `"multilabel-indicator"`.#ndarray
+@1#ndarray of shape (n_samples_at_node,), dtype=np.uint#ndarray
+1#None or ndarray, dtype=int#ndarray|None
+@1#None or list of ints#list[int]|None
+1#HistogramBuilder#HistogramBuilder
+1#Splitter#Splitter
+@1#TreeNode#TreeNode
+@1#:class:`~sklearn.tree.DecisionTreeClassifier`#DecisionTreeClassifier
+@1#:class:`~sklearn.tree.DecisionTreeRegressor`#DecisionTreeRegressor
+@1#:class:`~sklearn.tree.ExtraTreesClassifier`#ExtraTreesClassifier
+@1#:class:`~sklearn.tree.ExtraTreeRegressor`#ExtraTreeRegressor
+1#list of :class:`~sklearn.tree.ExtraTreeRegressor` instances#list[ExtraTreeRegressor]
+1#matplotlib Artist or None#matplotlib.Artist|None

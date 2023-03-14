@@ -75,6 +75,12 @@ class CyHalfBinomialLoss(CyLossFunction):
     def cy_gradient(self, y_true: float, raw_prediction: float) -> float: ...
     def cy_grad_hess(self, y_true: float, raw_prediction: float)->tuple[float,float]: ...
 
+    
+class CyHalfMultinomialLoss(CyLossFunction):
+    def cy_loss(self, y_true: float, raw_prediction: float) -> float: ...
+    def cy_gradient(self, y_true: float, raw_prediction: float) -> float: ...
+    def cy_grad_hess(self, y_true: float, raw_prediction: float)->tuple[float,float]: ...
+
 
 """)
     with open(f'typings/sklearn/metrics/_dist_metrics.pyi', 'w') as f:
@@ -384,11 +390,25 @@ class CSRDataset32(SequentialDataset32):
     def __init__(self, X_data, X_indptr, X_indices, Y, sample_weights, seed=1) -> None: ...
 
 """)
+    with open(f'typings/sklearn/neighbors/_ball_tree.pyi', 'w') as f:
+        f.write("""
+from numpy import float32 as DTYPE
+from ._binary_tree import BinaryTree
+
+class BallTree(BinaryTree): ...
+
+""")
     with open(f'typings/sklearn/tree/_tree.pyi', 'w') as f:
         f.write("""
 import numpy as np
 from typing import Any
 from ._splitter import Splitter
+
+from numpy import float32 as DTYPE
+from numpy import float64 as DOUBLE
+
+
+TREE_LEAF: int
 
 
 class Node:
@@ -623,6 +643,19 @@ class RegressionCriterion(Criterion):
     sum_total: np.ndarray
     sum_left: np.ndarray
     sum_right: np.ndarray
+""")
+    with open(f'typings/sklearn/utils/_isfinite.pyi', 'w') as f:
+        f.write("""
+from enum import IntEnum
+import numpy as np
+
+
+class FiniteStatus(IntEnum):
+    ...
+
+def cy_isfinite(a: np.ndarray, allow_nan: bool=False) -> bool: ...
+
+
 """)
     with open(f'typings/sklearn/utils/sparsefuncs_fast.pyi', 'w') as f:
         f.write("""
@@ -1314,7 +1347,99 @@ def elkan_iter_chunked_sparse(
                 
     with open("typings/sklearn/cluster/_k_means_lloyd.pyi", "w") as f:
         f.write("""
-        # lloyd_iter_chunked_dense, lloyd_iter_chunked_sparse
+import numpy as np
+
+
+def lloyd_iter_chunked_dense(
+        X: np.ndarray,
+        sample_weight: np.ndarray,
+        centers_old: np.ndarray,
+        centers_new: np.ndarray,
+        weight_in_clusters: np.ndarray,
+        labels: np.ndarray,
+        center_shift: np.ndarray,
+        n_threads: int,
+        update_centers: bool=True) -> None:
+    \"""Single iteration of K-means lloyd algorithm with dense input.
+    Update labels and centers (inplace), for one iteration, distributed
+    over data chunks.
+    Parameters
+    ----------
+    X : ndarray of shape (n_samples, n_features), dtype=floating
+        The observations to cluster.
+    sample_weight : ndarray of shape (n_samples,), dtype=floating
+        The weights for each observation in X.
+    centers_old : ndarray of shape (n_clusters, n_features), dtype=floating
+        Centers before previous iteration, placeholder for the centers after
+        previous iteration.
+    centers_new : ndarray of shape (n_clusters, n_features), dtype=floating
+        Centers after previous iteration, placeholder for the new centers
+        computed during this iteration. `centers_new` can be `None` if
+        `update_centers` is False.
+    weight_in_clusters : ndarray of shape (n_clusters,), dtype=floating
+        Placeholder for the sums of the weights of every observation assigned
+        to each center. `weight_in_clusters` can be `None` if `update_centers`
+        is False.
+    labels : ndarray of shape (n_samples,), dtype=int
+        labels assignment.
+    center_shift : ndarray of shape (n_clusters,), dtype=floating
+        Distance between old and new centers.
+    n_threads : int
+        The number of threads to be used by openmp.
+    update_centers : bool
+        - If True, the labels and the new centers will be computed, i.e. runs
+          the E-step and the M-step of the algorithm.
+        - If False, only the labels will be computed, i.e runs the E-step of
+          the algorithm. This is useful especially when calling predict on a
+          fitted model.
+    \"""
+    ...
+
+
+def lloyd_iter_chunked_sparse(
+        X: np.ndarray,
+        sample_weight: np.ndarray,
+        centers_old: np.ndarray,
+        centers_new: np.ndarray,
+        weight_in_clusters: np.ndarray,
+        labels: np.ndarray,
+        center_shift: np.ndarray,
+        n_threads: int,
+        update_centers: bool=True) -> None:
+    \"""Single iteration of K-means lloyd algorithm with sparse input.
+    Update labels and centers (inplace), for one iteration, distributed
+    over data chunks.
+    Parameters
+    ----------
+    X : sparse matrix of shape (n_samples, n_features), dtype=floating
+        The observations to cluster. Must be in CSR format.
+    sample_weight : ndarray of shape (n_samples,), dtype=floating
+        The weights for each observation in X.
+    centers_old : ndarray of shape (n_clusters, n_features), dtype=floating
+        Centers before previous iteration, placeholder for the centers after
+        previous iteration.
+    centers_new : ndarray of shape (n_clusters, n_features), dtype=floating
+        Centers after previous iteration, placeholder for the new centers
+        computed during this iteration. `centers_new` can be `None` if
+        `update_centers` is False.
+    weight_in_clusters : ndarray of shape (n_clusters,), dtype=floating
+        Placeholder for the sums of the weights of every observation assigned
+        to each center. `weight_in_clusters` can be `None` if `update_centers`
+        is False.
+    labels : ndarray of shape (n_samples,), dtype=int
+        labels assignment.
+    center_shift : ndarray of shape (n_clusters,), dtype=floating
+        Distance between old and new centers.
+    n_threads : int
+        The number of threads to be used by openmp.
+    update_centers : bool
+        - If True, the labels and the new centers will be computed, i.e. runs
+          the E-step and the M-step of the algorithm.
+        - If False, only the labels will be computed, i.e runs the E-step of
+          the algorithm. This is useful especially when calling predict on a
+          fitted model.
+    \"""
+    ...
 """)
                 
     if not os.path.exists('typings/sklearn/tests'):
@@ -1367,3 +1492,395 @@ def min_pos(X: np.ndarray) -> float:
 
 def cholesky_delete(L: np.ndarray, go_out: int) -> None: ...
 """)
+    with open(f'typings/sklearn/feature_extraction/_hashing_fast.pyi', 'w') as f:
+        f.write("""
+def transform(raw_X, n_features: int, dtype,
+              alternate_sign: bool|int=1, seed: int=0) -> tuple[int, list[int], list[int], list[float]]:
+    \"""Guts of FeatureHasher.transform.
+    Returns
+    -------
+    n_samples : integer
+    indices, indptr, values : lists
+        For constructing a scipy.sparse.csr_matrix.
+    \"""
+    ...
+""")
+    with open(f'typings/sklearn/ensemble/_gradient_boosting.pyi', 'w') as f:
+        f.write("""
+import numpy as np
+
+
+def predict_stages(
+    estimators: np.ndarray,
+    X,
+    scale: float,
+    out: np.ndarray
+) -> None:
+    \"""Add predictions of ``estimators`` to ``out``.
+    Each estimator is scaled by ``scale`` before its prediction
+    is added to ``out``.
+    \"""
+    ...
+
+def predict_stage(
+    estimators: np.ndarray,
+    stage: int,
+    X,
+    scale: float,
+    out: np.ndarray
+) -> None:
+    \"""Add predictions of ``estimators[stage]`` to ``out``.
+    Each estimator in the stage is scaled by ``scale`` before
+    its prediction is added to ``out``.
+    \"""
+    ...
+""")
+    with open(f'typings/sklearn/ensemble/_hist_gradient_boosting/common.pyi', 'w') as f:
+        f.write("""
+from numpy import float32 as G_H_DTYPE
+from numpy import float32 as X_BITSET_INNER_DTYPE
+from numpy import float64 as X_DTYPE
+from numpy import float64 as Y_DTYPE
+from numpy import uint32 as X_BINNED_DTYPE
+from numpy import uint8 as X_BINNED_DTYPE_C
+import numpy as np
+
+
+ALMOST_INF: float = 1e300
+MonotonicConstraint: int
+
+class PREDICTOR_RECORD_DTYPE:
+    value: Y_DTYPE
+    count: np.uint32
+    feature_idx: np.uint32
+    num_threshold: X_DTYPE
+    missing_go_to_left: np.uint8
+    left: np.uint32
+    right: np.uint32
+    gain: Y_DTYPE
+    depth: np.uint32
+    is_leaf: np.uint8
+    bin_threshold: X_BINNED_DTYPE
+    is_categorical: np.uint8
+    bitset_idx: np.uint32
+
+""")
+    with open(f'typings/sklearn/ensemble/_hist_gradient_boosting/splitting.pyi', 'w') as f:
+        f.write("""
+import numpy as np
+
+
+class SplitInfo:
+    \"""Pure data class to store information about a potential split.
+    Parameters
+    ----------
+    gain : float
+        The gain of the split.
+    feature_idx : int
+        The index of the feature to be split.
+    bin_idx : int
+        The index of the bin on which the split is made. Should be ignored if
+        `is_categorical` is True: `left_cat_bitset` will be used to determine
+        the split.
+    missing_go_to_left : bool
+        Whether missing values should go to the left child. This is used
+        whether the split is categorical or not.
+    sum_gradient_left : float
+        The sum of the gradients of all the samples in the left child.
+    sum_hessian_left : float
+        The sum of the hessians of all the samples in the left child.
+    sum_gradient_right : float
+        The sum of the gradients of all the samples in the right child.
+    sum_hessian_right : float
+        The sum of the hessians of all the samples in the right child.
+    n_samples_left : int, default=0
+        The number of samples in the left child.
+    n_samples_right : int
+        The number of samples in the right child.
+    is_categorical : bool
+        Whether the split is done on a categorical feature.
+    left_cat_bitset : ndarray of shape=(8,), dtype=uint32 or None
+        Bitset representing the categories that go to the left. This is used
+        only when `is_categorical` is True.
+        Note that missing values are part of that bitset if there are missing
+        values in the training data. For missing values, we rely on that
+        bitset for splitting, but at prediction time, we rely on
+        missing_go_to_left.
+    \"""
+    def __init__(self, gain: float, feature_idx: int, bin_idx: int,
+                 missing_go_to_left: bool, sum_gradient_left: float, sum_hessian_left: float,
+                 sum_gradient_right: float, sum_hessian_right: float, n_samples_left: int,
+                 n_samples_right: int, value_left, value_right,
+                 is_categorical: bool, left_cat_bitset: np.ndarray|None=None): ...
+
+
+class Splitter:
+    \"""Splitter used to find the best possible split at each node.
+    A split (see SplitInfo) is characterized by a feature and a bin.
+    The Splitter is also responsible for partitioning the samples among the
+    leaves of the tree (see split_indices() and the partition attribute).
+    Parameters
+    ----------
+    X_binned : ndarray of int, shape (n_samples, n_features)
+        The binned input samples. Must be Fortran-aligned.
+    n_bins_non_missing : ndarray, shape (n_features,)
+        For each feature, gives the number of bins actually used for
+        non-missing values.
+    missing_values_bin_idx : uint8
+        Index of the bin that is used for missing values. This is the index of
+        the last bin and is always equal to max_bins (as passed to the GBDT
+        classes), or equivalently to n_bins - 1.
+    has_missing_values : ndarray, shape (n_features,)
+        Whether missing values were observed in the training data, for each
+        feature.
+    is_categorical : ndarray of bool of shape (n_features,)
+        Indicates categorical features.
+    monotonic_cst : ndarray of int of shape (n_features,), dtype=int
+        Indicates the monotonic constraint to enforce on each feature.
+          - 1: monotonic increase
+          - 0: no constraint
+          - -1: monotonic decrease
+        Read more in the :ref:`User Guide <monotonic_cst_gbdt>`.
+    l2_regularization : float
+        The L2 regularization parameter.
+    min_hessian_to_split : float, default=1e-3
+        The minimum sum of hessians needed in each node. Splits that result in
+        at least one child having a sum of hessians less than
+        min_hessian_to_split are discarded.
+    min_samples_leaf : int, default=20
+        The minimum number of samples per leaf.
+    min_gain_to_split : float, default=0.0
+        The minimum gain needed to split a node. Splits with lower gain will
+        be ignored.
+    hessians_are_constant: bool, default is False
+        Whether hessians are constant.
+    n_threads : int, default=1
+        Number of OpenMP threads to use.
+    \"""
+    X_binned: np.ndarray
+    n_features: int
+    n_bins_non_missing: np.ndarray
+    missing_values_bin_idx: int
+    has_missing_values: np.ndarray
+    is_categorical: np.ndarray
+    monotonic_cst: np.ndarray
+    hessians_are_constant: int
+    l2_regularization: float
+    min_hessian_to_split: float
+    min_samples_leaf: int
+    min_gain_to_split: float
+
+    partition: np.ndarray
+    left_indices_buffer: np.ndarray
+    right_indices_buffer: np.ndarray
+    n_threads: int
+
+    def __init__(self,
+                 X_binned: np.ndarray,
+                 n_bins_non_missing: np.ndarray,
+                 missing_values_bin_idx: int,
+                 has_missing_values: np.ndarray,
+                 is_categorical: np.ndarray,
+                 monotonic_cst: np.ndarray,
+                 l2_regularization: float,
+                 min_hessian_to_split: float=1e-3,
+                 min_samples_leaf: int=20,
+                 min_gain_to_split: float=0.,
+                 hessians_are_constant: bool=False,
+                 n_threads: int = 1):
+        ...
+
+    def split_indices(self, split_info: SplitInfo, sample_indices: np.ndarray):
+        \"""Split samples into left and right arrays.
+        The split is performed according to the best possible split
+        (split_info).
+        Ultimately, this is nothing but a partition of the sample_indices
+        array with a given pivot, exactly like a quicksort subroutine.
+        Parameters
+        ----------
+        split_info : SplitInfo
+            The SplitInfo of the node to split.
+        sample_indices : ndarray of unsigned int, shape (n_samples_at_node,)
+            The indices of the samples at the node to split. This is a view
+            on self.partition, and it is modified inplace by placing the
+            indices of the left child at the beginning, and the indices of
+            the right child at the end.
+        Returns
+        -------
+        left_indices : ndarray of int, shape (n_left_samples,)
+            The indices of the samples in the left child. This is a view on
+            self.partition.
+        right_indices : ndarray of int, shape (n_right_samples,)
+            The indices of the samples in the right child. This is a view on
+            self.partition.
+        right_child_position : int
+            The position of the right child in ``sample_indices``.
+        \"""
+        ...
+
+    def find_node_split(
+            self,
+            n_samples: int,
+            histograms,  # IN
+            sum_gradients: float,
+            sum_hessians: float,
+            value: float,
+            lower_bound: float=...,
+            upper_bound: float=...,
+            allowed_features: np.ndarray|None=None,
+            ):
+        \"""For each feature, find the best bin to split on at a given node.
+        Return the best split info among all features.
+        Parameters
+        ----------
+        n_samples : int
+            The number of samples at the node.
+        histograms : ndarray of HISTOGRAM_DTYPE of \
+                shape (n_features, max_bins)
+            The histograms of the current node.
+        sum_gradients : float
+            The sum of the gradients for each sample at the node.
+        sum_hessians : float
+            The sum of the hessians for each sample at the node.
+        value : float
+            The bounded value of the current node. We directly pass the value
+            instead of re-computing it from sum_gradients and sum_hessians,
+            because we need to compute the loss and the gain based on the
+            *bounded* value: computing the value from
+            sum_gradients / sum_hessians would give the unbounded value, and
+            the interaction with min_gain_to_split would not be correct
+            anymore. Side note: we can't use the lower_bound / upper_bound
+            parameters either because these refer to the bounds of the
+            children, not the bounds of the current node.
+        lower_bound : float
+            Lower bound for the children values for respecting the monotonic
+            constraints.
+        upper_bound : float
+            Upper bound for the children values for respecting the monotonic
+            constraints.
+        allowed_features : None or ndarray, dtype=np.uint32
+            Indices of the features that are allowed by interaction constraints to be
+            split.
+        Returns
+        -------
+        best_split_info : SplitInfo
+            The info about the best possible split among all features.
+        \"""   
+        ...  
+
+
+""")
+    with open(f'typings/sklearn/ensemble/_hist_gradient_boosting/_bitset.pyi', 'w') as f:
+        f.write("""
+import numpy as np
+from .common import X_BINNED_DTYPE_C
+
+
+def set_bitset_memoryview(bitset: np.ndarray, val: X_BINNED_DTYPE_C) -> None: ...
+
+def set_raw_bitset_from_binned_bitset(raw_bitset: np.ndarray,
+                                      binned_bitset: np.ndarray,
+                                      categories: np.ndarray) -> None: ...
+""")
+    with open(f'typings/sklearn/ensemble/_hist_gradient_boosting/utils.pyi', 'w') as f:
+        f.write("""
+import numpy as np
+
+
+def sum_parallel(array: np.ndarray, n_threads: int) -> float: ...
+""") 
+
+    with open(f'typings/sklearn/ensemble/_hist_gradient_boosting/histogram.pyi', 'w') as f:
+        f.write("""
+import numpy as np
+
+
+class HistogramBuilder:
+    \"""A Histogram builder... used to build histograms.
+    A histogram is an array with n_bins entries of type HISTOGRAM_DTYPE. Each
+    feature has its own histogram. A histogram contains the sum of gradients
+    and hessians of all the samples belonging to each bin.
+    There are different ways to build a histogram:
+    - by subtraction: hist(child) = hist(parent) - hist(sibling)
+    - from scratch. In this case we have routines that update the hessians
+      or not (not useful when hessians are constant for some losses e.g.
+      least squares). Also, there's a special case for the root which
+      contains all the samples, leading to some possible optimizations.
+      Overall all the implementations look the same, and are optimized for
+      cache hit.
+    Parameters
+    ----------
+    X_binned : ndarray of int, shape (n_samples, n_features)
+        The binned input samples. Must be Fortran-aligned.
+    n_bins : int
+        The total number of bins, including the bin for missing values. Used
+        to define the shape of the histograms.
+    gradients : ndarray, shape (n_samples,)
+        The gradients of each training sample. Those are the gradients of the
+        loss w.r.t the predictions, evaluated at iteration i - 1.
+    hessians : ndarray, shape (n_samples,)
+        The hessians of each training sample. Those are the hessians of the
+        loss w.r.t the predictions, evaluated at iteration i - 1.
+    hessians_are_constant : bool
+        Whether hessians are constant.
+    \"""
+    def __init__(self, X_binned: np.ndarray,
+                 n_bins: int, gradients: np.ndarray,
+                 hessians: np.ndarray,
+                 hessians_are_constant: bool,
+                 n_threads: int) -> None:
+        ...
+
+    def compute_histograms_brute(
+        self,
+        sample_indices: np.ndarray,    
+        allowed_features: np.ndarray|None = None,
+    ) -> np.ndarray:
+        \"""Compute the histograms of the node by scanning through all the data.
+        For a given feature, the complexity is O(n_samples)
+        Parameters
+        ----------
+        sample_indices : array of int, shape (n_samples_at_node,)
+            The indices of the samples at the node to split.
+        allowed_features : None or ndarray, dtype=np.uint32
+            Indices of the features that are allowed by interaction constraints to be
+            split.
+        Returns
+        -------
+        histograms : ndarray of HISTOGRAM_DTYPE, shape (n_features, n_bins)
+            The computed histograms of the current node.
+        \"""
+        ...
+
+
+    def compute_histograms_subtraction(
+        self,
+        parent_histograms: np.ndarray,
+        sibling_histograms: np.ndarray,
+        allowed_features: np.ndarray|None = None,
+    ) -> np.ndarray:
+        \"""Compute the histograms of the node using the subtraction trick.
+        hist(parent) = hist(left_child) + hist(right_child)
+        For a given feature, the complexity is O(n_bins). This is much more
+        efficient than compute_histograms_brute, but it's only possible for one
+        of the siblings.
+        Parameters
+        ----------
+        parent_histograms : ndarray of HISTOGRAM_DTYPE, \
+                shape (n_features, n_bins)
+            The histograms of the parent.
+        sibling_histograms : ndarray of HISTOGRAM_DTYPE, \
+                shape (n_features, n_bins)
+            The histograms of the sibling.
+        allowed_features : None or ndarray, dtype=np.uint32
+            Indices of the features that are allowed by interaction constraints to be
+            split.
+        Returns
+        -------
+        histograms : ndarray of HISTOGRAM_DTYPE, shape(n_features, n_bins)
+            The computed histograms of the current node.
+        \"""
+        ...
+
+
+""") 

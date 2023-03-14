@@ -3,7 +3,8 @@ import inspect
 import os
 import re
 from types import ModuleType
-from typing import Literal, cast
+from typing import Literal, cast, _type_repr
+
 import libcst as cst
 from black import format_str
 from black.mode import Mode
@@ -48,6 +49,7 @@ class StubbingTransformer(BaseTransformer):
         self._dropped_decorators = set()  # Decorators that were dropped because they were not supported
         # We collect those just to log them in case we are missing something we should have kept.
         self._keep_imports = set()  # Things that were explicitly imported in the original source
+        self._seen_attrs = set() # Attributes that were explicitly defined in the original source
 
     @staticmethod
     def get_value_type(node: cst.CSTNode) -> str|None:
@@ -110,6 +112,9 @@ class StubbingTransformer(BaseTransformer):
         elif is_trivial(doctyp, self._modname, self._state.imports):
             typ, imports = normalize_type(doctyp, self._modname, self._state.imports, is_param)
             how = 'trivial'
+        # Strip off any module name prefix. There may be a better place we should be doing this.
+        if typ and typ.find('.') >= 0 and not (typ.startswith('np.') or typ.startswith('pd.')):
+            typ = typ[typ.rfind('.')+1:]
         return typ, imports, how
 
     def update_imports(self, imports: dict[str, list[str]]):
@@ -121,7 +126,7 @@ class StubbingTransformer(BaseTransformer):
 
     def _get_new_annotation(self, which: Literal['attribute', 'parameter', 'return'], 
                             nodename: str, trace_context: str, doctyp: str|None, \
-                            valtyp: str|None = None):
+                            valtyp: str|None = None, is_classvar: bool = False):
         map = {
             'attribute': self._maps.attrs,
             'parameter': self._maps.params,
@@ -159,7 +164,10 @@ class StubbingTransformer(BaseTransformer):
             if typ is None or (which != 'return' and typ == 'None'):
                 if self._infer_types and valtyp and valtyp != 'None':
                     # Use the inferred type from default value as long as it is not None
-                    n = cst.Annotation(annotation=cst.Name(valtyp))
+                    if is_classvar:
+                        valtyp = f'ClassVar[{valtyp}]'
+                        self._need_imports['ClassVar'] = 'typing'
+                    n = cst.Annotation(annotation=cst.parse_expression(valtyp))
                 elif which != 'return':
                     print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping or default value')
             elif typ:
@@ -169,6 +177,9 @@ class StubbingTransformer(BaseTransformer):
                     elif v == 'pd':
                         v = 'pandas'
                     self._need_imports[k] = v
+                if is_classvar:
+                    typ = f'ClassVar[{typ}]'
+                    self._need_imports['ClassVar'] = 'typing'
                 n = cst.Annotation(annotation=cst.parse_expression(typ))
                 print(f'Annotated {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}')
             else:
@@ -204,10 +215,14 @@ class StubbingTransformer(BaseTransformer):
 
         global _total_attr_annotations, _total_attr_annotations_missing
         try:
-            context = f'{self.context()}.{target.value}' # type: ignore
-            doctyp = cast(str|None, self._docstrings.attrs.get(context)) if self.at_top_level_class_level() else None
+            attr_name: str = target.value # type: ignore
+            self._seen_attrs.add(attr_name)  # keep track of those we have seen
+            context = f'{self.context()}.{attr_name}'
+            is_classvar = self.at_top_level_class_level()
+            doctyp = cast(str|None, self._docstrings.attrs.get(context)) if is_classvar else None
             valtyp = StubbingTransformer.get_value_type(original_node.value)
-            annotation = self._get_new_annotation('attribute', '', context, doctyp, valtyp)
+            annotation = self._get_new_annotation('attribute', '', context, doctyp, valtyp, \
+                                                  is_classvar = is_classvar)
             if annotation:
                 node = cst.AnnAssign(target=target, annotation=annotation, value=value)
                 _total_attr_annotations += 1
@@ -221,7 +236,13 @@ class StubbingTransformer(BaseTransformer):
         self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
     ) -> cst.CSTNode:
         value=self.get_assign_value(original_node)
-        return updated_node.with_changes(value=value)
+        if self.at_top_level_class_level():
+            self._need_imports['ClassVar'] = 'typing'
+            code = f'ClassVar[{cst.Module(body=()).code_for_node(original_node.annotation.annotation)}]'
+            return updated_node.with_changes(annotation=cst.Annotation(annotation=cst.parse_expression(code)), \
+                                              value=value)
+        else:
+            return updated_node.with_changes(value=value)
 
     def leave_Param(
         self, original_node: cst.Param, updated_node: cst.Param
@@ -256,18 +277,41 @@ class StubbingTransformer(BaseTransformer):
         # Record the names of top-level classes
         if not self.in_class():
             self._local_class_names.add(node.name.value)
+            self._seen_attrs = set()
         return super().visit_ClassDef(node)
 
     def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.CSTNode:
+        context = self.context()
         super().leave_ClassDef(original_node, updated_node)
-        if not self.in_class():
+        if not self.in_class(): # were we in a top-level class?
             # Clear the method name set
             self._method_names = set()
-            # Check if the class has an empty body and insert '...' statement if so
-            if len(original_node.body.body) == 0:
-                newbody = updated_node.body.with_changes(body=[cst.parse_statement('...')])
-                return updated_node.with_changes(body=newbody)
-            return updated_node
+            # See if there are documented attributes that we haven't seen yet,
+            # and add them to the class body.
+
+            # TODO: is node cloning needed here?
+            body = [n for n in updated_node.body.body if not isinstance(n, cst.Pass)]
+            for attr, doctyp in self._docstrings.attrs.items():
+                if attr.startswith(context):
+                    attr_name = attr[len(context)+1:]
+                    if attr_name not in self._seen_attrs:
+                        global _total_attr_annotations, _total_attr_annotations_missing
+
+                        typ, imports, how = self.fixtype(cast(str, doctyp), self._maps.attrs, False)
+                        if typ:
+                            if imports:
+                                self.update_imports(imports)
+                            node = cst.parse_statement(f'{attr_name}: {typ} = ...')
+                            _total_attr_annotations += 1
+                        else:
+                            node = cst.parse_statement(f'{attr_name} = ...')
+                            _total_attr_annotations_missing += 1
+                        
+                        body.insert(0, node)
+            # If the class body is empty insert '...' statement
+            if len(body) == 0:
+                body.append(cst.parse_statement('...'))
+            return updated_node.with_changes(body=cst.IndentedBlock(body=tuple(body))) # type: ignore
         else:
             # Nested class; return ...
             return cst.parse_statement('...')
@@ -299,6 +343,10 @@ class StubbingTransformer(BaseTransformer):
             # Nested or private function; return nothing.
             return cst.RemoveFromParent()
         
+        # Are we in a class? If so, add the function name to the seen attributes.
+        if self.in_class():
+            self._seen_attrs.add(name)
+
         # Remove decorators that are not needed in stubs
         decorators = []
         keep = ['abstractmethod', 'classmethod', 'dataclass_transform', 'deprecated', 'final', 'override', 'property', 'setter', 'staticmethod']
@@ -384,7 +432,11 @@ class StubbingTransformer(BaseTransformer):
         global _total_return_annotations, _total_return_annotations_missing
         if annotation:
             _total_return_annotations += 1
-            print(f'Annotating {self.context}-> as {annotation}')   
+            try:
+                print(f'Annotating {self.context}-> as {annotation}')  
+            except:
+                # I have had cases where __repr__ recurses infinitely... :-(
+                print(f'Annotating {self.context} (cannot print annotation)') 
             return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation, \
                                                 decorators=decorators)
         _total_return_annotations_missing += 1    
@@ -530,9 +582,16 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
             # We only retain imports if they are used in the code, or this is an __init__.py file,
             # or they were explict imports in the original code.
             if v == module:
-                if t in patcher._keep_imports or fname.endswith('__init__.pyi') or t in idents:
+                if t in idents:
                     ityps.append(k)
-
+                elif k.startswith('_'):
+                    pass
+                elif t in patcher._keep_imports or fname.endswith('__init__.py'):
+                    if k != t:
+                        ityps.append(k)
+                    else:  # re-export
+                        ityps.append(f'{t} as {t}')
+                    
         if module == 'np':
             module = 'numpy'
         elif module == 'pd':
@@ -546,7 +605,7 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
                 pass
 
     # TODO: long term we should update any that are using old typing stuff like Union, Tuple, etc.
-    typing_imports = ['Any', 'Callable', 'FileLike', 'IO', 'Iterable', 'Iterator', 'Literal', 'Mapping', 'NamedTuple', 
+    typing_imports = ['Any', 'Callable', 'ClassVar', 'FileLike', 'IO', 'Iterable', 'Iterator', 'Literal', 'Mapping', 'NamedTuple', 
                       'Self', 'Sequence', 'SupportsIndex', 'Type', 'TypeVar',
                       'Dict', 'List', 'Optional', 'Set', 'Tuple', 'Union']
                       
