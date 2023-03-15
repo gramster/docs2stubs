@@ -4,7 +4,7 @@
 @275#array-like of shape (n_samples,)#ArrayLike
 219#{array-like, sparse matrix} of shape (n_samples, n_features)#ArrayLike|MatrixLike
 @200#array-like of shape (n_samples, n_features)#MatrixLike
-131#int, RandomState instance or None#Int|RandomState|None
+131#int, RandomState instance or None#Int|numpy.random.RandomState|None
 @107#str#str
 102#Ignored#Any
 @92#dict#dict
@@ -14,7 +14,7 @@
 @39#str or callable#str|Callable
 @38#callable#Callable
 @38#array-like of shape (n_samples,) or (n_samples, n_outputs)#ArrayLike|MatrixLike
-35#int, RandomState instance#Int|RandomState
+35#int, RandomState instance#Int|numpy.random.RandomState
 @31#ndarray of shape (n_samples, n_features)#ArrayLike
 @31#array-like#ArrayLike
 26#{array-like, sparse matrix}, shape (n_samples, n_features)#MatrixLike
@@ -27,16 +27,16 @@
 @19#ndarray#ArrayLike
 @19#array of shape (n_samples,)#ArrayLike
 @18#bool or int#bool|int
-18#int, cross-validation generator or an iterable#int|BaseCrossValidator|Iterable
+18#int, cross-validation generator or an iterable#int|sklearn.model_selection.BaseCrossValidator|Iterable
 @18#array#ArrayLike
 17#array-like of shape (n_samples_X, n_features) or list of object#MatrixLike|ArrayLike
 @17#ndarray of shape (n_samples, K)#MatrixLike
 @16#array-like of shape (n_samples,) or (n_samples, n_targets)#ArrayLike|MatrixLike
 16#array-like, shape (n_samples, n_features)#MatrixLike
 @16#ndarray of shape (n_samples_Y, n_features)#MatrixLike
-15#estimator instance#Estimator
-14#matplotlib axes#Axes
-14#estimator object#Estimator
+15#estimator instance#sklearn.base.BaseEstimator
+14#matplotlib axes#matplotlib.axes.Axes
+14#estimator object#sklearn.base.BaseEstimator
 @14#ndarray of shape (n_samples_X, n_features)#MatrixLike
 @12#{'auto', 'ball_tree', 'kd_tree', 'brute'}#Literal['auto','ball_tree','kd_tree','brute']
 12#dict of string -> object#Mapping[str, Any]
@@ -61,7 +61,7 @@
 7#array-like of shape (n_queries, n_features),                 or (n_queries, n_indexed) if metric == 'precomputed'#MatrixLike
 @7#ndarray of shape (n_components, n_features)#MatrixLike
 @7#ndarray of shape (n_samples, n_components)#MatrixLike
-7#int, cross-validation generator or iterable#int|BaseCrossValidator|Iterable
+7#int, cross-validation generator or iterable#int|sklearn.model_selection.BaseCrossValidator|Iterable
 6#indexable, length n_samples#ArrayLike
 @6#ndarray of shape (n_classes,)#ArrayLike
 6#{ndarray, sparse matrix} of shape (n_samples, n_features)#MatrixLike
@@ -71,14 +71,14 @@
 @5#array-like of shape (n_components, n_features)#ArrayLike
 @5#ndarray of shape (n_features,)#ArrayLike
 5#{0, 1}#int
-5#str or object with the joblib.Memory interface#str|Memory
+5#str or object with the joblib.Memory interface#str|joblib.Memory
 5#{array-like, dataframe} of shape (n_samples, n_features)#MatrixLike
 5#{array-like}, shape (n_samples, n_features)#MatrixLike
 5#array-like or label indicator matrix#ArrayLike|MatrixLike
 @5#ndarray of shape (n_features, n_features)#MatrixLike
 5#{ndarray, sparse matrix}#ArrayLike|MatrixLike
 @5#bool or 'allow-nan'#bool|Literal['allow-nan']
-5#estimator#Estimator
+5#estimator#sklearn.base.BaseEstimator
 @5#ndarray of shape (n_samples,) or (n_samples, n_targets)#ArrayLike|MatrixLike
 5#str or module#str
 @5#Kernel#Kernel
@@ -93,7 +93,7 @@
 @4#{'connectivity', 'distance'}#Literal['connectivity','distance']
 @4#{'auto', 'QR', 'LU', 'none'}#Literal['auto','QR','LU','none']
 @4#int or 'auto'#Int|int|Literal['auto']
-4#estimator object implementing 'fit'#Estimator
+4#estimator object implementing 'fit'#sklearn.base.BaseEstimator
 @4#array-like of shape (n_samples, n_features) or                 (n_samples, n_samples)#MatrixLike
 @4#{'auto', 'arpack', 'dense'}#Literal['auto','arpack','dense']
 @4#{'l1', 'l2'}#Literal['l1','l2']
@@ -113,7 +113,7 @@
 4#None or C-contiguous array of shape (n_samples,) or array             of shape (n_samples, n_classes)#ArrayLike|MatrixLike|None
 @4#{"gini", "entropy", "log_loss"}#Literal["gini","entropy","log_loss"]
 4#{"sqrt", "log2", None}, int or float#Literal["sqrt","log2"]|int|float
-4#str or matplotlib Colormap#str|Colormap
+4#str or matplotlib Colormap#str|matplotlib.colors.Colormap
 @4#{'vertical', 'horizontal'} or float#Literal['vertical','horizontal']|float
 @4#{'true', 'pred', 'all'}#Literal['true','pred','all']
 @4#array-like of shape (n_samples,), dtype=integral#ArrayLike
@@ -126,7 +126,7 @@
 @3#{'random', 'nndsvd', 'nndsvda', 'nndsvdar', 'custom'}#Literal['random','nndsvd','nndsvda','nndsvdar','custom']
 @3#float or {'frobenius', 'kullback-leibler',             'itakura-saito'}#float|Literal['frobenius','kullback-leibler','itakura-saito']
 @3#float or "same"#float|Literal["same"]
-3#int or RandomState instance#None|int|RandomState
+3#int or RandomState instance#None|int|numpy.random.RandomState
 @3#None or array-like of shape (n_samples, n_features)#MatrixLike|None
 @3#ndarray of shape (n_samples,) or (n_samples, n_classes)#ArrayLike|MatrixLike
 3#iterable of iterables#Iterable[Iterable]
@@ -141,10 +141,10 @@
 @3#{'arpack', 'lobpcg', 'amg'}#Literal['arpack','lobpcg','amg']
 @3#ndarray of shape (n_samples, n_features) or (n_samples, n_samples)#MatrixLike
 3#array-like, shape (n_samples, n_dim)#MatrixLike
-@3#BaseEstimator#Estimator
+@3#BaseEstimator#sklearn.base.BaseEstimator
 @3#{'auto', 'predict_proba', 'decision_function'}#Literal['auto','predict_proba','decision_function']
 @3#tuple of float#tuple[float, ...]
-3#Matplotlib axes or array-like of Matplotlib axes#Axes|Sequence[Axes]
+3#Matplotlib axes or array-like of Matplotlib axes#matplotlib.axes.Axes|Sequence[matplotlib.axes.Axes]
 @3#float, int or None#float|int|None
 @3#ndarray of shape (grid_resolution, grid_resolution)#MatrixLike
 3#array-like or sparse matrix, shape (n_samples, n_features)#MatrixLike
@@ -168,10 +168,10 @@
 @3#{'word', 'char', 'char_wb'} or callable#Literal['word','char','char_wb']|Callable
 3#{'k-means++', 'random'}, callable or array-like of shape             (n_clusters, n_features)#Literal['k-means++','random']|Callable|MatrixLike
 @3#ndarray of shape (n,)#ArrayLike
-3#list of (str, estimator) tuples#list[tuple[str, Estimator]]
+3#list of (str, estimator) tuples#list[tuple[str, sklearn.base.BaseEstimator]]
 @3#array-like of shape (n_samples,) or (n_samples, n_classes)#ArrayLike|MatrixLike
 @3#array-like of shape (n_samples_Y, n_features)#MatrixLike
-3#matplotlib Axes#Axes
+3#matplotlib Axes#matplotlib.axes.Axes
 3#int array-like of shape (n_samples,)#ArrayLike
 @3#{"actual_vs_predicted", "residual_vs_predicted"}#Literal["actual_vs_predicted","residual_vs_predicted"]
 @2#{"eigh", "svd"}#Literal["eigh","svd"]
@@ -184,7 +184,7 @@
 @2#array-like of shape (n_samples, n_targets)#MatrixLike
 @2#{'sigmoid', 'isotonic'}#Literal['sigmoid','isotonic']
 @2#ndarray of shape (n_bins,)#ArrayLike
-2#Matplotlib Axes#Axes
+2#Matplotlib Axes#matplotlib.axes.Axes
 @2#{'parallel', 'deflation'}#Literal['parallel','deflation']
 @2#str or bool#str|bool
 @2#{'logcosh', 'exp', 'cube'} or callable#Literal['logcosh','exp','cube']|Callable
@@ -228,10 +228,10 @@
 2#{'average', 'individual', 'both'} or list of such str#Literal['average','individual','both']|Sequence[Literal['average','individual','both']]
 @2#{'average', 'individual', 'both'}#Literal['average','individual','both']
 @2#{'contourf', 'contour', 'pcolormesh'}#Literal['contourf','contour','pcolormesh']
-2#Matplotlib axes#None|Axes
+2#Matplotlib axes#None|matplotlib.axes.Axes
 @2#"auto", int or float#int|float|Literal["auto"]
 @2#{'auto', bool, array-like}#Literal['auto']|ArrayLike|bool
-2#``Estimator`` instance#Estimator
+2#``Estimator`` instance#sklearn.base.BaseEstimator
 @2#any#Any
 2#tuple, length = n_layers - 2#Sequence[int]
 @2#{'identity', 'logistic', 'tanh', 'relu'}#Literal['identity','logistic','tanh','relu']
@@ -241,7 +241,7 @@
 @2#array of shape (n_features, n_features)#MatrixLike
 2#str, bool or list/tuple of str#Sequence[str]|str|bool
 2#'numeric', type, list of type or None#Literal['numeric']|type|Sequence[type]|None
-2#str or estimator instance#str|Estimator
+2#str or estimator instance#str|sklearn.base.BaseEstimator
 2#{ndarray, list, sparse matrix}#ArrayLike|MatrixLike
 @2#ndarray of shape (n_samples,) or (n_features,)#ArrayLike
 @2#ndarray of shape (n_features,) or (n_samples,), dtype=floating#ArrayLike
@@ -270,7 +270,7 @@
 @2#bool, 'auto' or array-like#bool|Literal['auto']|ArrayLike
 2#int or None, optional (default=None)#int|None
 2#array-like of shape (n_outputs,) or 'random'#ArrayLike|Literal['random']
-2#int, RandomState instance or None, optional (default=None)#int|RandomState|None
+2#int, RandomState instance or None, optional (default=None)#int|numpy.random.RandomState|None
 2#ndarray, float32 or float64#ArrayLike|Float
 2#{dense matrix, sparse matrix, LinearOperator}#MatrixLike|scipy.sparse.linalg.LinearOperator
 @2#tuple#tuple
@@ -279,7 +279,7 @@
 2#tuple of slice#tuple[slice, ...]
 2#float, ndarray of shape (n_features,) or None#float|ArrayLike|None
 2#int or tuple of shape (2,), dtype=int#int|int|tuple[int,int]
-2#{'drop', 'passthrough'} or estimator#Literal['drop','passthrough']|Estimator
+2#{'drop', 'passthrough'} or estimator#Literal['drop','passthrough']|sklearn.base.BaseEstimator
 2#column dtype or list of column dtypes#np.dtype|Sequence[np.dtype]
 2#function#Callable
 2#array-like of shape (n_samples_Y, n_features) or list of object#MatrixLike|Sequence
@@ -315,8 +315,8 @@
 2#array-like of shape(n_layers - 2,)#ArrayLike
 @2#array-like or callable#ArrayLike|Callable
 2#dict of str -> obj#Mapping[str, obj]
-2#list of (str, estimator)#Sequence[tuple[str, Estimator]]
-!2#int, cross-validation generator, iterable, or "prefit"#int|BaseCrossValidator|Iterable|Literal["prefit"]
+2#list of (str, estimator)#Sequence[tuple[str, sklearn.base.BaseEstimator]]
+!2#int, cross-validation generator, iterable, or "prefit"#int|sklearn.model_selection.BaseCrossValidator|Iterable|Literal["prefit"]
 2#tree.Tree#Tree
 2#int, optional.#int|None
 2#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_classes)#ArrayLike|MatrixLike
@@ -329,9 +329,9 @@
 @2#int or float or None#int|float|None
 2#ndarray of shape (n_categorical_splits, 8),             dtype=uint32#MatrixLike
 2#ndarray, shape (n_samples, n_features)#MatrixLike
-2#Estimator#Estimator
+2#Estimator#sklearn.base.BaseEstimator
 @2#{'friedman_mse', 'squared_error', 'mse'}#Literal['friedman_mse','squared_error','mse']
-2#estimator or 'zero'#Estimator|Literal['zero']
+2#estimator or 'zero'#sklearn.base.BaseEstimator|Literal['zero']
 2#{'auto', 'sqrt', 'log2'}, int or float#Literal['auto','sqrt','log2']|int|float
 2#{"balanced", "balanced_subsample"}, dict or list of dicts#Literal["balanced","balanced_subsample"]|Mapping|Sequence[Mapping]
 2#{ndarray, sparse matrix} of shape (n_samples, n_labels)#MatrixLike
@@ -351,7 +351,7 @@
 @2#{'friedman_mse', 'squared_error'}#Literal['friedman_mse','squared_error']
 @2#{"squared_error", "absolute_error", "friedman_mse", "poisson"}#Literal["squared_error","absolute_error","friedman_mse","poisson"]
 2#str, {'auto', 'parallel_on_X', 'parallel_on_Y'}#str|Literal['auto','parallel_on_X','parallel_on_Y']
-2#int or RandomState#int|RandomState
+2#int or RandomState#int|numpy.random.RandomState
 @1#float or {"scott", "silverman"}#float|Literal["scott","silverman"]
 1#sparse matrix of shape (n_samples, n_samples)#MatrixLike
 @2#{"best", "random"}#Literal["best","random"]
@@ -368,11 +368,11 @@
 1#array-like, shape (n_queries, n_features),             or (n_queries, n_indexed) if metric == 'precomputed'#MatrixLike
 1#array-like of (n_samples, n_features)#MatrixLike
 1#{'auto', 'pca', 'lda', 'identity', 'random'} or ndarray of shape             (n_features_a, n_features_b)#Literal['auto','pca','lda','identity','random']|MatrixLike
-1#int or numpy.RandomState#int|RandomState
+1#int or numpy.RandomState#int|numpy.random.RandomState
 !1#{manual label, 'most_frequent'}#str
 @1#{'nipals', 'svd'}#Literal['nipals','svd']
-1#int, cross-validation generator, iterable or "prefit"#int|BaseCrossValidator|Iterable|Literal["prefit"]
-1#list of fitted estimator instances#list[IsotonicRegression|_SigmoidCalibration]|list[Estimator]
+1#int, cross-validation generator, iterable or "prefit"#int|sklearn.model_selection.BaseCrossValidator|Iterable|Literal["prefit"]
+1#list of fitted estimator instances#list[IsotonicRegression|_SigmoidCalibration]|list[sklearn.base.BaseEstimator]
 @1#{'batch', 'online'}#Literal['batch','online']
 @1#ndarray of shape (n_components, n_samples)#MatrixLike
 @1#{'lasso_lars', 'lasso_cd', 'lars', 'omp', 'threshold'}#Literal['lasso_lars','lasso_cd','lars','omp','threshold']
@@ -388,7 +388,7 @@
 1#{ndarray, sparse matrix} of shape (n_samples, n_components)#MatrixLike
 @1#{'lapack', 'randomized'}#Literal['lapack','randomized']
 @1#{'varimax', 'quartimax'}#Literal['varimax','quartimax']
-1#{list, tuple, set} of estimator instance or a single             estimator instance#Iterable[Estimator]|Estimator
+1#{list, tuple, set} of estimator instance or a single             estimator instance#Iterable[sklearn.base.BaseEstimator]sklearn.base.BaseEstimator
 @1#{"most_frequent", "prior", "stratified", "uniform",             "constant"}#Literal["most_frequent","prior","stratified","uniform","constant"]
 @1#int or str or array-like of shape (n_outputs,)#int|str|ArrayLike
 1#{array-like, object with finite length or shape}#ArrayLike
@@ -399,7 +399,7 @@
 @1#array-like of shape (n_samples,) or (n_samples, n_labels)#ArrayLike
 !1#sequence of indexables with same length / shape[0]#Sequence[Indexed]
 1#array-like, shape (n_samples,) or (n_samples, n_output)#ArrayLike|MatrixLike
-1#estimator object implementing 'fit' and 'predict'#Estimator
+1#estimator object implementing 'fit' and 'predict'#sklearn.base.BaseEstimator
 @1#{'predict', 'predict_proba', 'predict_log_proba',               'decision_function'}#Literal['predict','predict_proba','predict_log_proba','decision_function']
 1#array-like of shape at least 2D#MatrixLike
 1#array-like of  shape (n_samples,)#ArrayLike
@@ -430,16 +430,16 @@
 @1#float or array-like#float|ArrayLike
 @1#array-like of shape (n_samples, n_dimensions)#MatrixLike
 @1#{'svd', 'lsqr', 'eigen'}#Literal['svd','lsqr','eigen']
-1#covariance estimator#Estimator
+1#covariance estimator#sklearn.base.BaseEstimator
 @1#list of tuple#Sequence[tuple]
 @1#array-like of shape (n_samples, n_transformed_features)#MatrixLike
-1#list of Estimator objects#Sequence[Estimator]
+1#list of Estimator objects#Sequence[sklearn.base.BaseEstimator]
 1#list of (str, transformer) tuples#Sequence[tuple[str, TransformerMixin|Pipeline]]
-1#list of estimators#Sequence[Estimator]
+1#list of estimators#Sequence[sklearn.base.BaseEstimator]
 1#{array-like, sparse graph} of shape (n_samples, n_samples)#MatrixLike
 @1#{'nearest_neighbors', 'rbf', 'precomputed',                 'precomputed_nearest_neighbors'} or callable#Literal['nearest_neighbors','rbf','precomputed','precomputed_nearest_neighbors']|Callable
-!1#{array-like, sparse graph, BallTree, KDTree, NearestNeighbors}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|KDTree|NearestNeighbors
-!1#{array-like, sparse graph, BallTree, KDTree}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|KDTree
+!1#{array-like, sparse graph, BallTree, KDTree, NearestNeighbors}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|sklearn.neighbors._kd_tree.KDTree|NearestNeighbors
+!1#{array-like, sparse graph, BallTree, KDTree}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|sklearn.neighbors._kd_tree.KDTree
 1#array-like, shape (n_queries, n_features)#MatrixLike
 @1#{'random', 'pca'} or ndarray of shape (n_samples, n_components)#Literal['random','pca']|MatrixLike
 1#True#bool
@@ -493,13 +493,13 @@
 1#list-like#Sequence
 1#any type#Any
 1#{"classifier", "regressor", "cluster", "transformer"}             or list of such str#Literal["classifier","regressor","cluster","transformer"]|Sequence[Literal["classifier","regressor","cluster","transformer"]]
-1#None, str or object with the joblib.Memory interface#None|str|Memory
+1#None, str or object with the joblib.Memory interface#None|str|joblib.Memory
 !1#list or tuple of input objects.#Sequence|tuple[input, ...]
 1#{lists, dataframes, ndarrays, sparse matrices}#ArrayLike|MatrixLike
 @1#{'F', 'C'} or None#Literal['F','C']|None
 @1#str, bool or list of str#str|bool|Sequence[str]
 @1#{'F', 'C'}#Literal['F','C']
-1#None, int or instance of RandomState#None|int|RandomState
+1#None, int or instance of RandomState#None|int|numpy.random.RandomState
 @1#str, list or tuple of str#str|Sequence|tuple[str, ...]
 1#callable, {all, any}#Callable
 1#type or tuple#type|tuple
@@ -520,7 +520,7 @@
 @1#str or list of str#str|Sequence[str]
 1#str, list of str or tuple of str#str|Sequence[str]|tuple[str, ...]
 @1#{'serial', 'parallel', 'single'}#Literal['serial','parallel','single']
-1#list of estimators or `_VisualBlock`s or a single estimator#Sequence[Estimator]|Sequence[_VisualBlock]|Estimator
+1#list of estimators or `_VisualBlock`s or a single estimator#Sequence[sklearn.base.BaseEstimator]|Sequence[_VisualBlock]|sklearn.base.BaseEstimator
 1#list of str, str, or None#Sequence[str]|str|None
 @1#dict, 'balanced' or None#str|Mapping|Literal['balanced']|None
 1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_outputs)#ArrayLike|MatrixLike
@@ -533,7 +533,7 @@
 @1#boolean#bool
 1#array-likes#ArrayLike
 1#{array-like, sparse matrix} of size (n_samples, n_outputs)#MatrixLike
-1#list of estimators instances#Sequence[Estimator]
+1#list of estimators instances#Sequence[sklearn.base.BaseEstimator]
 1#int, dict, 'sequential_blas_under_openmp' or None (default=None)#int|Mapping|Literal['sequential_blas_under_openmp']|None
 1#"blas", "openmp" or None (default=None)#Literal["blas","openmp"]|None
 @1#{'mean', 'median', 'most_frequent', 'constant'}#Literal['mean','median','most_frequent','constant']
@@ -549,7 +549,7 @@
 1#float in range [0, 1]#float
 1#(array-like or sparse matrix} of shape (n_samples, n_features)#MatrixLike
 1#float, greater than 1.0#float
-1#Estimator object#Estimator
+1#Estimator object#sklearn.base.BaseEstimator
 1#numpy array or sparse matrix of shape [n_samples,n_features]#MatrixLike
 @1#{'hinge', 'log_loss', 'log', 'modified_huber', 'squared_hinge',        'perceptron', 'squared_error', 'huber', 'epsilon_insensitive',        'squared_epsilon_insensitive'}#Literal['hinge','log_loss','log','modified_huber','squared_hinge','perceptron','squared_error','huber','epsilon_insensitive','squared_epsilon_insensitive']
 @1#ndarray of shape (1,)#ArrayLike
@@ -569,7 +569,7 @@
 @1#{'l1', 'l2', 'elasticnet', 'none'}#Literal['l1','l2','elasticnet','none']
 @1#{'auto', 'ovr', 'multinomial'}#Literal['auto','ovr','multinomial']
 @1#int or list of floats#int|Sequence[float]
-!1#int or cross-validation generator#int|BaseCrossValidator
+!1#int or cross-validation generator#int|sklearn.model_selection.BaseCrossValidator
 @1#{'l1', 'l2', 'elasticnet'}#Literal['l1','l2','elasticnet']
 1#{'auto, 'ovr', 'multinomial'}#Literal['auto', 'ovr', 'multinomial']
 @1#list of float#Sequence[float]
@@ -715,8 +715,8 @@
 1#float > 0 and <= 1#float
 @1#ndarray of shape (n_unique_ticks,)#ArrayLike
 @1#{'dirichlet_process', 'dirichlet_distribution'}#Literal['dirichlet_process','dirichlet_distribution']
-1#{array-like, sparse matrix, BallTree, KDTree, NearestNeighbors}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|KDTree|NearestNeighbors
-1#{array-like, sparse matrix, BallTree, KDTree}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|KDTree
+1#{array-like, sparse matrix, BallTree, KDTree, NearestNeighbors}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|sklearn.neighbors._kd_tree.KDTree|NearestNeighbors
+1#{array-like, sparse matrix, BallTree, KDTree}#ArrayLike|sklearn.neighbors._ball_tree.BallTree|sklearn.neighbors._kd_tree.KDTree
 1#{array-like, sparse matrix}, shape (n_queries, n_features)#MatrixLike
 @1#{"pandas", "liac-arff"}#Literal["pandas","liac-arff"]
 @1#{"numpy", "sparse", "pandas"}#Literal["numpy","sparse","pandas"]
@@ -757,9 +757,9 @@
 @1#array of shape (n_samples,) or (n_samples, n_classes)#MatrixLike|ArrayLike
 @1#{"squared_error", "friedman_mse", "absolute_error",             "poisson"}#Literal["squared_error","friedman_mse","absolute_error","poisson"]
 @1#{"squared_error", "friedman_mse"}#Literal["squared_error","friedman_mse"]
-1#decision tree regressor or classifier#Regressor|Classifier
+1#decision tree regressor or classifier#sklearn.base.RegressorMixin|sklearn.base.ClassifierMixin
 @1#list of strings#Sequence[str]
-1#matplotlib axis#Axes
+1#matplotlib axis#matplotlib.axes.Axes
 2#array-like of {bool, int, str} of shape (n_features)             or shape (n_categorical_features,)#ArrayLike|MatrixLike
 1#{array-like, sparse matrix}, shape (n_queries, n_features),             or (n_queries, n_indexed) if metric == 'precomputed'#MatrixLike
 1#{array-like, sparse matrix} of shape (n_queries, n_features),             or (n_queries, n_indexed) if metric == 'precomputed'#MatrixLike
@@ -767,7 +767,7 @@
 1#array-like of shape (n_features,) or shape                 (n_categorical_features,), dtype={bool, int, str}#ArrayLike|MatrixLike
 1#array-like of shape (n_features,) or shape             (n_categorical_features,), dtype={bool, int, str}#ArrayLike|MatrixLike
 1#{array-like, sparse matrix) of shape (n_samples, n_features)#MatrixLike
-1#decision tree classifier#Classifier
+1#decision tree classifier#sklearn.base.ClassifierMixin
 @1#object or str#Any
 @1#dict or {"no_validation"}#Mapping|Literal["no_validation"]
 @1#set#set

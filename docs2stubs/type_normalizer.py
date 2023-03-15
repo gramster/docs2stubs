@@ -5,17 +5,6 @@ from .utils import load_map
 
 
 _ident = re.compile(r'^[A-Za-z_][A-Za-z_0-9\.]*$')
-#_restricted_val = re.compile(r'^(.*){(.*)}(.*)$')
-#_tuple1 = re.compile(r'^(.*)\((.*)\)(.*)$')  # using ()
-#_tuple2 = re.compile(r'^(.*)\[(.*)\](.*)$')  # using []
-#_sequence_of = re.compile(r'^(List|list|Sequence|sequence|Array|array) of ([A-Za-z0-9\._~`]+)$')
-#_set_of = re.compile(r'^(Set|set) of ([A-Za-z0-9\._~`]+)$')
-#_tuple_of = re.compile(r'^(Tuple|tuple) of ([A-Za-z0-9\._~`]+)$')
-#_dict_of = re.compile(r'^(Dict|dict) of ([A-Za-z0-9\._~`]+) to ([A-Za-z0-9\._~`]+)$')
-#_ndarray = re.compile(r'^ndarray(( of|,) (shape|[a-z]+)[ ]*\([^)]*\))?(, dtype=[a-z]+)?$')
-#_arraylike = re.compile(r'^array(\-)?(like)? ?(( of|,) shape[ ]*\([^)]*\))?$')
-#_filelike = re.compile(r'^file(-)?like$')
-#_pathlike = re.compile(r'^path(-)?like$')
 _shaped = re.compile(r'^(.*)( shape)([ =][\[\(])([^\]\)]*)([\]\)])([ ]*or[ ]*\(([^\)]*)\))*(.*)$', flags=re.IGNORECASE)
 
 # Start with {, end with }, comma-separated quoted words
@@ -25,9 +14,9 @@ _shaped = re.compile(r'^(.*)( shape)([ =][\[\(])([^\]\)]*)([\]\)])([ ]*or[ ]*\((
 _basic_types = {
     # Key: lower() version of type
     'any': 'Any', 
-    'array': 'NDArray',
-    'arraylike': 'NDArray',
-    'array-like': 'NDArray',
+    'array': 'numpy.typing.NDArray',
+    'arraylike': 'numpy.typing.NDArray',
+    'array-like': 'numpy.typing.NDArray',
     'bool': 'bool',
     'bools': 'bool',
     'boolean': 'bool',
@@ -48,7 +37,7 @@ _basic_types = {
     'iterable': 'Iterable',
     'list': 'list',
     'memoryview': 'memoryview',
-    'ndarray': 'np.ndarray',
+    'ndarray': 'numpy.ndarray',
     'none': 'None',
     'object': 'Any',
     'objects': 'Any',
@@ -87,16 +76,16 @@ def sanitize_shape(s: str) -> str:
 _trivial_cache = {}
 
 
-def is_trivial(s, modname: str, classes: set|dict|None = None):
+def is_trivial(s, modname: str):
     key = f'{modname}.{s}'
     if key in _trivial_cache:
         return _trivial_cache[key]
-    rtn = _is_trivial(s, modname, classes)
+    rtn = _is_trivial(s, modname)
     _trivial_cache[key] = rtn
     return rtn
 
 
-def _is_trivial(s, modname: str, classes: set|dict|None = None):
+def _is_trivial(s, modname: str):
     """
     Returns true if the docstring is trivially and unambiguously convertible to a 
     type annotation, and thus need not be written to the map file for further
@@ -104,7 +93,6 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
 
     s - the type docstring to check
     modname - the module name
-    classes - a set of class names or dictionary keyed on classnames 
     """
     s = s.strip()
     sl = sanitize_shape(s.lower())
@@ -114,25 +102,13 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
     if sl in _basic_types:
         return True
 
-    # Handle things of form "basic_type or ..."
-    #parts = sl.split(' or ') 
-    #if parts[0] in _basic_types:
-    #    return is_trivial(' or '.join(parts[1:]), modname, classes)  
-
-    # These are low frequency enough they're not worth the effort to handle
-    #if sl.startswith("generator of "):
-    #    return is_trivial(s[13:], modname, classes) 
-    #if sl.startswith("iterable over "):
-    #    return is_trivial(s[14:], modname, classes) 
-
     # Check if it's a string
 
     if sl and sl[0] == sl[-1] and (sl[0] == '"' or sl[0] =="'"):
         return True
 
-    if classes:
-        if s in classes or (_ident.match(s) and s.startswith(modname + '.')):
-            return True
+    if _ident.match(s) and s.startswith(modname + '.'):
+        return True
 
     # We have to watch out for ambiguous things like 'list of str or bool'.
     # This is just a kludge to look for both 'of' and 'or' in the type and
@@ -155,15 +131,15 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
 
     # Handle some class cases
     # :class:`~sklearn.preprocessing.LabelEncoder`
-    if sl.startswith(':class:`~') and sl.endswith('`') and is_trivial(sl[9:-1], modname, classes):
+    if sl.startswith(':class:`~') and sl.endswith('`') and is_trivial(sl[9:-1], modname):
         return True
     # Foo instance/instance of Foo
-    if sl.endswith(' instance') and is_trivial(sl[:-9], modname, classes):
+    if sl.endswith(' instance') and is_trivial(sl[:-9], modname):
         return True
-    if sl.startswith('instance of ') and is_trivial(sl[12:], modname, classes):
+    if sl.startswith('instance of ') and is_trivial(sl[12:], modname):
         return True
     if sl.startswith('matplotlib '):
-        return is_trivial(sl[11:], modname, classes)
+        return is_trivial(sl[11:], modname)
     
     # Handle tuples
     if sl.startswith('tuple'):
@@ -173,7 +149,7 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
         if sx[0] in '({[' and sx[-1] in '})]':
             # TODO We should make sure there are no other occurences of these
             # A lot of this is getting to where we should go back to regexps.
-            return is_trivial(sx[1:-1], modname, classes)
+            return is_trivial(sx[1:-1], modname)
         
         # Strip off leading OF or WITH
         if sx.startswith ('of ') or sx.startswith('with '):
@@ -185,27 +161,27 @@ def _is_trivial(s, modname: str, classes: set|dict|None = None):
             x = sx.find(' ')
             sx = sx[x+1:]
 
-        if is_trivial(sx, modname, classes):
+        if is_trivial(sx, modname):
             return True
         
     for s1 in [s, s.replace(',', ' or ')]:
         for splitter in [' or ', '|']:
             if s1.find(splitter) > 0:
-                if all([len(c.strip())==0 or is_trivial(c.strip(), modname, classes) \
+                if all([len(c.strip())==0 or is_trivial(c.strip(), modname) \
                         for c in s1.split(splitter)]):
                     return True
         
     if s.find(' of ') > 0:
         # Things like sequence of int, set of str, etc
         parts = s.split(' of ')
-        if len(parts) == 2 and is_trivial(parts[0], modname, None) and is_trivial(parts[1], modname, classes):
+        if len(parts) == 2 and is_trivial(parts[0], modname) and is_trivial(parts[1], modname):
             return True
         
     # Handle restricted values in {}
     if s.startswith('{') and s.endswith('}'):
         parts = s[1:-1].split(',')
         parts = [p.strip() for p in parts]
-        return all([is_trivial(p, modname, None) for p in parts])
+        return all([is_trivial(p, modname) for p in parts])
     
     return False
 
@@ -233,27 +209,23 @@ def _is_string(s) -> bool:
 _normalize_cache = {}
 
 
-def normalize_type(s: str, modname: str|None = None, classes: dict|None = None, is_param: bool = False) -> tuple[str|None, dict[str, list[str]]]:
+def normalize_type(s: str, modname: str|None = None, is_param: bool = False) -> str|None:
     try:
         key = f'{modname}.{s}?{is_param}'
         if key in _normalize_cache:
             return _normalize_cache[key]
-        rtn = parse_type(sanitize_shape(s), modname, classes, is_param)
+        rtn = parse_type(sanitize_shape(s), modname, is_param)
         _normalize_cache[key] = rtn
         return rtn
     except Exception as e:
-        return None, {}
+        return None
     
 
-def check_normalizer(typ: str, is_param: bool, m: str|None=None, classes: dict|None = None):
+def check_normalizer(typ: str, is_param: bool, m: str|None=None):
     if m is None:
         m = ''
-    if classes is None:
-        classes = {}
-        if m:
-            classes = load_map(m, 'imports')
 
-    trivial = is_trivial(typ, m, classes)
-    normalized = normalize_type(typ, m, classes, is_param)
+    trivial = is_trivial(typ, m)
+    normalized = normalize_type(typ, m, is_param)
 
-    return trivial, normalized[0], normalized[1]
+    return trivial, normalized

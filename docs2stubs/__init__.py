@@ -5,7 +5,6 @@ docs2stubs.
 Usage:
   docs2stubs analyze (package|module) [--skip-trivial] [--trace_folder FOLDER] <name>...
   docs2stubs stub (package|module) [--strip-defaults] [--skip-analysis] [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
-  docs2stubs augment (package|module) [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
   docs2stubs test [<name>] <typestring>
   docs2stubs -h | --help
   docs2stubs --version
@@ -55,16 +54,13 @@ The `stub` command will generate stubs for the module/package under a
 then make use of the .map file produced by analysis to 
 determine types, and for assignments or default parameter values with
 no normalized type available, will infer the type from the assigned
-value if possible.
+value if possible. It can also make use of monkeytype traces to
+both augment these types and add types elsewhere where there are 
+no docstrings.
 
 Parameter default values are usually preserved in the stubs if they are
 scalars, but if you specify `--strip-defaults` they will all be removed
 and replaced with '...'.
-
-The `augment` command will augment a set of stubs with information
-from a monkeytype SQLite database. It will not replace existing
-annotations but will report mismatches between existing annotations
-and those that are created from the trace data.
 
 The `test` command can be used to test how a type string will be 
 normalized by the program. A module or package name can optionally
@@ -77,7 +73,7 @@ __version__ = '0.1'
 from docopt import docopt
 from .stubbing_transformer import stub_module
 from .analyzing_transformer import analyze_module
-from .augmenting_transformer import augment_module
+
 from .type_normalizer import check_normalizer
 
 
@@ -97,10 +93,6 @@ def main():
         trace_folder = arguments['--trace_folder']
         stub_module(n, include_submodules=include_submodules, \
             strip_defaults=strip_defaults, skip_analysis=skip_analysis, stub_folder=stub_folder, trace_folder=trace_folder)
-      elif arguments['augment']:
-        stub_folder = arguments['--stub_folder']
-        trace_folder = arguments['--trace_folder']
-        augment_module(n, include_submodules=include_submodules, stub_folder=stub_folder, trace_folder=trace_folder)
       elif arguments['test']:
         print(check_normalizer(arguments["<typestring>"], name))
 

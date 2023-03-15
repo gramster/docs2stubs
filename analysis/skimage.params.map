@@ -2,40 +2,40 @@
 33#(N, 2) array#ArrayLike
 32#(..., 3, ...) array_like#ArrayLike
 23#array_like#ArrayLike
-20#ndarray (integer or float)#NDArray
-19#(M, N) ndarray#NDArray
-17#([P,] M, N) ndarray (uint8, uint16)#NDArray
-17#([P,] M, N) array (same dtype as input)#NDArray
+20#ndarray (integer or float)#numpy.typing.NDArray
+19#(M, N) ndarray#numpy.typing.NDArray
+17#([P,] M, N) ndarray (uint8, uint16)#numpy.typing.NDArray
+17#([P,] M, N) array (same dtype as input)#numpy.typing.NDArray
 16#float in [0, ..., 1]#float
 13#function#Callable
 13#2D array#ArrayLike
 12#double#float
 12#2-D array (uint8, uint16)#ArrayLike
-12#2-D array (same dtype as input)#np.ndarray
-12#(N, M[, ..., P]) ndarray#np.ndarray
+12#2-D array (same dtype as input)#numpy.ndarray
+12#(N, M[, ..., P]) ndarray#numpy.ndarray
 10#unsigned int#int
 9#{None, int, `numpy.random.Generator`}#int|Generator|None
 8#scalar or sequence of scalars#Scalar|Sequence[Scalar]
 6#dtype#np.dtype
 6#(N, D) array#ArrayLike
-5#ndarray, int64#NDArray|int
+5#ndarray, int64#numpy.typing.NDArray|int
 5#1D array, int64#ArrayLike|int
 5#uint#int
 5#array, or 2-tuple of arrays#ArrayLike|tuple[ArrayLike, ...]
-4#(N,) ndarray#NDArray
+4#(N,) ndarray#numpy.typing.NDArray
 4#(N, M) array#ArrayLike
 4#(3, 3) array#ArrayLike
-4#(N, M) ndarray#NDArray
+4#(N, M) ndarray#numpy.typing.NDArray
 4#(2, ) array#ArrayLike
-4#(N, M[, P]) ndarray#np.ndarray
-4#ndarray, shape (M, N[, P[, ...]])#np.ndarray
+4#(N, M[, P]) ndarray#numpy.ndarray
+4#ndarray, shape (M, N[, P[, ...]])#numpy.ndarray
 4#2-D array (integer or float)#ArrayLike
 4#callable `f(r, c, **filter_params)`#Callable
-4#(M,N) ndarray#NDArray
-3#(M, N[, 3]) array#np.ndarray
+4#(M,N) ndarray#numpy.typing.NDArray
+3#(M, N[, 3]) array#numpy.ndarray
 3#(N, ) array#ArrayLike
 3#(D+1, D+1) array#ArrayLike
-3#ndarray, 2D or 3D#np.ndarray
+3#ndarray, 2D or 3D#numpy.ndarray
 3#bool, optional (default: False)#bool|None
 3#array, shape (N,)#ArrayLike
 3#integer#int
@@ -43,10 +43,10 @@
 3#float [0, 1]#float
 3#tuple of positive integers#tuple[int, ...]
 3#(M, N) or (L, M, N) array#ArrayLike
-3#ndarray, shape (M, N, ..., P)#NDArray
+3#ndarray, shape (M, N, ..., P)#numpy.typing.NDArray
 3#str or 2-tuple#str|tuple
 2#csc_matrix#csc_matrix
-2#ndarray, shape (M, N[, 3])#np.ndarray
+2#ndarray, shape (M, N[, 3])#numpy.ndarray
 2#:py:class:`matplotlib.colors.Colormap`#Colormap
 2#array-like, shape (N,)#ArrayLike
 2#(M,) array#ArrayLike
@@ -55,60 +55,60 @@
 2#List of tuples, each tuple of length equal to dimension of `ii`#list[tuple]
 2#tuple (row, col)#tuple
 2#tuple of ints, int, or False#tuple[int, ...]|int|Literal[False]
-2#2D ndarray#NDArray
+2#2D ndarray#numpy.typing.NDArray
 2#(M, N) array#ArrayLike
 2#2-tuple (int, int)#tuple[int,int]
-2#ndarray of list of tuples or None#NDArray|None
+2#ndarray of list of tuples or None#numpy.typing.NDArray|None
 2#(N, M [, 3]) array#ArrayLike
 2#matplotlib color#Color
-2#binary ndarray, shape (M, N)#np.ndarray
+2#binary ndarray, shape (M, N)#numpy.ndarray
 2#unsigned integer#int
-2#ndarray (arbitrary shape, int or bool type)#np.ndarray
+2#ndarray (arbitrary shape, int or bool type)#numpy.ndarray
 2#int, optional (default: 64)#int|None
 2#int, {1, 2, ..., ar.ndim}, optional (default: 1)#int
-2#(N,) ndarray of double#NDArray
+2#(N,) ndarray of double#numpy.typing.NDArray
 2#(N,) array of float#ArrayLike
 2#(M, N, P) array#ArrayLike
-2#ndarray of dtype int#NDArray
+2#ndarray of dtype int#numpy.typing.NDArray
 2#array_like, shape (2, )#ArrayLike
 2#str, {'low', 'high'}#Literal['low','high']
 2#(N, D) double or uint8 array#ArrayLike
 2#nD double or uint8 array#ArrayLike
 2#(N, dim) array#ArrayLike
-2#(M, N[, P][, C]) ndarray#np.ndarray
+2#(M, N[, P][, C]) ndarray#numpy.ndarray
 2#Iterable of callables#Iterable[Callable]
 2#bool (optional)#bool|None
 2#str or file#str|FileLike
 2#str or pathlib.Path#str|Path
 2#string or open file#str|IO
-2#ndarray of bools or 0s and 1s#np.ndarray
+2#ndarray of bools or 0s and 1s#numpy.ndarray
 2#str, (M, N) array, or (L, M, N) array#str|ArrayLike
 2#numpy arrays#ArrayLike
 2#string in {'thick', 'inner', 'outer', 'subpixel'}#Literal['thick', 'inner', 'outer', 'subpixel']
 2#length-3 sequence#Sequence
 2#integer or tuple of length arr_in.ndim#int|tuple
 2#array of int, shape (N,)#ArrayLike
-2#(M[, N[, ..., P]][, C]) ndarray#np.ndarray
+2#(M[, N[, ..., P]][, C]) ndarray#numpy.ndarray
 2#float, or array of same shape as ``image``#float|ArrayLike
 2#2-tuple of floats#tuple[float, ...]
 1#int in {1, ..., ``label_image.ndim``}#int
-1#ndarray, shape(M, N, [..., P,] 3)#np.ndarray
-1#ndarray, shape(M, N, [..., P])#np.ndarray
-1#ndarray, shape (M, N)#NDArray
+1#ndarray, shape(M, N, [..., P,] 3)#numpy.ndarray
+1#ndarray, shape(M, N, [..., P])#numpy.ndarray
+1#ndarray, shape (M, N)#numpy.typing.NDArray
 1#:py:class:`matplotlib.axes.Axes`#Axes
 1#float, optional (default 0.)#float|None
-1#(M, N, D) ndarray#NDArray
-1#tuple of ((P,) ndarray, (P,) ndarray)#tuple[tuple[NDArray,NDArray], ...]
-1#(D,) ndarray#NDArray
-1#scalar or (N,) ndarray#Scalar|NDArray
+1#(M, N, D) ndarray#numpy.typing.NDArray
+1#tuple of ((P,) ndarray, (P,) ndarray)#tuple[tuple[numpy.typing.NDArray,numpy.typing.NDArray], ...]
+1#(D,) ndarray#numpy.typing.NDArray
+1#scalar or (N,) ndarray#Scalar|numpy.typing.NDArray
 1#{tuple of tuples of uint8, tuple of uint8}#tuple[tuple[uint8,...],...]|tuple[uint8,...]
 1#tuple of floats, length 3#tuple[float,float,float]
 1#tuple of size 2.#tuple
 1#array_like.#ArrayLike
 1#boolean, optional (default True)#bool|None
 1#boolean, optional (default False)#bool|None
-1#1D ndarray of double#NDArray
-1#1D ndarray, dtype=double#NDArray
+1#1D ndarray of double#numpy.typing.NDArray
+1#1D ndarray, dtype=double#numpy.typing.NDArray
 1#1D array of floats#ArrayLike
 1#length-2 sequence of floats#Sequence[float]
 1#(3, 1) array#ArrayLike
@@ -120,7 +120,7 @@
 1#(2, N) array#ArrayLike
 1#{'euclidean', similarity', 'affine', 'piecewise-affine',              'projective', 'polynomial'}#Literal['euclidean', similarity', 'affine', 'piecewise-affine',              'projective', 'polynomial']
 1#iterable of length 2#Iterable
-1#(column, row) tuple or (2,) ndarray#tuple|NDArray
+1#(column, row) tuple or (2,) ndarray#tuple|numpy.typing.NDArray
 1#callable like GeometricTransform.inverse#Callable
 1#np.dtype or string#dtype|str
 1#tuple (rows, cols)#tuple
@@ -129,11 +129,11 @@
 1#{'euclidean', 'cityblock', 'minkowski', 'hamming', ...} #Literal['euclidean','cityblock','minkowski','hamming']
 1#(M, N[, D]) array#ArrayLike
 1#(m, n[, d]) array#ArrayLike
-1#ndarray of float or uint#NDArray|uint
-1#(K, 2) ndarray#NDArray
+1#ndarray of float or uint#numpy.typing.NDArray|uint
+1#(K, 2) ndarray#numpy.typing.NDArray
 1#(K, 2) array#ArrayLike
 1#int, tuple of ints, or bool#int|tuple[int, ...]|bool
-1#(M, N[, C]) ndarray#np.ndarray
+1#(M, N[, C]) ndarray#numpy.ndarray
 1#str {'L1', 'L1-sqrt', 'L2', 'L2-Hys'}#str|Literal['L1','L1-sqrt','L2','L2-Hys']
 1#[ 'l1' | 'l2' | 'daisy' | 'off' ]#Literal['off','daisy','l2','l1']
 1#1D array of float#ArrayLike
@@ -144,9 +144,9 @@
 1#(Q, 2) array#ArrayLike
 1#array, dtype=bool#ArrayLike
 1#str, {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}#str|Literal['reflect','constant','nearest','mirror','wrap']
-1#ndarrays#NDArray
-1#numpy.ndarray#NDArray
-1#binary (M, N) ndarray#np.ndarray
+1#ndarrays#numpy.typing.NDArray
+1#numpy.ndarray#numpy.typing.NDArray
+1#binary (M, N) ndarray#numpy.ndarray
 1#int, number of iterations#int
 1#{1, 2}, int#Literal[1,2]|int
 1#bool, optional (default: None)#bool|None
@@ -159,14 +159,14 @@
 1#array_like or int#ArrayLike|int
 1#(V, 3) array of floats#ArrayLike
 1#(F, 3) array of ints#ArrayLike
-1#(N, M) ndarray or (N, M, D) ndarray.#NDArray
+1#(N, M) ndarray or (N, M, D) ndarray.#numpy.typing.NDArray
 1#4 or 8#Literal[4,8]
 1#2 or 4#Literal[2,4]
-1#ndarray, shape (M, N[, C])#np.ndarray
+1#ndarray, shape (M, N[, C])#numpy.ndarray
 1#int in {0, 1, 2, 3, 4, 5}#Literal[0, 1, 2, 3, 4, 5]
 1#{1, 2, 3, 4, 5, 6, 7}#Literal[1,2,3,4,5,6,7]
-1#2D ndarray of double#NDArray
-1#2D ndarray of bool, or None#NDArray|None
+1#2D ndarray of double#numpy.typing.NDArray
+1#2D ndarray of bool, or None#numpy.typing.NDArray|None
 1#(M,[ ...,] M) array#ArrayLike
 1#(M, M) array#ArrayLike
 1#array, shape ``(image.ndim, image.ndim)``#ArrayLike
@@ -181,8 +181,8 @@
 1#float larger than 0#float
 1#float in range [0, 1]#float
 1#array-like of bool, shape (N,)#ArrayLike
-1#(M, N[, P]) ndarray#np.ndarray
-1#ndarray of float64#NDArray
+1#(M, N[, P]) ndarray#numpy.ndarray
+1#ndarray of float64#numpy.typing.NDArray
 1#scipy.sparse.csr_matrix#csr_matrix
 1#an iterable of images#Iterable
 1#int or slice#int|slice
@@ -190,26 +190,26 @@
 1#`matplotlib.axes.Axes`#Axes
 1#boolean, optional.#bool|None
 1#{str, pathlib.Path, bytes, file}#str|file|bytes|Path
-1#ndarray, ndim=3, dtype=np.uint8#np.ndarray
+1#ndarray, ndim=3, dtype=np.uint8#numpy.ndarray
 1#numpy dtype object or string specifier#np.dtype|str
 1#str or file-like object#str|FileLike
-1#ndarray of uint8 or float#NDArray|float
+1#ndarray of uint8 or float#numpy.typing.NDArray|float
 1#(..., 4, ...) array_like#ArrayLike
 1#string, one of {'overlay', 'avg'}#str|Literal['overlay','avg']
 1#(M[, N[, ..., P]]) array of int or bool#ArrayLike
-1#ndarray of bool, same shape as `image`, optional.#NDArray|None
-1#ndarray (2-D, 3-D, ...)#np.ndarray
-1#int, or ndarray of int, same shape as `image`#int|NDArray
+1#ndarray of bool, same shape as `image`, optional.#numpy.typing.NDArray|None
+1#ndarray (2-D, 3-D, ...)#numpy.ndarray
+1#int, or ndarray of int, same shape as `image`#int|numpy.typing.NDArray
 1#array_like of shape image.ndim#ArrayLike
 1#float, positive#float
-1#str or (M, N) ndarray#str|NDArray
-1#(N, M) or (N, M, 3) ndarray#tuple|NDArray
-1#(N, 2) ndarray#NDArray
-1#2D, 3D or 4D ndarray#np.ndarray
-1#numpy array of int, arbitrary shape#np.ndarray
-1#(width, height, channels) ndarray#NDArray
+1#str or (M, N) ndarray#str|numpy.typing.NDArray
+1#(N, M) or (N, M, 3) ndarray#tuple|numpy.typing.NDArray
+1#(N, 2) ndarray#numpy.typing.NDArray
+1#2D, 3D or 4D ndarray#numpy.ndarray
+1#numpy array of int, arbitrary shape#numpy.ndarray
+1#(width, height, channels) ndarray#numpy.typing.NDArray
 1#float, optional, between 0 and 1#float
-1#(width, height, 3) or (width, height) ndarray#tuple|NDArray
+1#(width, height, 3) or (width, height) ndarray#tuple|numpy.typing.NDArray
 1#bool, optional (default: True)#bool|None
 1#array of ints, of same shape as `data` without channels dimension#ArrayLike
 1#string, available options {'cg', 'cg_j', 'cg_mg', 'bf'}#Literal['cg', 'cg_j', 'cg_mg', 'bf']
@@ -218,31 +218,31 @@
 1#(M, N) array of int#ArrayLike
 1#numpy data type#np.dtype
 1#array-like of rank N#ArrayLike
-1#(K, M, N[, C]) ndarray#np.ndarray
+1#(K, M, N[, C]) ndarray#numpy.ndarray
 1#array of int, shape (M[, N][, P][, ...])#ArrayLike
 1#array, same shape as `input_arr`#ArrayLike
-1#2-D ndarray#NDArray
+1#2-D ndarray#numpy.typing.NDArray
 1#numpy array or dask array#ArrayLike
 1#data-type or None#np.dtype|None
-1#ndarray of ints, uints or floats#NDArray
-1#ndarray ([M[, N[, ...P]][, C]) of ints, uints or floats#np.ndarray
-1#1D, 2D or 3D ndarray of floats, optionally a masked array#NDArray
-1#2D or 3D ndarray#NDArray
-1#(M[, N[, ..., P]]) ndarray#np.ndarray
-1#(N1, ...,NN[, C]) ndarray#np.ndarray
+1#ndarray of ints, uints or floats#numpy.typing.NDArray
+1#ndarray ([M[, N[, ...P]][, C]) of ints, uints or floats#numpy.ndarray
+1#1D, 2D or 3D ndarray of floats, optionally a masked array#numpy.typing.NDArray
+1#2D or 3D ndarray#numpy.typing.NDArray
+1#(M[, N[, ..., P]]) ndarray#numpy.ndarray
+1#(N1, ...,NN[, C]) ndarray#numpy.ndarray
 1#int or array_like#int|ArrayLike
 1#string, one of "real" or "fourier"#Literal["real","fourier"]
 1#scalar or sequence of scalars, optional (default is None)#Scalar|Sequence[Scalar]|None
 1#float, optional (default is 4.0)#float
 1#tuple of int or int#tuple[int, ...]|int
-1#float or (M,N) ndarray#float|NDArray
-1#[P, ..., ]M[, N][, C] ndarray#np.ndarray
+1#float or (M,N) ndarray#float|numpy.typing.NDArray
+1#[P, ..., ]M[, N][, C] ndarray#numpy.ndarray
 1#{int, function}#int|Callable
 1#float or Callable[[array[float]], float]#float|Callable
 1#Callable[[float], Any]#Callable
 1#array, shape (M,[ N, ..., P])#ArrayLike
-1#ndarray, (same dtype as image)#np.ndarray
-1#ndarray, dtype float, shape (M, N,[ ...,] P)#np.ndarray
-1#ndarray, dtype float shape (Q, R,[ ...,] S)#np.ndarray
-1#(N, ..., M) ndarray#NDArray
+1#ndarray, (same dtype as image)#numpy.ndarray
+1#ndarray, dtype float, shape (M, N,[ ...,] P)#numpy.ndarray
+1#ndarray, dtype float shape (Q, R,[ ...,] S)#numpy.ndarray
+1#(N, ..., M) ndarray#numpy.typing.NDArray
 1#{np.complex64, np.complex128}#np.complex64|np.complex128

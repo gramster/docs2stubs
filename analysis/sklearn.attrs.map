@@ -1,28 +1,28 @@
 @391#int#int
-@191#ndarray of shape (`n_features_in_`,)#ndarray
+@191#ndarray of shape (`n_features_in_`,)#numpy.ndarray
 @99#float#float
-@50#ndarray of shape (n_classes,)#ndarray
-@43#ndarray of shape (n_features,)#ndarray
-@24#ndarray of shape (n_samples,)#ndarray
+@50#ndarray of shape (n_classes,)#numpy.ndarray
+@43#ndarray of shape (n_features,)#numpy.ndarray
+@24#ndarray of shape (n_samples,)#numpy.ndarray
 @23#bool#bool
-@21#array-like of shape (n_features,)#ArrayLike
-@18#ndarray of shape (n_features, n_components)#ndarray
-@18#ndarray of shape (n_features, n_features)#ndarray
+@21#array-like of shape (n_features,)#sklearn._typing.ArrayLike
+@18#ndarray of shape (n_features, n_components)#numpy.ndarray
+@18#ndarray of shape (n_features, n_features)#numpy.ndarray
 @17#dict#dict
-@17#ndarray of shape (n_components, n_features)#ndarray
-@14#float or ndarray of shape (n_targets,)#float|ndarray
-@12#ndarray of shape (n_components,)#ndarray
-12#estimator#BaseEstimator
-@9#ndarray of shape (n_classes, n_features)#ndarray
-@8#array of shape (n_features,)#ndarray
+@17#ndarray of shape (n_components, n_features)#numpy.ndarray
+@14#float or ndarray of shape (n_targets,)#float|numpy.ndarray
+@12#ndarray of shape (n_components,)#numpy.ndarray
+12#estimator#sklearn.base.BaseEstimator
+@9#ndarray of shape (n_classes, n_features)#numpy.ndarray
+@8#array of shape (n_features,)#numpy.ndarray
 @8#list#list
 @7#str#str
-@7#ndarray of shape (n_samples, n_components)#ndarray
-@7#ndarray of shape (n_targets,)#ndarray
-7#matplotlib Figure#Figure
-@7#ndarray of shape (n_features,) or (n_targets, n_features)#ndarray
-@6#ndarray of shape (n_targets, n_components)#ndarray
-6#matplotlib Axes#Axes
+@7#ndarray of shape (n_samples, n_components)#numpy.ndarray
+@7#ndarray of shape (n_targets,)#numpy.ndarray
+7#matplotlib Figure#matplotlib.figure.Figure
+@7#ndarray of shape (n_features,) or (n_targets, n_features)#numpy.ndarray
+@6#ndarray of shape (n_targets, n_components)#numpy.ndarray
+6#matplotlib Axes#matplotlib.axes.Axes
 @6#list of int#list[int]
 6#list of arrays#list[ArrayLike]
 @6#array-like of shape (n_components,)#ArrayLike
@@ -30,80 +30,80 @@
 @6#:class:`~sklearn.utils.Bunch`#Bunch
 @5#str or callable#str|Callable
 @5#array-like of shape (n_classes,)#ArrayLike
-@5#ndarray of shape (n_SV, n_features)#ndarray
+@5#ndarray of shape (n_SV, n_features)#numpy.ndarray
 5#tuple of int of shape (n_dimensions_of_X,)#tuple
-@5#ndarray of shape (1,)#ndarray
-@5#ndarray of shape (n_clusters, n_features)#ndarray
+@5#ndarray of shape (1,)#numpy.ndarray
+@5#ndarray of shape (n_clusters, n_features)#numpy.ndarray
 @5#_CFNode#_CFNode
-5#list of estimators#list[estimators]
-4#matplotlib Artist#Artist
-@4#ndarray of shape (n_samples, n_features)#ndarray
-@4#ndarray#ndarray
+5#list of estimators#list[sklearn.base.BaseEstimator]
+4#matplotlib Artist#matplotlib.artist.Artist
+@4#ndarray of shape (n_samples, n_features)#numpy.ndarray
+@4#ndarray#numpy.ndarray
 @4#int or list of int#int|list[int]
-4#dict of numpy (masked) ndarrays#dict[str,ndarray]
+4#dict of numpy (masked) ndarrays#dict[str,numpy.ndarray]
 4#function or a dict#Callable|dict
-@4#list of ndarray#list[ndarray]
+@4#list of ndarray#list[numpy.ndarray]
 @4#object#Any
-@4#ndarray of shape (1,) if n_classes == 2 else (n_classes,)#ndarray
-@4#ndarray of shape (n_classes * (n_classes - 1) / 2,)#ndarray
-@4#ndarray of shape (n_SV,)#ndarray
-@4#ndarray of shape (1, n_features)#ndarray
+@4#ndarray of shape (1,) if n_classes == 2 else (n_classes,)#numpy.ndarray
+@4#ndarray of shape (n_classes * (n_classes - 1) / 2,)#numpy.ndarray
+@4#ndarray of shape (n_SV,)#numpy.ndarray
+@4#ndarray of shape (1, n_features)#numpy.ndarray
 @4#list of shape (n_layers - 1,)#list
-@4#ndarray of shape (n_targets, n_features)#ndarray
+@4#ndarray of shape (n_targets, n_features)#numpy.ndarray
 @4#array-like or int#ArrayLike|int
 @4#array-like of shape (n_samples,)#ArrayLike
-4#ndarray, shape (n_iter_+1,)#ndarray
-@4#ndarray of floats#ndarray
-@4#ndarray of shape (n_estimators,)#ndarray
+4#ndarray, shape (n_iter_+1,)#numpy.ndarray
+@4#ndarray of floats#numpy.ndarray
+@4#ndarray of shape (n_estimators,)#numpy.ndarray
 4#Tree instance#Tree
 @3#array-like of shape (n_classes, n_features)#ArrayLike
-@3#array of shape (n_classes,)#ndarray
-@3#ndarray of shape (n_features, n_targets)#ndarray
+@3#array of shape (n_classes,)#numpy.ndarray
+@3#ndarray of shape (n_features, n_targets)#numpy.ndarray
 @3#list of shape (n_components,)#list
-3#RandomState instance#RandomState
-3#ndarray of shape (n_features,) or None#ndarray|None
+3#RandomState instance#numpy.random.RandomState
+3#ndarray of shape (n_features,) or None#numpy.ndarray|None
 @3#array-like of shape (n_components, n_features)#ArrayLike
 @3#array-like of shape (n_features, n_features)#ArrayLike
-@3#ndarray of shape (n_samples, n_samples)#ndarray
-@3#ndarray of shape (n_classes,), dtype=int32#ndarray
-@3#ndarray of shape (1, n_SV)#ndarray
+@3#ndarray of shape (n_samples, n_samples)#numpy.ndarray
+@3#ndarray of shape (n_classes,), dtype=int32#numpy.ndarray
+@3#ndarray of shape (1, n_SV)#numpy.ndarray
 3#``Estimator`` instance#Basestimator
 3#list, length = len(params)#list
-@3#:class:`~sklearn.impute.MissingIndicator`#MissingIndicator
-@3#ndarray of shape (1, n_features) if n_classes == 2 else             (n_classes, n_features)#ndarray
-@3#ndarray of shape (1, n_features) or (n_classes, n_features)#ndarray
+@3#:class:`~sklearn.impute.MissingIndicator`#sklearn.impute._base.MissingIndicator
+@3#ndarray of shape (1, n_features) if n_classes == 2 else             (n_classes, n_features)#numpy.ndarray
+@3#ndarray of shape (1, n_features) or (n_classes, n_features)#numpy.ndarray
 3#sparse matrix of shape (n_features,) or             (n_targets, n_features)#spmatrix
-@3#ndarray of shape (n_alphas,)#ndarray
+@3#ndarray of shape (n_alphas,)#numpy.ndarray
 3#array-like of shape (n_alphas + 1,) or list of such arrays#ArrayLike|list[ArrayLike]
 @3#array-like of shape (n_alphas,)#ArrayLike
 @3#array-like of shape (n_samples, n_samples)#ArrayLike
-@3#ndarray of shape (n_samples, n_classes)#ndarray
-@3#ndarray of shape (n_samples)#ndarray
-@3#ndarray of shape (branching_factor + 1, n_features)#ndarray
-@3#ndarray of shape (branching_factor + 1,)#ndarray
+@3#ndarray of shape (n_samples, n_classes)#numpy.ndarray
+@3#ndarray of shape (n_samples)#numpy.ndarray
+@3#ndarray of shape (branching_factor + 1, n_features)#numpy.ndarray
+@3#ndarray of shape (branching_factor + 1,)#numpy.ndarray
 @3#int or list#int|list
-2#ndarray of shape (n_classes,) or list of such arrays#ndarray|list[ArrayLike]
+2#ndarray of shape (n_classes,) or list of such arrays#numpy.ndarray|list[ArrayLike]
 2#`None`#None
-2#estimator or dict#BaseEstimator|dict
-@2#array of floats#ndarray
+2#estimator or dict#sklearn.base.BaseEstimator|dict
+@2#array of floats#numpy.ndarray
 2#list of arrays of shape (n_features,)#list[ArrayLike]
-@2#ndarray of shape (n_classes * (n_classes - 1) // 2,)#ndarray
-@2#ndarray of shape (n_classes * (n_classes - 1) / 2)#ndarray
-@2#ndarray of shape (1,), dtype=int32#ndarray
-2#ndarray of matplotlib Artists#ndarray
-2#ndarray of matplotlib LineCollection#ndarray
-2#dict of ndarrays#dict[str, ndarray]
-2#array, shape (n_features,)#ndarray
-2#ndarray or list of ndarray of shape (n_classes,)#ndarray|list[ndarray]
+@2#ndarray of shape (n_classes * (n_classes - 1) // 2,)#numpy.ndarray
+@2#ndarray of shape (n_classes * (n_classes - 1) / 2)#numpy.ndarray
+@2#ndarray of shape (1,), dtype=int32#numpy.ndarray
+2#ndarray of matplotlib Artists#numpy.ndarray
+2#ndarray of matplotlib LineCollection#numpy.ndarray
+2#dict of ndarrays#dict[str, numpy.ndarray]
+2#array, shape (n_features,)#numpy.ndarray
+2#ndarray or list of ndarray of shape (n_classes,)#numpy.ndarray|list[numpy.ndarray]
 @2#list of shape (`n_iter_`,)#list
 2#concrete ``LossFunction``#LossFunction
-@2#None or ndarray of shape (n_targets,)#ndarray|None
-@2#ndarray of shape (n_alphas, n_folds)#ndarray
-@2#ndarray of shape (n_alphas,) or (n_l1_ratio, n_alphas)#ndarray
+@2#None or ndarray of shape (n_targets,)#numpy.ndarray|None
+@2#ndarray of shape (n_alphas, n_folds)#numpy.ndarray
+@2#ndarray of shape (n_alphas,) or (n_l1_ratio, n_alphas)#numpy.ndarray
 @2#int or array-like#int|ArrayLike
-@2#ndarray of shape (n_classes, )#ndarray
-@2#ndarray of shape (1,) or (n_classes,)#ndarray
-@2#ndarray of shape (n_classes,) or (n_classes - 1,)#ndarray
+@2#ndarray of shape (n_classes, )#numpy.ndarray
+@2#ndarray of shape (1,) or (n_classes,)#numpy.ndarray
+@2#ndarray of shape (n_classes,) or (n_classes - 1,)#numpy.ndarray
 2#array-like of shape (n_features, n_alphas + 1) or list             of such arrays#ArrayLike|list[ArrayLike]
 @2#array-like of shape (n_features,) or (n_targets, n_features)#ArrayLike
 @2#float or array-like of shape (n_targets,)#float|ArrayLike
@@ -111,8 +111,8 @@
 @2#array-like of shape (n_features, n_alphas)#ArrayLike
 @2#array-like of shape (n_cv_alphas,)#ArrayLike
 @2#array-like of shape (n_folds, n_cv_alphas)#ArrayLike
-2#list of ``n_output`` estimators#list[BaseEstimator]
-@2#ndarray of shape (n_thresholds,)#ndarray
+2#list of ``n_output`` estimators#list[sklearn.base.BaseEstimator]
+@2#ndarray of shape (n_thresholds,)#numpy.ndarray
 2#array-like of shape (n_samples, n_features) or list of object#ArrayLike|list[Any]
 2#kernel instance#Kernel
 @2#Interval#Interval
@@ -121,143 +121,143 @@
 @2#array-like of shape (n_column_clusters, n_columns)#ArrayLike
 @2#array-like of shape (n_rows,)#ArrayLike
 @2#array-like of shape (n_cols,)#ArrayLike
-2#tuple of two ndarrays#tuple[ndarray,ndarray]
+2#tuple of two ndarrays#tuple[numpy.ndarray,numpy.ndarray]
 @2#array-like of shape (n_nodes-1,)#ArrayLike
 @2#list of str#list[str]
 @2#TreeNode or None#TreeNode|None
-2#ndarray, shape (n_features, ) or None#ndarray|None
-2#list of classifiers#list[Classifier]
-2#list of regressors#list[Regressor]
+2#ndarray, shape (n_features, ) or None#numpy.ndarray|None
+2#list of classifiers#list[sklearn.base.ClassifierMixin]
+2#list of regressors#list[sklearn.base.RegressorMixin]
 @2#LossFunction#LossFunction
 @2#list of DecisionTreeClassifier#list[DecisionTreeClassifier]
-2#ndarray of shape (n_classes,) or a list of such arrays#ndarray
-@2#ndarray of shape (n_samples, n_classes) or             (n_samples, n_classes, n_outputs)#ndarray
+2#ndarray of shape (n_classes,) or a list of such arrays#numpy.ndarray
+@2#ndarray of shape (n_samples, n_classes) or             (n_samples, n_classes, n_outputs)#numpy.ndarray
 @2#list of DecisionTreeRegressor#list[DecisionTreeRegressor]
-@2#ndarray of shape (n_samples,) or (n_samples, n_outputs)#ndarray
-2#ndarray of shape (n_classes,) or list of ndarray#ndarray|list[ndarray]
-1#``BinaryTree`` instance#BinaryTree
-1#numpy.RandomState#RandomState
+@2#ndarray of shape (n_samples,) or (n_samples, n_outputs)#numpy.ndarray
+2#ndarray of shape (n_classes,) or list of ndarray#numpy.ndarray|list[numpy.ndarray]
+1#``BinaryTree`` instance#sklearn.neighbors._binary_tree.BinaryTree
+1#numpy.RandomState#numpy.random.RandomState
 1#str or callble#str|Callable
 @1#int or array-like of shape (n_class,)#int|ArrayLike
-1#ndarray of (n_targets, n_components)#ndarray
+1#ndarray of (n_targets, n_components)#numpy.ndarray
 1#list (len() equal to cv or 1 if `cv="prefit"`             or `ensemble=False`)#list
-@1#array#ndarray
-1#tuple of (A, B) ndarrays#tuple[ndarray, ndarray]
-1#ndarray of shape(n_features,)#ndarray
+@1#array#numpy.ndarray
+1#tuple of (A, B) ndarrays#tuple[numpy.ndarray, numpy.ndarray]
+1#ndarray of shape(n_features,)#numpy.ndarray
 @1#list of shape (n_iterations,)#list
-@1#ndarray of shape (1, n_outputs)#ndarray
-@1#ndarray of shape (`n_output_features_`, `n_features_in_`)#ndarray
+@1#ndarray of shape (1, n_outputs)#numpy.ndarray
+@1#ndarray of shape (`n_output_features_`, `n_features_in_`)#numpy.ndarray
 @1#list of shape (n_features,)#list
-1#ndarray of ndarray of shape (n_features,)#ndarray
-@1#ndarray of shape (n_features,), dtype=np.int_#ndarray
-@1#int or ndarray of shape (n_features,)#int|ndarray
-@1#ndarray of shape (n_quantiles, n_features)#ndarray
-@1#ndarray of shape (n_quantiles, )#ndarray
-1#ndarray of float of shape (n_features,)#ndarray
+1#ndarray of ndarray of shape (n_features,)#numpy.ndarray
+@1#ndarray of shape (n_features,), dtype=np.int_#numpy.ndarray
+@1#int or ndarray of shape (n_features,)#int|numpy.ndarray
+@1#ndarray of shape (n_quantiles, n_features)#numpy.ndarray
+@1#ndarray of shape (n_quantiles, )#numpy.ndarray
+1#ndarray of float of shape (n_features,)#numpy.ndarray
 @1#tuple or float#tuple|float
 @1#float or array-like#float|ArrayLike
-@1#ndarray of shape (n_features,) or (n_classes, n_features)#ndarray
+@1#ndarray of shape (n_features,) or (n_classes, n_features)#numpy.ndarray
 @1#array-like of shape (rank, n_classes - 1)#ArrayLike
-1#list of len n_classes of ndarray             of shape (n_features, n_features)#list[ndarray]
-1#list of len n_classes of ndarray of shape (n_features, n_k)#list[ndarray]
-1#list of len n_classes of ndarray of shape (n_k,)#list[ndarray]
+1#list of len n_classes of ndarray             of shape (n_features, n_features)#list[numpy.ndarray]
+1#list of len n_classes of ndarray of shape (n_features, n_k)#list[numpy.ndarray]
+1#list of len n_classes of ndarray of shape (n_k,)#list[numpy.ndarray]
 1#array-like, shape (n_samples, n_components)#ArrayLike
 @1#sklearn.neighbors.NearestNeighbors instance#NearestNeighbors
 1#array-like, shape (n_samples, n_samples)#ArrayLike
 @1#array-like of shape (n_samples, n_components)#ArrayLike
 1#array-like, shape [n_samples, n_components]#ArrayLike
 1#NearestNeighbors object#NearestNeighbors
-@1#ndarray of shape (n_features,), dtype=np.int64#ndarray
-@1#ndarray of shape (1, n_features) if n_classes == 2             else (n_classes, n_features)#ndarray
-@1#ndarray of shape (n_features) if n_classes == 2             else (n_classes, n_features)#ndarray
-@1#ndarray of shape (1) if n_classes == 2 else (n_classes)#ndarray
-@1#ndarray of shape (n_classes * (n_classes - 1) / 2, n_features)#ndarray
-@1#ndarray of shape (n_classes -1, n_SV)#ndarray
-@1#ndarray of shape (n_SV)#ndarray
-@1#ndarray of shape (n_classes * (n_classes -1) / 2, n_features)#ndarray
-@1#ndarray of shape (n_classes - 1, n_SV)#ndarray
-1#matplotlib Axes or None#Axes|None
-1#ndarray of matplotlib Axes#ndarray
-1#matplotlib `QuadContourSet` or `QuadMesh`#matplotlib.QuadContourSet|matplotlib.QuadMesh
-@1#ndarray of shape (n_features,), dtype=bool#ndarray
-@1#ndarray of shape (n_subsets_of_features,)#ndarray
+@1#ndarray of shape (n_features,), dtype=np.int64#numpy.ndarray
+@1#ndarray of shape (1, n_features) if n_classes == 2             else (n_classes, n_features)#numpy.ndarray
+@1#ndarray of shape (n_features) if n_classes == 2             else (n_classes, n_features)#numpy.ndarray
+@1#ndarray of shape (1) if n_classes == 2 else (n_classes)#numpy.ndarray
+@1#ndarray of shape (n_classes * (n_classes - 1) / 2, n_features)#numpy.ndarray
+@1#ndarray of shape (n_classes -1, n_SV)#numpy.ndarray
+@1#ndarray of shape (n_SV)#numpy.ndarray
+@1#ndarray of shape (n_classes * (n_classes -1) / 2, n_features)#numpy.ndarray
+@1#ndarray of shape (n_classes - 1, n_SV)#numpy.ndarray
+1#matplotlib Axes or None#matplotlib.axes.Axes|None
+1#ndarray of matplotlib Axes#numpy.ndarray
+1#matplotlib `QuadContourSet` or `QuadMesh`#matplotlib.contour.QuadContourSet|matplotlib.collections.QuadMesh
+@1#ndarray of shape (n_features,), dtype=bool#numpy.ndarray
+@1#ndarray of shape (n_subsets_of_features,)#numpy.ndarray
 1#narray of shape (n_features,)#narray
 @1#array-like of shape (batch_size, n_components)#ArrayLike
 1#object of type :class:`~sklearn.impute.SimpleImputer`#SimpleImputer
 @1#list of tuples#list[tuple]
-@1#ndarray of shape (n_missing_features,) or (n_features,)#ndarray
-@1#ndarray of shape (n_samples,) or (n_samples, n_targets)#ndarray
-1#{ndarray, sparse matrix} of shape (n_samples, n_features)#ndarray|spmatrix
-1#bool array of shape [n_samples]#ndarray
+@1#ndarray of shape (n_missing_features,) or (n_features,)#numpy.ndarray
+@1#ndarray of shape (n_samples,) or (n_samples, n_targets)#numpy.ndarray
+1#{ndarray, sparse matrix} of shape (n_samples, n_features)#numpy.ndarray|scipy.sparse.spmatrix
+1#bool array of shape [n_samples]#numpy.ndarray
 @1#array-like of shape (n_iter_+1,)#ArrayLike
-1#array, shape (n_samples,)#ndarray
-1#ndarray of shape (n_samples, n_alphas) or             shape (n_samples, n_targets, n_alphas)#ndarray
-@1#ndarray of shape (n_features) or (n_targets, n_features)#ndarray
-@1#ndarray of shape (n_samples, n_targets, n_alphas)#ndarray
-@1#ndarray of shape (1, n_features) or (n_targets, n_features)#ndarray
-1#sparse matrix of shape (n_features, 1) or             (n_targets, n_features)#spmatrix
-@1#float or ndarray of shape (n_targets, n_features)#float|ndarray
-@1#ndarray of shape (n_l1_ratio, n_alpha, n_folds)#ndarray
-@1#ndarray of shape (n_alphas, n_folds) or                 (n_l1_ratio, n_alphas, n_folds)#ndarray
+1#array, shape (n_samples,)#numpy.ndarray
+1#ndarray of shape (n_samples, n_alphas) or             shape (n_samples, n_targets, n_alphas)#numpy.ndarray
+@1#ndarray of shape (n_features) or (n_targets, n_features)#numpy.ndarray
+@1#ndarray of shape (n_samples, n_targets, n_alphas)#numpy.ndarray
+@1#ndarray of shape (1, n_features) or (n_targets, n_features)#numpy.ndarray
+1#sparse matrix of shape (n_features, 1) or             (n_targets, n_features)#scipy.sparse.spmatrix
+@1#float or ndarray of shape (n_targets, n_features)#float|numpy.ndarray
+@1#ndarray of shape (n_l1_ratio, n_alpha, n_folds)#numpy.ndarray
+@1#ndarray of shape (n_alphas, n_folds) or                 (n_l1_ratio, n_alphas, n_folds)#numpy.ndarray
 1#concrete LossFunction#LossFunction
-@1#ndarray of shape (n_classes,) or (1, )#ndarray
-@1#ndarray of shape (n_cs)#ndarray
-@1#ndarray of shape (n_l1_ratios)#ndarray
-@1#ndarray of shape (n_folds, n_cs, n_features) or                    (n_folds, n_cs, n_features + 1)#ndarray
-@1#ndarray of shape (n_classes, n_folds, n_cs) or (1, n_folds, n_cs)#ndarray
+@1#ndarray of shape (n_classes,) or (1, )#numpy.ndarray
+@1#ndarray of shape (n_cs)#numpy.ndarray
+@1#ndarray of shape (n_l1_ratios)#numpy.ndarray
+@1#ndarray of shape (n_folds, n_cs, n_features) or                    (n_folds, n_cs, n_features + 1)#numpy.ndarray
+@1#ndarray of shape (n_classes, n_folds, n_cs) or (1, n_folds, n_cs)#numpy.ndarray
 @1#callable#Callable
-1#array, shape = [1, n_features] if n_classes == 2 else [n_classes,            n_features]#ndarray
-1#array, shape = [1] if n_classes == 2 else [n_classes]#ndarray
-@1#BaseLoss#BaseLoss
+1#array, shape = [1, n_features] if n_classes == 2 else [n_classes,            n_features]#numpy.ndarray
+1#array, shape = [1] if n_classes == 2 else [n_classes]#numpy.ndarray
+@1#BaseLoss#sklearn._loss.loss.BaseLoss
 1#list of shape (n_alphas,) or list of such lists#list|list[lists]
-@1#array of shape (n_features, ) or (n_targets, n_features)#ndarray
-@1#array of shape (min(X, y),)#ndarray
-@1#float or array of shape (n_targets,)#float|ndarray
+@1#array of shape (n_features, ) or (n_targets, n_features)#numpy.ndarray
+@1#array of shape (min(X, y),)#numpy.ndarray
+@1#float or array of shape (n_targets,)#float|numpy.ndarray
 1#function#Callable
 1#sparse matrix of shape (n_components, n_features)#spmatrix
 1#float in range 0.0 - 1.0#float
-@1#ndarray of shape (degree, n_features), dtype=int64#ndarray
-@1#ndarray of shape (degree, n_features), dtype=float32#ndarray
-@1#ndarray of shape (n_components,), dtype=float64#ndarray
-1#ndarray of shape (n_features, n_components),        dtype=float64#ndarray
-@1#ndarray of shape (n_components)#ndarray
-@1#ndarray of shape (n_components, n_components)#ndarray
+@1#ndarray of shape (degree, n_features), dtype=int64#numpy.ndarray
+@1#ndarray of shape (degree, n_features), dtype=float32#numpy.ndarray
+@1#ndarray of shape (n_components,), dtype=float64#numpy.ndarray
+1#ndarray of shape (n_features, n_components),        dtype=float64#numpy.ndarray
+@1#ndarray of shape (n_components)#numpy.ndarray
+@1#ndarray of shape (n_components, n_components)#numpy.ndarray
 @1#array-like of shape (n_samples,) or (n_samples, n_targets)#ArrayLike
 1#pair of floats >= 0 or "fixed"#tuple[float,float]|Literal["fixed"]
 1#kernl instance#Kernel
-1#list of `n_classes` estimators#list[BaseEstimator]
-1#array, shape = [`n_classes`]#ndarray
+1#list of `n_classes` estimators#list[sklearn.base.BaseEstimator]
+1#array, shape = [`n_classes`]#numpy.ndarray
 1#LabelBinarizer object#LabelBinarizer
 @1#boolean#bool
-1#list of ``n_classes * (n_classes - 1) / 2`` estimators#list[BaseEstimator]
-1#numpy array of shape [n_classes]#ndarray
+1#list of ``n_classes * (n_classes - 1) / 2`` estimators#list[sklearn.base.BaseEstimator]
+1#numpy array of shape [n_classes]#numpy.ndarray
 1#list, length = ``len(estimators_)``, or ``None``#list|None
-1#list of `int(n_classes * code_size)` estimators#list[BaseEstimator]
-@1#ndarray of shape (n_classes, code_size)#ndarray
-1#estimator object#BaseEstimator
+1#list of `int(n_classes * code_size)` estimators#list[sklearn.base.BaseEstimator]
+@1#ndarray of shape (n_classes, code_size)#numpy.ndarray
+1#estimator object#sklearn.base.BaseEstimator
 @1#{'max_iter', 'no_change', 'all_labeled'}#Literal['max_iter','no_change','all_labeled']
-1#CyLossFunction#CyLossFunction
-@1#BaseLink#BaseLink
-@1#array of shape (n_features)#ndarray
-@1#ndarray of shape (n_clusters,)#ndarray
-@1#ndarray of shape (n_core_samples,)#ndarray
-@1#ndarray of shape (n_core_samples, n_features)#ndarray
-@1#ndarray of shape (n_clusters, 2)#ndarray
+1#CyLossFunction#sklearn._loss._loss.CyLossFunction
+@1#BaseLink#sklearn._loss.link.BaseLink
+@1#array of shape (n_features)#numpy.ndarray
+@1#ndarray of shape (n_clusters,)#numpy.ndarray
+@1#ndarray of shape (n_core_samples,)#numpy.ndarray
+@1#ndarray of shape (n_core_samples, n_features)#numpy.ndarray
+@1#ndarray of shape (n_clusters, 2)#numpy.ndarray
 @1#array-like of shape (n_samples-1, 2)#ArrayLike
 1#array-like of (n_features,)#ArrayLike
 @1#array-like of shape (n_nodes-1, 2)#ArrayLike
-1#list of estimator#list[BaseEstimator]
+1#list of estimator#list[sklearn.base.BaseEstimator]
 1#ExtraTreeRegressor instance#ExtraTreeRegressor
 1#list of ExtraTreeRegressor instances#list[ExtraTreeRegressor]
 @1#ndarray
 1#SplitInfo or None#sklearn.ensemble._hist_gradient_boosting.splitting.SplitInfo|None
 @1#float or None#float|None
-1#array, shape = (n_classes,)#ndarray
-1#ndarray, dtype=np.uint32#ndarray
-@1#ndarray of shape (n_features,), dtype=np.uint8#ndarray
+1#array, shape = (n_classes,)#numpy.ndarray
+1#ndarray, dtype=np.uint32#numpy.ndarray
+@1#ndarray of shape (n_features,), dtype=np.uint8#numpy.ndarray
 1#np.uint8#np.uint8
-1#ndarray of DecisionTreeRegressor of             shape (n_estimators, ``loss_.K``)#ndarray
-1#ndarray of DecisionTreeRegressor of shape (n_estimators, 1)#ndarray
+1#ndarray of DecisionTreeRegressor of             shape (n_estimators, ``loss_.K``)#numpy.ndarray
+1#ndarray of DecisionTreeRegressor of shape (n_estimators, 1)#numpy.ndarray
 @1#:class:`~sklearn.preprocessing.LabelEncoder`#LabelEncoder
 @1#DecisionTreeClassifier#DecisionTreeClassifier
 @1#DecisionTreeRegressor#DecisionTreeRegressor
@@ -266,19 +266,19 @@
 @1#:class:`~sklearn.tree.ExtraTreeClassifier` instance#ExtraTreeClassifier
 1#list of :class:`~sklearn.tree.ExtraTreeClassifier` instances#list[ExtraTreeClassifier]
 1#OneHotEncoder instance#OneHotEncoder
-1#matplotlib AxesImage#matplotlib.AxesImage
-1#ndarray of shape (n_classes, n_classes), dtype=matplotlib Text,             or None#ndarray|None
-4#ndarray of shape coef.shape#ndarray
-3#list of matplotlib Artist or None#matplotlib.Artist|None
+1#matplotlib AxesImage#matplotlib.image.AxesImage
+1#ndarray of shape (n_classes, n_classes), dtype=matplotlib Text,             or None#numpy.ndarray|None
+4#ndarray of shape coef.shape#numpy.ndarray
+3#list of matplotlib Artist or None#matplotlib.artist.Artist|None
 @3#:class:`~sklearn.tree.ExtraTreeRegressor` instance#ExtraTreeRegressor
 2#list of shape (`n_iter_`,) or None#list|None
 @2#list of TreeNode#list[TreeNode]
-@1#ndarray of shape (n_samples,) or (n_samples, n_classes)#ndarray
-1#ndarray of shape (n_components,), dtype={np.float64, np.float32}#ndarray
-1#ndarray of shape (n_features, n_components),        dtype={np.float64, np.float32}#ndarray
-1#ndarray of shape (n_classes,) or list of ndarray if `y`         is of type `"multilabel-indicator"`.#ndarray
-@1#ndarray of shape (n_samples_at_node,), dtype=np.uint#ndarray
-1#None or ndarray, dtype=int#ndarray|None
+@1#ndarray of shape (n_samples,) or (n_samples, n_classes)#numpy.ndarray
+1#ndarray of shape (n_components,), dtype={np.float64, np.float32}#numpy.ndarray
+1#ndarray of shape (n_features, n_components),        dtype={np.float64, np.float32}#numpy.ndarray
+1#ndarray of shape (n_classes,) or list of ndarray if `y`         is of type `"multilabel-indicator"`.#numpy.ndarray
+@1#ndarray of shape (n_samples_at_node,), dtype=np.uint#numpy.ndarray
+1#None or ndarray, dtype=int#numpy.ndarray|None
 @1#None or list of ints#list[int]|None
 1#HistogramBuilder#HistogramBuilder
 1#Splitter#Splitter
@@ -288,4 +288,4 @@
 @1#:class:`~sklearn.tree.ExtraTreesClassifier`#ExtraTreesClassifier
 @1#:class:`~sklearn.tree.ExtraTreeRegressor`#ExtraTreeRegressor
 1#list of :class:`~sklearn.tree.ExtraTreeRegressor` instances#list[ExtraTreeRegressor]
-1#matplotlib Artist or None#matplotlib.Artist|None
+1#matplotlib Artist or None#matplotlib.artist.Artist|None

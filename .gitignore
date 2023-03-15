@@ -3,8 +3,14 @@ dist/
 *.egg-info
 *.egg
 *.gz
-typings/
+typing*/
+out/*
 analysis/*.missing
+analysis/*.pkl
+analysis/*.full
+analysis/*.imports.map
 __pycache__
 samples/
 tracing/*-tests/
+tracing/*.sqlite3
+

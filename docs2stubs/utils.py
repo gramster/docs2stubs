@@ -43,7 +43,6 @@ class Sections(Generic[T]):
 
 State = NamedTuple("State", [
     ("counters", None|Sections[Counter[str]]), 
-    ("imports", dict[str, str]), 
     ("docstrings", dict[str, Sections[dict[str, str]|dict[str,dict[str,str]]]]), 
     ("maps", None|Sections[dict[str,str]]),
     ("trace_param_types", dict[str, set[type]]),
@@ -76,15 +75,6 @@ def load_type_maps(m: str) -> Sections[dict[str,str]]:
     return Sections[dict[str,str]](params=load_map(m, 'params'),
                     returns=load_map(m, 'returns'),
                     attrs=load_map(m, 'attrs'))
-
-
-def save_import_map(m: str, imports: dict[str, str]):
-    save_result(f"analysis/{m}.imports.map",
-        ''.join([f"{k}#{v}\n" for k, v in imports.items()]))
-
-    
-def load_import_map(m: str) -> dict[str, str]:
-    return load_map(m, 'imports')
 
 
 def save_docstrings(m:str, data: dict):

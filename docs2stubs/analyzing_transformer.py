@@ -4,13 +4,10 @@ import re
 from types import ModuleType
 from typing import Any, cast
 import libcst as cst
-import numpy as np
-import pandas as pd
-import scipy
 
 
 from .base_transformer import BaseTransformer
-from .utils import Sections, State, process_module, load_type_maps, save_fullmap, save_result, save_import_map, save_docstrings
+from .utils import Sections, State, process_module, load_type_maps, save_fullmap, save_docstrings
 from .docstring_parser import NumpyDocstringParser
 from .traces import get_method_signature, get_toplevel_function_signature
 from .type_normalizer import is_trivial, normalize_type, print_norm1
@@ -136,7 +133,6 @@ class AnalyzingTransformer(BaseTransformer):
         rtn = super().visit_ClassDef(node)
         if self.at_top_level_class_level():
             self._classname = node.name.value
-            self._state.imports[self._classname] = self._modname
             obj = AnalyzingTransformer.get_top_level_obj(self._mod, self._fname, node.name.value)
             context = self.context()
             docs = self._analyze_obj(obj, context)
@@ -228,7 +224,6 @@ def _post_process(m: str, state: State, include_counts: bool = True, dump_all = 
     results = [[], [], []]
     assert(state.counters is not None)
     freqs: Sections[Counter[str]] = state.counters
-    imports: dict = state.imports
     total_trivial = 0
     total_mapped = 0
     total_missed = 0
@@ -240,8 +235,8 @@ def _post_process(m: str, state: State, include_counts: bool = True, dump_all = 
             if typ in map:
                 total_mapped += cnt
             else:
-                normtype, _ = normalize_type(typ, m, imports, section=='params')
-                trivial = is_trivial(typ, m, imports)
+                normtype = normalize_type(typ, m, section=='params')
+                trivial = is_trivial(typ, m)
                 if not dump_all and trivial:
                     trivials[typ] = normtype
                     total_trivial += cnt
@@ -275,7 +270,6 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Tru
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),
         {}, 
-        {}, 
         load_type_maps(m), 
         {}, 
         {},
@@ -287,7 +281,6 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Tru
             include_submodules=include_submodules,
             include_counts=include_counts,
             dump_all=dump_all) is not None:
-        save_import_map(m, state.imports)
         save_docstrings(m, state.docstrings)
         return state
     

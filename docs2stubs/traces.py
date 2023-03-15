@@ -14,19 +14,15 @@ from typing import (
 # This is duplicated in the tracing directory, so need to refactor
 # at some point to avoid that.
 
-import datetime
 from inspect import Signature
-import os
 import re
 import sqlite3
 import sys
-import atexit
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable
 
 from monkeytype.db.base import CallTraceStore, CallTraceThunk
 from monkeytype.encoding import CallTraceRow, serialize_traces
 from monkeytype.tracing import CallTrace
-from monkeytype.config import DefaultConfig
 from monkeytype.stubs import build_module_stubs_from_traces
 from monkeytype.typing import shrink_types
 
@@ -36,8 +32,8 @@ import scipy
 
 
 DEFAULT_TABLE = "monkeytype_call_traces"
-QueryValue = Union[str, int]
-ParameterizedQuery = Tuple[str, List[QueryValue]]
+QueryValue = str|int
+ParameterizedQuery = tuple[str, list[QueryValue]]
 
 
 def create_call_trace_table(
@@ -220,49 +216,40 @@ def _adjust_name(name: str) -> str:
     return name
 
 
-def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=False) -> tuple[str, set[tuple[str, str]]]:
-    imports = set()
+def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=False) -> str:
     if isinstance(typ, UnionType):
         components = []
         for a in typ.__args__:
             t, i = _get_repr(tlmodule, a)
             components.append(t)
-            imports.update(i)
         typ = '|'.join(components)
     elif isinstance(typ, GenericAlias) and typ._name and typ.__args__:
         # List, Tuple, etc
         if arraylike and typ._name == 'List':
-            imports.add(('ArrayLike', f'{tlmodule}._typing'))
             typ = 'ArrayLike'
         else:
             components = []
             for a in typ.__args__:
                 t, i = _get_repr(tlmodule, a)
                 components.append(t)
-                imports.update(i)
             typ = f'{_adjust_name(typ._name)}[{", ".join(components)}]'
     elif arraylike and (typ == np.ndarray or typ == pd.Series):
-        imports.add(('ArrayLike', f'{tlmodule}._typing'))
         typ = 'ArrayLike'
     elif matrixlike and typ in [np.ndarray, pd.DataFrame, scipy.sparse.spmatrix, scipy.sparse.csr_matrix, scipy.sparse.csc_matrix]: # type: ignore 
-        imports.add(('MatrixLike', f'{tlmodule}._typing'))
         typ = 'MatrixLike'
     elif typ == np.int64 or typ == np.uint64:
-        imports.add(('Int', f'{tlmodule}._typing'))
         typ =  'Int'
     elif typ == np.float32 or typ == np.float64:
-        imports.add(('Float', f'{tlmodule}._typing'))
         typ = 'Float'
     else:
         typ = _type_repr(typ).replace('NoneType', 'None')
-        if typ.find('[') < 0 and typ.find('.') > 0:
-            module, name = typ.rsplit('.', 1)
-            imports.add((name, module))
-            typ = name
 
-    return typ, imports
+    return typ
 
     
+qualname_re = re.compile(r'[A-Za-z_][A-Za-z0-9_\.]*[A-Za-z0-9_]*')
+    
+
 def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: str|None) -> tuple[str, set[tuple[str, str]]]:
 
     arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
@@ -273,9 +260,8 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
     # This relies on typing module internals
     if isinstance(sigtype, UnionType):
         for a in sigtype.__args__:  # type: ignore
-            t, i = _get_repr(tlmodule, a, arraylike, matrixlike)
+            t = _get_repr(tlmodule, a, arraylike, matrixlike)
             components.append(t)
-            imports.update(i)
         if len(components) > 5:
             # TODO: if components is very long, see if there are classes that have a common
             # base class and use that instead. Ideally go down structurally into components
@@ -283,11 +269,12 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
             # For now we just make really long annotations into Any.
             pass
     elif sigtype is not None:
-        t, i = _get_repr(tlmodule, sigtype, arraylike, matrixlike)
+        t = _get_repr(tlmodule, sigtype, arraylike, matrixlike)
         components = [t]
-        imports.update(i)
     
-    # Again, check how long this type is and if it's too long, just drop the trace part.
+    # Check how long this type is and if it's too long, just drop the trace part, as that
+    # is typically the cause, plus we assume the docstring mappings are desired and not
+    # something we should be discarding, while the trace aujgmentation is 'gravy'.
     # The threshhold here is a bit arbitrary but assume we want the type to fit comfortably
     # on one line.
     if sum(len(c) for c in components) > 65:
@@ -332,11 +319,8 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         # Remove some redundant types
         if 'Float' in components:
             components = [c for c in components if c not in ['Int', 'int', 'float']]
-            imports.add(('Float', f'{tlmodule}._typing'))
         elif 'Int' in components:
             components = [c for c in components if c != 'int']
-            imports.add(('Int', f'{tlmodule}._typing'))
-
 
         if 'str' in components and doctype and doctype.find('Literal') >= 0:
             # Remove str and fold in the literals into one
@@ -369,14 +353,6 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
                 has_str = True
             else:
                 newc.append(c)
-        elif c.find('.') > 0:
-            module, name = c.rsplit('.', 1)
-            if module == 'np':
-                module = 'numpy'
-            elif module == 'pd':
-                module = 'pandas'
-            imports.add((name, module))
-            newc.append(name)
         else:
             newc.append(c)
 
@@ -385,48 +361,31 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         newc.append(f'Literal[{newlitvals}]')
     elif has_str or has_literal:
        newc.append('str')
-    components = newc
 
-    result = '|'.join(set(components))
-
-    # Kludge: fix some possibly missing imports. Some of these are necessary because
-    # they have derived classes as opposed to annotations, and we are only collecting
-    # annotation imports. TODO: fix this.
-    # TODO: use a regexp to extract identifiers instead of looping through each time.
-    # TODO: we could do _all_ the import collecting here and leave it out elsewhere.
-
-    extras = {
-        'RandomState': 'numpy.random',
-        'ArrayLike': f'{tlmodule}._typing',
-        'MatrixLike': f'{tlmodule}._typing',
-        'Float': f'{tlmodule}._typing',
-        'Int': f'{tlmodule}._typing',
-        'BaseEstimator': 'sklearn.base',
-        'BaseCrossValidator': 'sklearn.model_selection',
-        'Classifier': f'{tlmodule}._typing',
-        'Estimator': f'{tlmodule}._typing',
-        'Regressor': f'{tlmodule}._typing',
-        'Axes': 'matplotlib.axes',
-        'Figure': 'matplotlib.figure',
-        'Memory': 'joblib',
-        'DType': 'numpy',
-        'Colormap': 'matplotlib.colors',
-        'spmatrix': 'scipy.sparse',
-        'Number': 'numbers',
-        'KDTree': 'sklearn.neighbors',
-        'MinCovDet': 'sklearn.covariance', # Should go away if we add imports from base classes
-    }
-
-    for k, v in extras.items():
-        if result.find(k) >= 0:
-            imports.add((k, v))
-
-    # TODO: check the following types: Label, Batch, module, sklearn.cluster.
-    # They are being used without the needed imports.
-    # from ._random import sample_without_replacement
-    # class loguniform(scipy.stats.reciprocal):
-    # from .murmurhash import murmurhash3_32 as murmurhash3_32
-
-
-
+    components = set()
+    for c in set(newc):
+        # Now go through all the qualnames in the types, and replace with last part,
+        # adding an import to the needed imports.
+        typing = f'{tlmodule}._typing'
+        for x in qualname_re.findall(c):
+            if x.find('.') >= 0:
+                parts = x.split('.')
+                mod = '.'.join(parts[:-1])
+                name = parts[-1]
+                imports.add((name, mod)) 
+            elif x in [
+                'ArrayLike',
+                'MatrixLike',
+                'FileLike',
+                'PathLike',
+                'Int',
+                'Float',
+                'Scalar',
+                'Color'             
+            ]:
+                imports.add((x, typing))
+        # Remove module qualifiers from qualnames now we have the import data we need
+        components.add(qualname_re.sub(lambda m: m.group()[m.group().rfind('.')+1:], c))
+            
+    result = '|'.join(components)
     return result, imports

@@ -1,25 +1,9 @@
-- [x] complete generator and iterator types in the parser
-- [ ] add support for missing types (slices, anything else?)
-- [x] update the class type handler to do better class name normalization and import generation
-- [ ] use gentests.py to generate more test cases, including of the above
-- [x] expand the logic in is_trivial to cover more cases
-- [x] incorporate this into stubber
-- [x] generate stubs and see how well they work
-- [ ] try to fix the issue with 'a's being stripped off
-- [ ] output relative imports
-- [ ] output attributes
-- [ ] make sure we also parse formal types
-- [x] remove private methods
-- [ ] support 'common' map files
-- [x] print context in log 
+- [ ] Callable arguments would be nice
+- [ ] more tests
+- [ ] support 'common' map files. Maybe a good start here is to have good quality maps for several libraries, then look for identical entries in two or more files that have no conflicting entries in the other files.
 - [ ] save/restore the state object instead of multiple disparate files
-
-- [ ] See if some of the remapped types coming out of analyzer need tweaking based on output of above, and do that
-- [ ] Allow the full map (or something like it) to be used for fine grain support of type overrides
-- [ ] Make sure we are actually doing the necessary imports for remapped types. I suspect we aren't.
-- [ ] Clean up code more
-- [ ] Look at perf; it sucks
+- [ ] add a way to support automated in insertion of signatures using overloads and TypeVars.
+- [ ] sklearn has two instances of LossFunction classes and the dosctrings don't disambiguate them. For now I am just annotating with LossFunction and need to fix them up by hand. In ./ensemble/_gb.pyi need "from ._gb_losses import LossFunction". In ./linear_model/_stochastic_gradient.pyi need "from ._sgd_fast import LossFunction".
+- [ ] if we have a union of Self with the actual classname, merge these. They're not the same if there are subclasses though so its a bit tricky picking which. Self is more likely to be right.
 
 
-Note: in some cases we may need to suppress QUALNAME matching in favor of other things (like basic_type).
-In that case use qualname instead (this requires changing handling from token type to tree type).

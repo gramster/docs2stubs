@@ -231,7 +231,7 @@ STRING:    STRINGSQ | STRINGDQ
 """
 
 class Normalizer(Interpreter):
-    def configure(self, module:str|None, classes: dict|None, is_param:bool):
+    def configure(self, module:str|None, is_param:bool):
         if module is None:
             module = ''
         x = module.find('.')
@@ -240,41 +240,31 @@ class Normalizer(Interpreter):
         else:
             self._tlmodule = module
         self._module = module
-        self._classes = classes
         self._is_param = is_param
 
-    def handle_qualname(self, name: str, imports: set) -> str:
-        return name
-    
-    def start(self, tree) -> tuple[str, set[str]]:
+    def start(self, tree) -> str:
         """ start: type_list [PERIOD] """
-        result = self.visit(tree.children[0])
-        return result
+        return self.visit(tree.children[0])
         
-    def type_list(self, tree) -> tuple[str, set[str]]:
+    def type_list(self, tree) -> str:
         """ type_list: type ((_COMMA|OR|_COMMA OR) type)*  [OR NONE] [_PERIOD] """
         types = [] # We want to preserve order so don't use a set
-        imports = set()
         literals = []
         has_none = False
         for child in tree.children:
             if isinstance(child, Tree):
                 result = self._visit_tree(child)
                 if result:
-                    if result[0] == 'None':
+                    if result == 'None':
                         has_none = True
                         continue
-                    if result[0].startswith('Literal:'):
+                    if result.startswith('Literal:'):
                         literals.append(result[0][8:])
                     else:
-                        type = result[0]
+                        type = result
                         if type not in types:
                             types.append(type)
-                    if result[1]:
-                        imports.update(result[1])
 
-        if not imports:
-            imports = set()
         if literals:
             type = 'Literal[' + ','.join(literals) + ']'
             if type not in types:
@@ -284,9 +274,9 @@ class Normalizer(Interpreter):
             if type not in types:
                 types.append(type)
         type = '|'.join(types)
-        return type, imports
+        return type
 
-    def type(self, tree)-> tuple[str, set[str]]:
+    def type(self, tree)-> str:
         """
         type: alt_type 
             | array_type 
@@ -333,40 +323,33 @@ class Normalizer(Interpreter):
         'FILELIKE': 'typing'
     }
 
-    def array_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def array_type(self, tree) -> str:
         arr_types = set()
         elt_type = None
-        imports = set()
         dimensions_mask = 0
         for child in tree.children:
             if isinstance(child, Token) and (child.type == 'NDARRAY' or child.type == 'NUMPY'):
                 if self._is_param:
                     arr_type = 'ArrayLike'
-                    imports.add(('ArrayLike', 'numpy.typing'))
                 else:
                     # TODO: if we have an elt type, we can use NDArray from numpy.typing
-                    arr_types.add('ndarray')
-                    imports.add(('ndarray', 'numpy'))
+                    arr_types.add('numpy.ndarray')
             elif isinstance(child, Tree) and isinstance(child.data, Token):
                 tok = child.data
                 subrule = tok.value
                 if subrule == 'array_kinds':
-                    types, imp = self._visit_tree(child)
+                    types = self._visit_tree(child)
                     arr_types.update(types)
-                    imports.update(imp)
                 elif subrule == 'array_kind':
-                    type, imp = self._visit_tree(child)
+                    type = self._visit_tree(child)
                     arr_types.add(type)
-                    imports.update(imp)
                 elif subrule == 'basic_type' or subrule == 'type_qualifier':
-                    elt_type, imp = self._visit_tree(child)
-                    imports.update(imp)
+                    elt_type = self._visit_tree(child)
                 elif subrule == 'shape_qualifier' or subrule == 'dimension':
                     dimensions_mask = self._visit_tree(child)
 
         if self._is_param and dimensions_mask & 2:
             arr_types.add('MatrixLike')
-            imports.add(('MatrixLike', f'{self._tlmodule}._typing'))
             if dimensions_mask & 1 == 0 and 'ArrayLike' in arr_types:
                 arr_types.remove('ArrayLike')
 
@@ -374,25 +357,16 @@ class Normalizer(Interpreter):
             if self._is_param and 'list' in arr_types:
                 arr_types.add('Sequence')
                 arr_types.remove('list')
-                imports.add(('Sequence', 'typing'))
             return '|'.join([f'{typ}[{elt_type}]' if typ in ['Sequence', 'list'] else f'{typ}' \
-                    for typ in sorted(arr_types)]), imports
+                    for typ in sorted(arr_types)])
         else:
-            return '|'.join(sorted(arr_types)), imports
+            return '|'.join(sorted(arr_types))
 
-    def array_kinds(self, tree) -> tuple[set[str], set[tuple[str, str]]]:
-        imports = set()
-        types = set()
-        for child in tree.children:
-            if isinstance(child, Tree):
-                type, imp = self._visit_tree(child)
-                imports.update(imp)
-                types.add(type)
-        return types, imports
+    def array_kinds(self, tree) -> set[str]:
+        return set([self._visit_tree(child) for child in tree.children if isinstance(child, Tree)])
 
-    def array_kind(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def array_kind(self, tree) -> str:
         arr_type = ''
-        imports = set()
         is_sparse = False
         for child in tree.children:
             if isinstance(child, Token):
@@ -403,38 +377,30 @@ class Normalizer(Interpreter):
                     # TODO: if we have an elt type, we can use NDArray from numpy.typing
                     if self._is_param:
                         arr_type = 'ArrayLike'
-                        imports.add(('ArrayLike', 'numpy.typing'))
                     else:
-                        arr_type = 'ndarray'
-                        imports.add(('ndarray', 'numpy'))
+                        arr_type = 'numpy.ndarray'
                 elif child.type == 'SEQUENCE':
                     arr_type = 'Sequence'
-                    imports.add(('Sequence', 'typing'))
                 elif self._is_param or child.type == 'ARRAYLIKE':
                     arr_type = 'ArrayLike'
-                    imports.add(('ArrayLike', 'numpy.typing'))
                 elif child.type == 'LIST':
                     arr_type = 'list'
                 elif child.type == 'SPARSEMATRIX' or child.type == 'MATRIX':
                     if self._is_param:
                         arr_type = 'MatrixLike'
-                        imports.add(('MatrixLike', f'{self._tlmodule}._typing'))
                     else:
-                        arr_type = 'spmatrix'
-                        imports.add(('spmatrix', 'scipy.sparse'))
+                        arr_type = 'scipy.sparse.spmatrix'
                 break
 
         if not arr_type:
             if self._is_param:
                 arr_type = 'ArrayLike'
-                imports.add(('ArrayLike', 'numpy.typing'))
             else:
-                arr_type = 'ndarray'
-                imports.add(('ndarray', 'numpy'))
+                arr_type = 'numpy.ndarray'
 
-        return arr_type, imports
+        return arr_type
 
-    def type_qualifier(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def type_qualifier(self, tree) -> str:
         """
         type_qualifier: OF (ARRAYS|ARRAYLIKE)
               | OF [NUMBER] type 
@@ -442,17 +408,15 @@ class Normalizer(Interpreter):
               | _LBRACKET type _RBRACKET
               | _LPAREN type _RPAREN
         """
-        imports = set()
         for child in tree.children:
             if isinstance(child, Tree):
                 return self._visit_tree(child)
             elif isinstance(child, Token):
                 if child.type == 'QUALNAME':
-                    type = self.handle_qualname(child.value, imports)
-                    return type, imports
+                    type = child.value
+                    return type
         # OF ARRAYS falls through here
-        imports.add(('ArrayLike', 'numpy.typing'))
-        return 'ArrayLike', imports
+        return 'ArrayLike'
     
     def dimension(self, tree) -> int:
         """
@@ -509,7 +473,7 @@ class Normalizer(Interpreter):
                 dimensions += 1
         return 2 if dimensions > 1 else 1
     
-    def basic_type(self, tree) -> tuple[str, set[str]]:
+    def basic_type(self, tree) -> str:
         """
         basic_type: ANY 
             | [POSITIVE|NEGATIVE] INT 
@@ -520,49 +484,36 @@ class Normalizer(Interpreter):
             | COMPLEX
             | OBJECT
         """
-        imports = set()
         for child in tree.children:
             if isinstance(child, Token):
                 if child.type == 'ANY':
-                    imports.add(('Any', 'typing'))
-                    return 'Any', imports
+                    return 'Any'
                 elif child.type == 'SCALAR':
-                    imports.add(('Scalar', f'{self._tlmodule}._typing'))
-                    return 'Scalar', imports
+                    return 'Scalar'
                 elif child.type == 'PATHLIKE':
-                    imports.add(('PathLike', 'os'))
+                    return 'os.PathLike'
                 elif child.type == 'FILELIKE':
-                    imports.add(('IO', 'typing'))
-                    return 'IO', imports
+                    return 'typing.IO'
                 if child.type in self._basic_types:
-                    typ = self._basic_types[child.type]
-                    if child.type in self._basic_types_imports:
-                        imp = self._basic_types_imports[child.type]
-                        if imp == '_typing':
-                            imp = self._tlmodule + '.' + imp
-                        imports.add((typ, imp))
-                    return typ, imports
+                    return self._basic_types[child.type]
 
         assert(False)
 
-    def callable_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def callable_type(self, tree) -> str:
         """ callable_type: CALLABLE [_LBRACKET _LBRACKET type_list _RBRACKET _COMMA type _RBRACKET] """
         # TODO: handle signature
-        imports = set()
-        imports.add(('Callable', 'typing'))
-        return "Callable", imports
-
-    def class_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+        return "Callable"
+    
+    def class_type(self, tree) -> str:
         """
         class_type: [CLASSMARKER] [_A|_AN] class_specifier [INSTANCE|OBJECT]
         """
-        cname = ''
         for child in tree.children:
             if isinstance(child, Tree):
                 return self._visit_tree(child)
         assert(False)
         
-    def class_specifier(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def class_specifier(self, tree) -> str:
         """
         class_specifier: (INSTANCE|SUBCLASS) OF QUALNAME 
                | QUALNAME [_COMMA|_LPAREN] OR [_A] SUBCLASS [OF QUALNAME][_RPAREN]
@@ -570,24 +521,12 @@ class Normalizer(Interpreter):
                | QUALNAME _MINUS LIKE 
                | QUALNAME
         """
-        imp = set()
-        cname = ''
         for child in tree.children:
             if isinstance(child, Token) and child.type == 'QUALNAME':
-                cname = child.value
-        # Now we need to normalize the name and find the imports
-        x = cname.rfind('.')
-        if x > 0:
-            t, m = cname[x+1:], cname[:x]
-            if m not in ['np', 'pd']:
-                imp.add((t, m))
-                cname = t
-        elif self._classes and cname in self._classes:
-            imp.add((cname, self._classes[cname]))
+                return child.value
+        assert(False)     
 
-        return cname, imp      
-
-    def dict_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def dict_type(self, tree) -> str:
         """
         dict_type: (MAPPING|DICT) (OF|FROM) (basic_type|QUALNAME) [TO (basic_type | QUALNAME | ANY)] 
          | (MAPPING|DICT) [_LBRACKET type _COMMA type _RBRACKET]
@@ -600,15 +539,13 @@ class Normalizer(Interpreter):
             if isinstance(child, Token):
                 if child.type == 'MAPPING':
                     dict_type = 'Mapping'
-                    imports.add(('Mapping', 'typing'))
                 elif child.type == 'DICT':
                     if self._is_param:
                         dict_type = 'Mapping'
-                        imports.add(('Mapping', 'typing'))
                     else:
                         dict_type = 'dict'
                 elif child.type == 'QUALNAME':
-                    to_type = self.handle_qualname(child.value, imports)
+                    to_type = child.value, imports
                     if from_type is None:
                         from_type = to_type
             elif isinstance(child, Tree):
@@ -621,101 +558,84 @@ class Normalizer(Interpreter):
         if from_type is not None:
             dict_type += f'[{from_type}, {to_type}]'
 
-        return dict_type, imports
+        return dict_type
 
     
-    def qualname(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def qualname(self, tree) -> str:
         """
         qualname: QUALNAME
         This is mostly to give qualnames a lower priority than other types like basic_type
         """
         for child in tree.children:
             if isinstance(child, Token):
-                imports = set()
-                return self.handle_qualname(child.value, imports), imports
+                return child.value
         raise Exception("qualname didn't find a token")
             
 
-    def filelike_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def filelike_type(self, tree) -> str:
         """ filelike_type: [READABLE|WRITABLE] FILELIKE [TYPE] """
-        imports = set()
-        imports.add(('FileLike', f'{self._tlmodule}._typing'))
-        return 'FileLike', imports
+        return 'IO'
 
-    def generator_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def generator_type(self, tree) -> str:
         """ generator_type: GENERATOR [OF type] """
-        imports = set()
-        imports.add(('Generator', 'collections.abc'))
         for child in tree.children:
             if isinstance(child, Tree):
-                type, imp = self._visit_tree(child)
+                type = self._visit_tree(child)
                 if type:
-                    imports.update(imp)
-                    return f'Generator[{type}, None, None]', imports
-        return 'Generator', imports
+                    return f'collections.abc.Generator[{type}, None, None]'
+        return 'collections.abc.Generator'
 
-    def iterable_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def iterable_type(self, tree) -> str:
         """ iterable_type: ITERABLE [OF type] """
-        imports = set()
-        imports.add(('Iterable', 'collections.abc'))
         for child in tree.children:
             if isinstance(child, Tree):
                 type, imp = self._visit_tree(child)
                 if type:
-                    imports.update(imp)
-                    return f'Iterable[{type}]', imports
-        return 'Iterable', imports
+                    return f'collections.abc.Iterable[{type}]'
+        return 'collections.abc.Iterable'
     
-    def iterator_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def iterator_type(self, tree) -> str:
         """ iterator_type: ITERATOR [OVER type] """
-        imports = set()
-        imports.add(('Iterator', 'collections.abc'))
         for child in tree.children:
             if isinstance(child, Tree):
                 type, imp = self._visit_tree(child)
                 if type:
-                    imports.update(imp)
-                    return f'Iterator[{type}]', imports
-        return 'Iterator', imports
+                    return f'collections.abc.Iterator[{type}]'
+        return 'collections.abc.Iterator'
     
-    def literal_type(self, tree)-> tuple[str, set[str]]:
+    def literal_type(self, tree)-> str:
         """ literal_type: STRING | NUMBER | NONE | TRUE | FALSE """
-        imports = set()
-        imports.add(('Literal', 'typing'))
         assert(len(tree.children) == 1 and isinstance(tree.children[0], Token))
         tok = tree.children[0]
         type = tok.type
         if type == 'STRING' or type == 'NUMBER':
-            return f'Literal:' + tok.value, imports
+            return f'Literal:' + tok.value
         if type == 'NONE':
-            return 'None', set()
+            return 'None'
         if type == 'TRUE':
-            return 'Literal:True', imports
+            return 'Literal:True'
         if type == 'FALSE':
-            return 'Literal:False', imports
+            return 'Literal:False'
         assert(False)
 
-    def optional_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def optional_type(self, tree) -> str:
         """ optional_type: OPTIONAL [_LBRACKET type _RBRACKET]"""
         for child in tree.children:
             if isinstance(child, Tree):
-                type, imports = self._visit_tree(child)
+                type = self._visit_tree(child)
                 type += '|None'
-                return type, imports
-        return 'None', set()
+                return type
+        return 'None'
 
-    def restricted_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def restricted_type(self, tree) -> str:
         """ 
         restricted_type: [ONE OF] _LBRACE (literal_type|STR) (_COMMA (literal_type|STR))* _RBRACE
         """
-        imp = set()
         types = []
         values = []
-        rtn = ''
         for child in tree.children:
             if isinstance(child, Tree):
                 type, imports = self._visit_tree(child)
-                imp.update(imports)
                 if type.startswith('Literal:'):
                     values.append(type[8:])
                 else:
@@ -724,30 +644,28 @@ class Normalizer(Interpreter):
                 types.append('str')
         if values:
             types.append(f'Literal[{",".join(values)}]')
-            imp.add(('Literal', 'typing'))
-        return '|'.join(sorted(types)), imp
+        return '|'.join(sorted(types))
 
-    def set_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def set_type(self, tree) -> str:
         """
         set_type: (FROZENSET|SET) _LBRACKET type _RBRACKET
          | [_A] (FROZENSET|SET) [OF type_list]
         """
         set_type = 'set'
         elt_type = None
-        imports = set()
         for child in tree.children:
             if isinstance(child, Token):
                 if child.type == 'FROZENSET':
                     set_type = 'frozenset'
             elif isinstance(child, Tree):
-                elt_type, imports = self._visit_tree(child)
+                elt_type = self._visit_tree(child)
 
         if elt_type:
             set_type += '[' + elt_type + ']'
 
-        return set_type, imports
+        return set_type
 
-    def tuple_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def tuple_type(self, tree) -> str:
         """
         tuple_type: [shape] TUPLE (OF|WITH) [NUMBER] type (OR type)*
           | [TUPLE] _LPAREN type (_COMMA type)* _RPAREN
@@ -755,73 +673,57 @@ class Normalizer(Interpreter):
           | [TUPLE] _LBRACE type (_COMMA type)* _RBRACE
         """
         types = []
-        imp = set()
         repeating = False
         count = 1
         has_shape = False
         for child in tree.children:
             if isinstance(child, Tree):
-                type, imports = self._visit_tree(child)
+                type = self._visit_tree(child)
                 if type is None:
                     has_shape = True
                 else:
                     types.append(type)
-                    imp.update(imports)
             elif isinstance(child, Token) and child.type in ['OF', 'WITH']:
                 repeating = True
             elif isinstance(child, Token) and child.type == 'NUMBER':
                 count = int(child.value)
         if has_shape:
-            return 'tuple', set()
+            return 'tuple'
         if types:
             if repeating:
                 if count > 1:
                     types = ["|".join(types)] * count
                 else:
-                    return f'tuple[{"|".join(types)}, ...]', imp
+                    return f'tuple[{"|".join(types)}, ...]'
             
-            return f'tuple[{",".join(types)}]', imp
-        return 'tuple', set()
+            return f'tuple[{",".join(types)}]'
+        return 'tuple'
 
-    def union_type(self, tree) -> tuple[str, set[tuple[str, str]]]:
+    def union_type(self, tree) -> str:
         """ union_type: UNION _LBRACKET type (_COMMA type)* _RBRACKET | type (AND type)+ """
         types = set()
-        imports = set()
         for child in tree.children:
             if isinstance(child, Tree):
-                type, imp = self._visit_tree(child)
+                type = self._visit_tree(child)
                 types.add(type)
-                imports.update(imp)
-        return '|'.join(sorted(types)), imports
+        return '|'.join(sorted(types))
 
 
 _lark = Lark(_grammar)
 _norm =  _norm = Normalizer()
 
     
-def parse_type(s: str, modname: str|None = None, classes: dict|None = None, is_param:bool=False) -> tuple[str, dict[str, list[str]]]:
-    """ Parse a type description from a docstring, returning the normalized
-        type and the set of required imports, or None if no imports are needed.
+def parse_type(s: str, modname: str|None = None, is_param:bool=False) -> str:
+    """ Parse a type description from a docstring, returning the normalized type.
     """
     try:
     #if True:
         tree = _lark.parse(s)
         #print(tree.pretty()) # Sometimes useful for debugging to uncomment this
-        _norm.configure(modname, classes, is_param)
-        n = _norm.visit(tree)
-        imps = {}
-        if n[1]:
-            for imp in n[1]:
-                what, where = imp
-                if where not in imps:
-                    imps[where] = []
-                if what:
-                    imps[where].append(what)
-            for where in imps.keys():
-                imps[where] = sorted(imps[where])
-        return n[0], imps
+        _norm.configure(modname, is_param)
+        return _norm.visit(tree)
     except Exception as e:
         #print(e)
-        return s, {}
+        return s
     
 
