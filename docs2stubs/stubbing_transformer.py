@@ -3,7 +3,7 @@ import inspect
 import os
 import re
 from types import ModuleType
-from typing import Literal, cast, _UnionGenericAlias as UnionType
+from typing import Literal, cast
 
 import libcst as cst
 from black import format_str
@@ -614,6 +614,8 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
             else:
                 pass
 
+    # Add imports from typing. We don't require these to be qualified with "typing." in .map files so have
+    # to handle them specially.
     # TODO: long term we should update any that are using old typing stuff like Union, Tuple, etc.
     typing_imports = ['Any', 'Callable', 'ClassVar', 'FileLike', 'IO', 'Iterable', 'Iterator', 'Literal', 'Mapping', 'NamedTuple', 
                       'Self', 'Sequence', 'SupportsIndex', 'Type', 'TypeVar',
@@ -642,6 +644,11 @@ def _targeter(fname: str) -> str:
 def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     global _stub_folder, _tlmodule
+    # TODO: I think the below is true; just being lazy for now and using an assert
+    # to prove myself right. If so, come back to this and remove the assert,
+    # and stop using the global _tlmodule. Eventually I want to get rid of
+    # that gloabl everywhere.
+    assert(_tlmodule == m.split('.')[0])
     _stub_folder = stub_folder
     if m.find('.') < 0:
         _tlmodule = m
