@@ -275,7 +275,7 @@ def analyze_module(m: str, include_submodules: bool = True, include_counts = Tru
         {},
         {}, {})
     
-    if process_module(m, state, 
+    if process_module("Analyzing", m, state, 
             _analyze, _targeter, 
             post_processor=_post_process,
             include_submodules=include_submodules,

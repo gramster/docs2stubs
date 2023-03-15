@@ -17,8 +17,6 @@ from .traces import combine_types, init_trace_loader
 from .utils import Sections, State, load_map, load_docstrings, load_type_maps, process_module
 
 
-_tlmodule: str = ''  # top-level module; kludge added late that would be a pain to plumb through all the way
-
 _total_return_annotations = 0  
 _total_return_annotations_missing = 0
 _total_param_annotations = 0  
@@ -128,6 +126,13 @@ class StubbingTransformer(BaseTransformer):
             for cls in classlist:
                 self._need_imports[cls] = module
 
+    def _is_union(self, annotation: cst.Annotation) -> bool:
+        return (isinstance(annotation.annotation, cst.BinaryOperation) and \
+            isinstance(annotation.annotation.operator, cst.BitOr)) or \
+        (isinstance(annotation.annotation, cst.Subscript) and \
+            isinstance(annotation.annotation.value, cst.Name) and \
+            annotation.annotation.value.value == 'Union')
+
     def _get_new_annotation(self, which: Literal['attribute', 'parameter', 'return'], 
                             nodename: str, trace_context: str, doctyp: str|None, \
                             valtyp: str|None = None, is_classvar: bool = False) -> cst.Annotation | None:
@@ -168,7 +173,9 @@ class StubbingTransformer(BaseTransformer):
                     if is_classvar:
                         valtyp = f'ClassVar[{valtyp}]'
                         self._need_imports['ClassVar'] = 'typing'
-                    n = cst.Annotation(annotation=cst.parse_expression(valtyp))
+                    typ = valtyp
+                    n = cst.Annotation(annotation=cst.parse_expression(typ))
+                    print(f'Annotated {which} {trace_context}.{nodename} with {typ} inferred from assignment')
                 elif which != 'return':
                     print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping or default value')
             elif typ:
@@ -182,6 +189,11 @@ class StubbingTransformer(BaseTransformer):
                 print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
         except:
             print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
+
+        if n and which == "return" and self._is_union(n):
+            # Keep track of union returns as they are
+            # problematic and may need rework; e.g. with overloads
+            _union_returns[f'{self._modname}.{trace_context}'] = typ 
         return n
 
     def leave_Assign(
@@ -437,23 +449,7 @@ class StubbingTransformer(BaseTransformer):
 
         global _total_return_annotations, _total_return_annotations_missing
         if annotation:
-            # Is this a union return? If so, keep track of these as they are
-            # problematic and may need rework; e.g. with overloads
-            is_union =  (isinstance(annotation.annotation, cst.BinaryOperation) and \
-                isinstance(annotation.annotation.operator, cst.BitOr)) or \
-            (isinstance(annotation.annotation, cst.Subscript) and \
-             isinstance(annotation.annotation.value, cst.Name) and \
-                annotation.annotation.value.value == 'Union')
-            if is_union:
-                _union_returns[f'{self._modname}.{context}'] = _get_code(annotation.annotation)
-                pass
-
             _total_return_annotations += 1
-            try:
-                print(f'Annotating {self.context}-> as {annotation}')  
-            except:
-                # I have had cases where __repr__ recurses infinitely... :-(
-                print(f'Annotating {self.context} (cannot print annotation)') 
             return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation, \
                                                 decorators=decorators)
         _total_return_annotations_missing += 1    
@@ -561,11 +557,16 @@ def make_imports_relative(m: str, module: str, fname: str) -> str:
     return rel
     
 
-def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
+def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
     except Exception as e:
         return None
+
+    if m.find('.') < 0:
+        tlmodule = m
+    else:
+        tlmodule = m[:m.find('.')]
 
     patcher = StubbingTransformer(tlmodule, m, fname, state, strip_defaults=strip_defaults)
     modified = cstree.visit(patcher)
@@ -634,7 +635,7 @@ def patch_source(tlmodule: str, m: str, fname: str, source: str, state: State, s
 
 
 def _stub(mod: ModuleType, m: str, fname: str, source: str, state: State, **kwargs) -> str|None:
-    return patch_source(_tlmodule, m, fname, source, state, **kwargs)
+    return patch_source(m, fname, source, state, **kwargs)
 
 
 def _targeter(fname: str) -> str:
@@ -643,29 +644,25 @@ def _targeter(fname: str) -> str:
 
 def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
-    global _stub_folder, _tlmodule
-    # TODO: I think the below is true; just being lazy for now and using an assert
-    # to prove myself right. If so, come back to this and remove the assert,
-    # and stop using the global _tlmodule. Eventually I want to get rid of
-    # that gloabl everywhere.
-    assert(_tlmodule == m.split('.')[0])
+    global _stub_folder
+
     _stub_folder = stub_folder
     if m.find('.') < 0:
-        _tlmodule = m
+        tlmodule = m
     else:
-        _tlmodule = m[:m.find('.')]
-    init_trace_loader(trace_folder, _tlmodule)
+        tlmodule = m[:m.find('.')]
+    init_trace_loader(trace_folder, tlmodule)
     if skip_analysis:
-        state = State(None, load_docstrings(_tlmodule), load_type_maps(_tlmodule), {}, {}, {}, {})
+        state = State(None, load_docstrings(tlmodule), load_type_maps(tlmodule), {}, {}, {}, {})
     else:   
         state = analyze_module(m, include_submodules=include_submodules)
     if state is not None:
-        state.creturns.update(load_map(_tlmodule, 'creturns'))
-        creturns = f'analysis/{_tlmodule}.creturns.map.missing'
+        state.creturns.update(load_map(tlmodule, 'creturns'))
+        creturns = f'analysis/{tlmodule}.creturns.map.missing'
         if os.path.exists(creturns):
             os.remove(creturns)
 
-        process_module(m, state, _stub, _targeter, include_submodules=include_submodules,
+        process_module("Stubbing", m, state, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
 
     print(f'Annotated {_total_param_annotations} parameters, {_total_attr_annotations} attributes and {_total_return_annotations} returns')
@@ -679,7 +676,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     print(f'{len(_union_returns)} functions had union returns')
     for f, r in _union_returns.items():
         print(f'    {f}: {r}')
-    with open(f'typings/{_tlmodule}/_typing.pyi', 'w') as f:
+    with open(f'typings/{tlmodule}/_typing.pyi', 'w') as f:
         f.write('''
 # This file is generated by docs2stub. These types are intended
 # to simplify the stubs generated by docs2stub. They are not

@@ -102,7 +102,6 @@ class BaseTransformer(cst.CSTTransformer):
         return False
 
     def visit_Assign(self, node: cst.Assign) -> bool:
-        # TODO: figure out how to handle attributes here
         return False
 
     def leave_Assign(
