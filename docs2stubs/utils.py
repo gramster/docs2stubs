@@ -126,7 +126,8 @@ def save_result(target: str, result: str) -> None:
 # out to be a case of DRY-gone-wild and probably should
 # be replaced.
 
-def process_module(m: str, 
+def process_module(taskname: str,
+        m: str, 
         state: State,
         processor: Callable, 
         targeter: Callable,
@@ -162,13 +163,13 @@ def process_module(m: str,
         result = processor(mod, m, file, source, state, **kwargs)
         if post_processor is None:
             if result is None:
-                print(f"Failed to process {file}")
+                print(f"{taskname}: Failed to handle {file}")
                 continue
             else:
                 target = targeter(file)
                 save_result(target, result)
 
-        print(f"Processed file {file}")
+        print(f"{taskname}: Done {file}")
 
     if post_processor:
         result = post_processor(orig_m, state, **kwargs)
