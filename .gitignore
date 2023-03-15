@@ -13,4 +13,4 @@ __pycache__
 samples/
 tracing/*-tests/
 tracing/*.sqlite3
-
+scratch/
