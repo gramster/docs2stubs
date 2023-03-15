@@ -1,0 +1,10 @@
+1#sklearn.neighbors._regression.RadiusNeighborsRegressor.predict#ndarray
+1#sklearn.neighbors._graph.radius_neighbors_graph#csr_matrix
+1#sklearn.neighbors._graph.RadiusNeighborsTransformer.transform#csr_matrix
+1#sklearn.neighbors._graph.RadiusNeighborsTransformer.fit_transform#csr_matrix
+1#sklearn.neighbors._base.RadiusNeighborsMixin.radius_neighbors_graph#csr_matrix
+1#sklearn.neighbors._classification.RadiusNeighborsClassifier.predict_proba#ndarray
+1#sklearn.cross_decomposition._pls.PLSSVD.transform#numpy.ndarray|tuple[numpy.ndarray,numpy.ndarray]
+1#sklearn.cross_decomposition._pls.PLSSVD.fit_transform#numpy.ndarray|tuple[numpy.ndarray,numpy.ndarray]
+#sklearn.model_selection._validation.cross_validate#dict[str,np.ndarray]
+#sklearn.base.TransformerMixin.fit_transform#np.ndarray

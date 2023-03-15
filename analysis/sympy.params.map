@@ -1,0 +1,159 @@
+57#integer#int
+34#Sympifyable#Sympifyable
+22#array_like#ArrayLike
+19#Matrix#ArrayLike
+19#numeric type or SymPy Symbol#float|Symbol
+17#sympifiable#Sympifiable
+16#iterable(optional)#Iterable|None
+15#bool or number#bool|float
+15#Particle and/or RigidBody#Particle|RigidBody
+14#iterables#Iterable
+13#Real number#float
+12#Gate tuple#tuple[Gate,...]
+12#function, optional#Callable|None
+10#function#Callable
+10#SymPy expression#Expr
+10#number#float
+9#(float, float)#tuple[float,float]
+8#Expr containing RandomSymbols#Expr
+8#positive integer#int
+8#expression#Expr
+8#:py:class:`~.Expr`#Expr
+8#Medium or sympifiable#Medium|Sympifiable
+8#:py:class:`~.Module`#Module
+7#boolean, optional (default=False)#bool|None
+7#Positive Integer#int
+7#:py:class:`~.Symbol`#Symbol
+7#str (optional)#str|None
+7#boolean, optional (default=True)#bool|None
+7#:py:class:`~.Submodule`#Submodule
+6#:py:class:`~.Interval`#Interval
+6#string, optional#str|None
+6#symbol#Symbol
+6#Expression#Expr
+6#{True, False}#bool
+5#Real number, `\alpha > 0`, a shape#float
+5#Positive definite real square matrix#np.matrix|np.spmatrix
+5#Symbol/str#Symbol|str
+5#Vector(optional)#Vector|None
+5#string (default : "all")#str
+5#[list of strings]#tuple[ArrayLike]
+5#[string]#tuple[str]
+5#list of variables#ArrayLike
+5#:py:class:`~.ModuleElement`#ModuleElement
+5#Value#Value
+4#Real number, `\beta > 0`, a shape#float
+4#Positive integer#int
+4#Integer/symbol/string#Integer|Symbol|str
+4#Positive Real number#float
+4#List of positive real numbers#Sequence[float]
+4#sympy.physics.optics.medium.Medium or sympifiable#Medium|Sympifiable
+4#Boolean, Keyword#bool
+4#SISOLinearTimeInvariant type#SISOLinearTimeInvariant
+4#boolean, optional#bool|None
+4#dict-like#Mapping
+4#number or SymPy expression#float|Expr
+4#sequence of Points#Sequence[Point]
+4#(str, str) tuple#tuple
+4#sequence containing tupes#Sequence[tuple]
+4#:py:class:`~.Poly`#Poly
+4#int, optional (default=1)#int|None
+4#str, :py:class:`~.Symbol`, None, optional (default=None)#str|Symbol|None
+3#Real number, `b > 0`, a scale#float
+3#Real positive number#float
+3#Real number, :math:`a < b`#float
+3#Positive number#float
+3#A positive integer#int
+3#Positive real number#float
+3#Bool (defaults to True)#bool
+3#Any iterable, optional.#Iterable|None
+3#list of (callable, callable) pairs#ArrayLike
+3#list of lists#ArrayLike
+3#SymPy Matrix#np.matrix|np.spmatrix
+3#bool, optional#bool|None
+3#string or None, optional#str|None
+3#string or int, optional#str|int|None
+3#float, optional#float|None
+3#Point, two-tuple of sympifyable objects, or None(default=None)#Point|tuple|None
+3#A finite ``FpGroup`` or a ``PermutationGroup``#FpGroup|PermutationGroup
+3#str, Symbol/Expr or sequence of str, Symbol/Expr (may be empty)#str|Symbol|Expr|Sequence[str|Symbol|Expr]
+3#Boolean expression#bool
+3#bool, optional.#bool|None
+3#sympy.assumptions.cnf.CNF, optional.#CNF|None
+3#number of significant digits of the points and weights to return#int
+3#tuple[list, list[tuple[T, T]]#tuple[list, list[tuple]
+3#CompilerRunner subclass (optional)#CompilerRunner|None
+3#expr#Expr
+3#Matrix or None#ArrayLike|None
+3#a list/tuple/set#list|tuple|set
+3#a Quaternion#Quaternion
+3#a pure Quaternion.#Quaternion.
+3#bool, optional (default=True)#bool|None
+3#:class:`~.Domain` or coercible#Domain
+3#:class:`~.MonomialOrder` or coercible, optional#MonomialOrder|None
+3#:class:`~.MonomialOrder` or coercible#MonomialOrder
+3#:py:class:`~.DomainMatrix` over :ref:`ZZ`#DomainMatrix
+2#nonnegative integer. Can be symbolic.#int
+2#integer or Symbol#int|Symbol
+2#scalar or matrix#Scalar|ArrayLike
+2#slice#slice
+2#True or False#bool
+2#string; the elementary row operation#str
+2#bool or function#bool|Callable
+2#bool. Whether to do upper bidiagnalization or lower.#bool
+2#function or None#Callable|None
+2#Expression containing symbol#Expr
+2#Real number, `\sigma > 0`, a scale#float
+2#Real Number, `\alpha > 0`#float
+2#Real number, the location#float
+2#A positive Real number,#float
+2#Real number, `a > 0`, a shape#float
+2#Real number, `\eta > 0`, a shape#float
+2#Real number, the location (mean)#float
+2#Real number, `s > 0`, a scale#float
+2#Real number, :math:`-\infty < a`, the left boundary#float|Literal[-np.inf]
+2#Real number, :math:`a < b < \infty`, the right boundary#float
+2#Positive Rational Number#float
+2#Integer/str#int|str
+2#SymPy Expression#Expr
+2#List representing the mean or the mean vector#list
+2#A symbol/str#Symbol|str
+2#List of event probabilites#list
+2#A Positive number greater than equal to 0.#float
+2#A value between 0 and 1#float
+2#A positive value#float
+2#A non-negative value#float
+2#Dyadic/Vector#Dyadic|Vector
+2#Point/CoordSys3D#Point|CoordSys3D
+2#Vector/Dyadic/Del#Vector|Dyadic|Del
+2#Vector/Dyadic#Vector|Dyadic
+2#Vector/Dyadic/scalar(sympyfiable)#Vector|Dyadic|Scalar
+2#list of functions#Sequence[Callable]
+2#list of SymPy expressions#Sequence[Expr]
+2#infinite iterator yielding unique Symbols#Iterator[Symbol]
+2#dict (optional)#dict|None
+2#number or Symbol#float|Symbol
+2#Gate tuple, Mul, or Number#tuple[Gate,...]|Mul|Number
+2#a density matrix or Matrix#Matrix
+2#tuple, Gate/Integer/tuple or Mul#tuple|Gate|Integer|Mul
+2#int (default 10)#int
+2#Matrix, Ray3D, or sequence#ArrayLike|Ray3D|Sequence
+2#3-tuple of sympifiable#tuple[Sympifiable, ...]
+2#3 character string or 3 digit integer#str|int
+2#sympyfiable#Sympyfiable
+2#dict or iterable of dicts#Mapping|Iterable[dict]
+2#List of dynamicsymbols#Sequence[DynamicSymbol]
+2#ordered iterable of functions of time#Iterable[Callable]
+2#``None``.#None
+2#GeometryEntity or sequence of coordinates#GeometryEntity|Sequence[coordinates]
+2#Point or radian value#Point|float
+2#list of strictly increasing integer values#Sequence[int]
+2#List of dummy indices.#Sequence
+2#string, or float, or function#str|float|Callable
+2#str or expression#str|Expr
+2#(bool, bool)#tuple[bool,bool]
+2#Any boolean expression.#Expr
+2#Any boolean expression, optional.#Expr|None
+2#AssumptionsContext, optional.#AssumptionsContext|None
+2#int, optional.#int|None
+2#integrand expression#Expr

@@ -1,0 +1,147 @@
+56#NetworkX graph#NetworkX graph
+38#iterator#Iterator
+23#networkx Graph#networkx Graph
+16#graph#graph
+14#integer#int
+12#NetworkX Graph#NetworkX Graph
+12#function#Callable
+11#generator#Generator
+11#NetworkX DiGraph#NetworkX DiGraph
+10#number#number
+7#SciPy sparse matrix#SciPy sparse matrix
+6#integer, float#int|float
+6#generator of sets#Generator[sets, None, None]
+5#NumPy matrix#NumPy matrix
+5#NumPy array#np.ndarray
+4#NetworkX Graph or DiGraph#NetworkX Graph or DiGraph
+4#numpy array#NDArray
+4#list of nodes#ArrayLike
+4#(multi)digraph-like#(multi)digraph-like
+4#SubGraph View#SubGraph View
+4#OR if multiple nodes are requested#OR if multiple nodes are requested
+3#object.#Any
+3#pair of node sets#pair of node sets
+3#generator of lists#Generator[lists, None, None]
+3#set()#set()
+3#(int, Graph) tuple#tuple
+3#A new graph with the same type as G.#A new graph with the same type as G.
+3#two-tuple of dictionaries#two-tuple of dictionaries
+2#Pandas DataFrame#Pandas DataFrame
+2#argmap.Signature#Signature
+2#list of lists and/or strings#list of lists and/or strings
+2#NetworkX multigraph#NetworkX multigraph
+2#corresponding coloring.#corresponding coloring.
+2#2-tuple#tuple
+2#pair of dictionaries, or numeric and list#pair of dictionaries, or numeric and list
+2#Networkx graph#Networkx graph
+2#instance of `sympy.core.add.Add`#Add
+2#dict keyed by nodes#dict keyed by nodes
+2#a generator of k-edge-subgraphs#a generator of k-edge-subgraphs
+2#numeric#numeric
+2#directed graph#directed graph
+2#A graph with the same type as the first graph in list#A graph with the same type as the first graph in list
+2#A union graph with the same type as G.#A union graph with the same type as G.
+2#(multi)Graph#(multi)Graph
+2#A list of edge keys assigned to the edges in `ebunch`.#A list of edge keys assigned to the edges in `ebunch`.
+2#The edge key assigned to the edge.#The edge key assigned to the edge.
+2#dataview#dataview
+2#Graph/MultiGraph#Graph/MultiGraph
+2#Numpy matrix#Numpy matrix
+2#NumPy array of floats.#np.ndarray
+2#.. deprecated:: 2.6#.. deprecated:: 2.6
+1#A random graph containing no path on four vertices.#A random graph containing no path on four vertices.
+1#networkx graph#networkx graph
+1#NetworkX Graph of type create_using#NetworkX Graph of type create_using
+1#AS_graph_generator object#AS_graph_generator
+1#Networkx Graph#Networkx Graph
+1#Graph object#Graph
+1#Networkx Graph object#Networkx Graph object
+1#List of NetworkX Graphs#List of NetworkX Graphs
+1#List of Adjacency matrices#List of Adjacency matrices
+1#Number of nonisomorphic graphs for the given order#Number of nonisomorphic graphs for the given order
+1#__getattr__, __dir__, __all__#__getattr__|__dir__|__all__
+1#NumPy recarray#NumPy recarray
+1#SciPy sparse array#SciPy sparse array
+1#NumPy ndarray#numpy.ndarray
+1#The object that results from ``next(iter(iterable))``#The object that results from ``next(iter(iterable))``
+1#Integer, float#Integer|float
+1#True if G has an Eulerian path.#True if G has an Eulerian path.
+1#value of the requested metric#value of the requested metric
+1#(nx.PlanarEmbedding, list) tuple#tuple
+1#(float, float)#tuple[float,float]
+1#Yields sets of nodes, one for each k-clique community.#Yields sets of nodes, one for each k-clique community.
+1#generator of 3-tuples#generator of 3-tuples
+1#generator of DiGraphs#Generator[DiGraphs, None, None]
+1#subgraph#subgraph
+1#int or iterator#int|Iterator
+1#2D numpy.ndarray#np.ndarray
+1#pair of dictionaries, or numeric and list.#pair of dictionaries, or numeric and list.
+1#number and list#number|list
+1#(graph, set)#tuple[graph,set]
+1#summary graph#summary graph
+1#set of frozensets#set[frozensets]
+1#Counter, or dictionary of Counters#Counter|dict[Counters, Counters]
+1#(float, float) tuple#tuple
+1#which forms a cycle (loop) in G.#which forms a cycle (loop) in G.
+1#[[0], [2], [0, 1, 2], [0, 2], [1, 2]]#tuple[tuple[Literal:0],tuple[Literal:2],tuple[Literal:0,Literal:1,Literal:2],tuple[Literal:0,Literal:2],tuple[Literal:1,Literal:2]]
+1#directed edges#directed edges
+1#necessarily returned in a order by which they appear in the cycle#necessarily returned in a order by which they appear in the cycle
+1#NetworkX graph or multigraph#NetworkX graph or multigraph
+1#:class:`set`#set
+1#tuple of lists#tuple[lists, ...]
+1#Set of nodes#set[nodes]
+1#A set containing the maximal cliques in G.#A set containing the maximal cliques in G.
+1#NetworkX graph or two-tuple#NetworkX graph or two-tuple
+1#the count is divided equally among paths.#the count is divided equally among paths.
+1#list of floats or float#list[float]|float
+1#or default if they have no common ancestors.#or default if they have no common ancestors.
+1#generator of tuples `((u, v), lca)` where `u` and `v` are nodes#generator of tuples `((u, v), lca)` where `u` and `v` are nodes
+1#(set, set) tuple#tuple
+1#dict or nx.Graph#dict|Graph
+1#deg#deg
+1#an iterator#an iterator
+1#(set, list) tuple#tuple
+1#a generator of node cutsets#a generator of node cutsets
+1#integer or float#int|float
+1#pair of node lists#pair of node lists
+1#a generator of k-edge-ccs. Each set of returned nodes#a generator of k-edge-ccs. Each set of returned nodes
+1#a generator of 2-edge-connected components#a generator of 2-edge-connected components
+1#a generator of k-edge-ccs#a generator of k-edge-ccs
+1#a generator of nx.Graphs that are k-edge-subgraphs#a generator of nx.Graphs that are k-edge-subgraphs
+1#list of tuples (node_edit_path, edge_edit_path)#list[tuples]
+1#Generator of consecutive approximations of graph edit distance.#Generator of consecutive approximations of graph edit distance.
+1#Generator of tuples (node_edit_path, edge_edit_path, cost)#Generator of tuples (node_edit_path, edge_edit_path, cost)
+1#A new graph.#A new graph.
+1#NetworkX simple graph#NetworkX simple graph
+1#The rooted product of G and H with a specified root in H#The rooted product of G and H with a specified root in H
+1#a graph with the same type as the first graph in list#a graph with the same type as the first graph in list
+1#A new graph with the same type as the first graph in list#A new graph with the same type as the first graph in list
+1#A new graph with the same type as G#A new graph with the same type as G
+1#The full join graph with the same type as G.#The full join graph with the same type as G.
+1#(bool, NetworkX graph) tuple#(bool, NetworkX graph) tuple
+1#list[set]#list[set]
+1#dict[collections.abc.Hashable, set[collections.abc.Hashable]]#dict[Hashable, set[Hashable]]
+1#nx.Graph#Graph
+1#(multi)digraph#(multi)digraph
+1#Dictionary of attributes keyed by node.#Dictionary of attributes keyed by node.
+1#Dictionary of attributes keyed by edge. For (di)graphs, the keys are#Dictionary of attributes keyed by edge. For (di)graphs, the keys are
+1#(u, v). For multi(di)graphs, the keys are 3-tuples of#(u, v). For multi(di)graphs, the keys are 3-tuples of
+1#(u, v, key).#tuple[u,v,key]
+1#iterator over edge tuples#iterator over edge tuples
+1#Scipy sparse matrix#Scipy sparse matrix
+1#scipy.sparse.csr_matrix#csr_matrix
+1#matplotlib.collections.PathCollection#PathCollection
+1#matplotlib.colections.LineCollection or a list of matplotlib.patches.FancyArrowPatch#LineCollection|NDArray
+1#numpy ndarray#numpy.ndarray
+1#Dictionary of x, y, positions keyed by node.#Dictionary of x, y, positions keyed by node.
+1#PyGraphviz graph#PyGraphviz graph
+1#Dictionary of (x, y) positions keyed by node.#Dictionary of (x, y) positions keyed by node.
+1#A dictionary of positions keyed by node#A dictionary of positions keyed by node
+1#NetworkX MultiGraph or MultiDiGraph.#NetworkX MultiGraph or MultiDiGraph.
+1#╙── 0#╙── 0
+1#Graph or list of Graphs#Graph|list[Graphs]
+1#Graph/Multigraph or list of Graphs/MultiGraphs#Graph/Multigraph or list of Graphs/MultiGraphs
+1#a NetworkX graph instance#a NetworkX graph instance
+1#NetworkX Graph built from create_using if provided.#NetworkX Graph built from create_using if provided.
+1#JIT JSON string#JIT JSON string
+1#generator of strings#Generator[str, None, None]

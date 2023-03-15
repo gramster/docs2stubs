@@ -1,0 +1,410 @@
+288#NetworkX graph#NetworkX graph
+190#graph#graph
+145#node#node
+89#integer, random_state, or None#int|random_state|None
+58#NetworkX graph constructor, optional (default=nx.Graph)#NetworkX graph constructor, optional (default=nx.Graph)
+45#function#Callable
+43#integer#int
+40#NetworkX Graph#NetworkX Graph
+34#string or None, optional (default=None)#str|None
+32#nodes#nodes
+30##
+25#node label#node label
+24#graphs#graphs
+22#string or function#str|Callable
+22#NetworkX DiGraph#NetworkX DiGraph
+21#file or string#file|str
+19#keyword arguments, optional (default= no attributes)#keyword arguments, optional (default= no attributes)
+18#bool, optional (default=False)#bool|Literal[False]|None
+17#single node, container, or all nodes (default= all nodes)#single node, container, or all nodes (default= all nodes)
+15#None or string, optional (default=None)#str|None
+13#bool (default: False)#bool|Literal[False]
+13#bool (default: True)#bool|Literal[True]
+13#collection#collection
+13#list or iterable (optional)#ArrayLike|Iterable[None]
+13#bool, optional (default=True)#bool|Literal[True]|None
+11#bool (default=True)#bool|Literal[True]
+11#list of nodes#ArrayLike
+11#string or None, optional (default='weight')#str|Literal['weight']|None
+10#string ('in','out')#string ('in','out')
+10#integer or float#int|float
+10#bool (optional)#bool (optional)
+10#keyword arguments#keyword arguments
+10#string or bool, optional (default=False)#str|bool|Literal[False]|None
+10#value, optional (default=None)#value|None
+10#NetworkX graph or list of nodes#NetworkX graph or list of nodes
+10#number (default: 1)#number|Literal[1]
+9#key#key
+9#optional keywords#optional keywords
+8#integer, float#int|float
+8#iterable of node pairs, optional (default = None)#iterable of node pairs, optional (default = None)
+8#Python type#Python type
+8#container#container
+8#integer (optional#integer (optional
+8#iterable container#iterable container
+8#input graph (optional#input graph (optional
+7#list of integers#ArrayLike
+7#hashable object#hashable
+7#int, optional (default=len(G))#int, optional (default=len(G))
+7#NetworkX graph instance#NetworkX graph instance
+7#list or container#ArrayLike|container
+7#string, optional (default="weight")#str|Literal["weight"]|None
+7#undirected graph#undirected graph
+7#bool or None (default None)#bool|None
+6#digraph#digraph
+6#string or function (default="weight")#str|Callable|Literal["weight"]
+6#dict or a set of 2 or 3 tuples#dict or a set of 2 or 3 tuples
+6#numeric#numeric
+6#value | list#value|ArrayLike
+6#bool (optional#bool (optional
+6#Matplotlib Axes object#Matplotlib Axes object
+5#NumPy data-type#NumPy data-type
+5#string or None   optional (default='weight')#string or None   optional (default='weight')
+5#nx.PlanarEmbedding#PlanarEmbedding
+5#NetworkX graph.#NetworkX graph.
+5#string, optional (default='weight')#str|Literal['weight']|None
+5#int, optional(default=len(G))#int, optional(default=len(G))
+5#Integer#Integer
+5#input graph#input graph
+5#container of edges#container of edges
+5#string (optional#string (optional
+5#NetworkX graph-like class#NetworkX graph-like class
+5#Graph (undirected)#Graph (undirected)
+4#dictionary of dictionary of integers#dictionary of dictionary of integers
+4#int or iterable container of nodes#int or iterable container of nodes
+4#boolean optional#boolean optional
+4#NetworkX graph constructor, optional (default DiGraph)#NetworkX graph constructor, optional (default DiGraph)
+4#Any other keyword parameter is passed to the function that#Any other keyword parameter is passed to the function that
+4#eccentricity dictionary#eccentricity dictionary
+4#:class:`networkx.Graph`#Graph
+4#list or iterable container#list or iterable container
+4#bool (default=False)#bool|Literal[False]
+4#None, string or function, optional (default = None)#str|Callable|None
+4#container of nodes, optional (default=all nodes in G)#container of nodes, optional (default=all nodes in G)
+4#list or iterator of strings#ArrayLike|Iterator[str]
+4#bool or list of (label,type) tuples#bool or list of (label,type) tuples
+4#data type (float)#data type (float)
+4#list or container of edge tuples#list or container of edge tuples
+4#(multi)digraph-like#(multi)digraph-like
+4#hashable identifier, optional (default=None)#hashable identifier, optional (default=None)
+4#float or None (default=None)#float|None
+4#string (default='center')#str|Literal['center']
+4#string or file#str|file
+3#NetworkX graph constructor, optional (default MultiGraph)#NetworkX graph constructor, optional (default MultiGraph)
+3#int or iterable container of nodes (default = 0)#int or iterable container of nodes (default = 0)
+3#directed graph#directed graph
+3#list of nonnegative integers#ArrayLike
+3#str in {'bsr', 'csr', 'csc', 'coo', 'lil', 'dia', 'dok'}#str in {'bsr', 'csr', 'csc', 'coo', 'lil', 'dia', 'dok'}
+3#object comparable with existing values.#object comparable with existing values.
+3#iterable of sets of nodes#iterable of sets of nodes
+3#string or None, optional (default="weight")#str|Literal["weight"]|None
+3#float, optional (default=1)#float|Literal[1]|None
+3#string, optional (default = 'dijkstra')#str|Literal['dijkstra']|None
+3#string, optional (default= 'weight')#str|Literal['weight']|None
+3#non-empty set of nodes#non-empty set of nodes
+3#string, optional (default = 'community')#str|Literal['community']|None
+3#node, list of nodes#node|ArrayLike
+3#None | 'original' | 'reverse' | 'ignore' (default: None)#Literal['ignore'|Literal:'reverse'|Literal:'original'|None]|None
+3#node in `G`#node in `G`
+3#int, float, str, Python type#int, float, str, Python type
+3#NetworkX digraph#NetworkX digraph
+3#float, optional (default=1.0e-6)#float|Literal[1.0e-6]|None
+3#string (default='full')#str|Literal['full']
+3#string (default='lu')#str|Literal['lu']
+3#dictionary (default=None)#Mapping|None
+3#nx.DiGraph#DiGraph
+3#node, optional (default: first node in list(G))#node, optional (default: first node in list(G))
+3#int, optional (default=100)#int|Literal[100]|None
+3#list, optional (default=None)#ArrayLike|None
+3#node (optional)#node (optional)
+3#undirected NetworkX graph#undirected NetworkX graph
+3#string (default: 'weight')#str|Literal['weight']
+3#object, optional (default: None)#Any|None
+3#bool, optional (default: False)#bool|Literal[False]|None
+3#float, optional (default: 1e-8)#float|Literal[1e-8]|None
+3#string, optional (default: 'tracemin_pcg')#str|Literal['tracemin_pcg']|None
+3#scalar or array (default=300)#Scalar|ArrayLike|Literal[300]
+3#string (default='o')#str|Literal['o']
+3#Matplotlib colormap#Matplotlib colormap
+3#string (default='k' black)#string (default='k' black)
+3#string (default='normal')#str|Literal['normal']
+3#string (default='sans-serif')#str|Literal['sans-serif']
+3#string (optional)#string (optional)
+3#dict key (optional)#dict key (optional)
+2#iterable of paths#Iterable[paths]
+2#NetworkX graph constructor, optional Graph type#NetworkX graph constructor, optional Graph type
+2#random state#random state
+2#{sum, min, max}#sum|max|min
+2#Pandas DataFrame#Pandas DataFrame
+2#NumPy data type#NumPy data type
+2#string or None optional (default = 'weight')#string or None optional (default = 'weight')
+2#scipy sparse matrix#scipy sparse matrix
+2#iterables of nodes, or (node, datadict) tuples#iterables of nodes, or (node, datadict) tuples
+2#iterables of with u, v nodes as#iterables of with u, v nodes as
+2#class#class
+2#dict of dicts#Mapping[dicts, dicts]
+2#:class:`str`#str
+2#float (default=1)#float|Literal[1]
+2#list or generator#ArrayLike|Generator
+2#float, optional (default=0.0000001)#float|Literal[0.0000001]|None
+2#int, optional (default=1)#int|Literal[1]|None
+2#int or None, optional (default=None)#int|None
+2#string ("in"|"out"|"in+out"), optional (default="out")#string ("in"|"out"|"in+out"), optional (default="out")
+2#bool, optional (default=None)#bool|None
+2#bool or list of keys#bool|ArrayLike
+2#int, float, str, Python type, optional OBSOLETE#int, float, str, Python type, optional OBSOLETE
+2#integer or iterable container of nodes#integer or iterable container of nodes
+2#Networkx graph (undirected)#Networkx graph (undirected)
+2#a DiGraph or MultiDiGraph#a DiGraph or MultiDiGraph
+2#container (default: all nodes in G)#container (default: all nodes in G)
+2#edge attribute key, optional (default=None)#edge attribute key, optional (default=None)
+2#int, optional (default=None)#int|None
+2#scalar or dictionary, optional (default=1.0)#Scalar|Mapping|Literal[1.0]|None
+2#data type (default=float)#data type (default=float)
+2#integer, optional (default=100)#int|Literal[100]|None
+2#NetworkX directed graph#NetworkX directed graph
+2#nodes in the graph.#nodes in the graph.
+2#"1-1" or "1-0" or function, optional (default="1-1")#Callable|Literal["1-1","1-0","1-1"]|None
+2#int, optional (default=10)#int|Literal[10]|None
+2#2-tuple#tuple
+2#int (default = 5)#int|Literal[5]
+2#boolean (optional#boolean (optional
+2#NetworkX Graph or MultiGraph instances.#NetworkX Graph or MultiGraph instances.
+2#collections.abc.Callable or None#Callable|None
+2#undirected Graph#undirected Graph
+2#nx.Graph#Graph
+2#bool (default False)#bool|Literal[False]
+2#Networkx graph#Networkx graph
+2#scalar value, dict-like#Scalar|dict-like
+2#bool optional (default=True)#bool optional (default=True)
+2#hashable identifier, optional (default=lowest unused integer)#hashable identifier, optional (default=lowest unused integer)
+2#object (default=None)#Any|None
+2#node, container of nodes, or None meaning all nodes (default=None)#node, container of nodes, or None meaning all nodes (default=None)
+2#bool or edge attribute key#bool or edge attribute key
+2#container of nodes, optional (default=None)#container of nodes, optional (default=None)
+2#any Python object (default=None)#any Python object (default=None)
+2#nodes, optional (Gefault=all edges)#nodes, optional (Gefault=all edges)
+2#nodes, optional (default=all edges)#nodes, optional (default=all edges)
+2#real#real
+2#bool or None, optional (default=None)#bool|None
+2#str (default='-\|>' for directed graphs)#str (default='-\|>' for directed graphs)
+2#color or array of colors (default='#1f78b4')#color|ArrayLike|Literal['#1f78b4']
+2#float or array of floats (default=1.0)#float|ArrayLike|Literal[1.0]
+2#color or array of colors (default='k')#color|ArrayLike|Literal['k']
+2#floats or None (default=None)#float|None
+2#int (default=10)#int|Literal[10]
+2#int (default=0)#int|Literal[0]
+2#Node from G or None (default: None)#Node from G or None (default: None)
+2#int, RandomState instance or None  optional (default=None)#int, RandomState instance or None  optional (default=None)
+2#string (default='vertical')#str|Literal['vertical']
+2#dict or None  optional (default=None)#dict or None  optional (default=None)
+2#Python type (default: str)#Python type (default: str)
+2#Python type (default: int)#Python type (default: int)
+2#dict or None (default=None)#Mapping|None
+2#optional#None
+2#filename or filehandle#filename|filehandle
+2#string (default: 1.2draft)#string (default: 1.2draft)
+2#//gexf.net/schema.html)#//gexf.net/schema.html)
+1#list of tuples (of size 3)#list of tuples (of size 3)
+1#list of three-tuples#ArrayLike
+1#function (optional)#function (optional)
+1#list of floats of length m#ArrayLike
+1#number#number
+1#list of integer pairs#list of integer pairs
+1#a prime number#a prime number
+1#int, an odd prime number.#int, an odd prime number.
+1#a sequence of intervals, say (l, r) where l is the left end,#a sequence of intervals, say (l, r) where l is the left end,
+1#list or tuple of numbers or iterables of nodes#list or tuple of numbers or iterables of nodes
+1#Graph Instance, Constructor or None#Graph|Constructor|None
+1#Graph constructor (optional#Graph constructor (optional
+1#tuple of integers or tuple of node iterables#tuple of integers or tuple of node iterables
+1#bool,optional (default=False)#bool|Literal[False]|None
+1#boolean, optional default=False#bool|Literal[False]|None
+1#list of list of floats#ArrayLike
+1#integer in [1000, 10000]#integer in [1000, 10000]
+1#edge attribute key (optional#edge attribute key (optional
+1#NetworkX graph constructor#NetworkX graph constructor
+1#MultiDiGraph instance#MultiDiGraph
+1#graph or matrix (default="Graph)#graph or matrix (default="Graph)
+1#networkx graph#networkx graph
+1#four-tuple of numbers#four-tuple of numbers
+1#float, optional (default 2)#float|Literal[2]|None
+1#NetworkX graph constructor, optional (default MultiDiGraph)#NetworkX graph constructor, optional (default MultiDiGraph)
+1#dtype#dtype
+1#str or int or None, optional (default=None)#str|int|None
+1#str or int, iterable, True, or None#str|int|Iterable|Literal[True]|None
+1#str or None, optional (default=None)#str|None
+1#float (default = 0.0)#float|Literal[0.0]
+1#numpy matrix#numpy matrix
+1#scipy.sparse array#scipy.sparse array
+1#array_like (default = 0.0)#ArrayLike|Literal[0.0]
+1#a 2D numpy.ndarray#a 2D numpy.ndarray
+1#container of strings#container of strings
+1#iterable of (int, str or tuple)#Iterable[tuple[int,str]]
+1#any hashable object.#any hashable object.
+1#`abc.collections.Iterable` instance#Iterable
+1#int or NumPy RandomState or Generator instance, optional (default=None)#int or NumPy RandomState or Generator instance, optional (default=None)
+1#int or random number generator or None (default=None)#int or random number generator or None (default=None)
+1#node or None (default: None)#node|None
+1#Bool (default: False)#bool|Literal[False]
+1#string denoting the requesting metric#string denoting the requesting metric
+1#boolean (default=True)#bool|Literal[True]
+1#string or function(G, colors)#string or function(G, colors)
+1#networkX graph#networkX graph
+1#number of colors to use#number of colors to use
+1#this function creates an intermediate graph#this function creates an intermediate graph
+1#this function creates two intermediate graphs,#this function creates two intermediate graphs,
+1#list or iterable of set of nodes#list or iterable of set of nodes
+1#list or iterable of sets of nodes#list or iterable of sets of nodes
+1#"eg" | "hh"  (default: 'eg')#Literal["hh"|Literal:"eg",'eg']
+1#numpy.ndarray#NDArray
+1#list or container of two-tuples#list or container of two-tuples
+1#list or iterable, optional (default=G.nodes)#list or iterable, optional (default=G.nodes)
+1#"in"|"out"|"in+out" (default:"in+out")#Literal["in+out"|Literal:"out"|Literal:"in","in+out"]
+1#string, optional (default = 'unweighted' or 'djikstra')#string, optional (default = 'unweighted' or 'djikstra')
+1#list, optional (default=G.nodes)#list, optional (default=G.nodes)
+1#str or None, optional (default: None)#str|None
+1#bool, optional (default: True)#bool|Literal[True]|None
+1#Parameter defined for participation of Common Neighbor#Parameter defined for participation of Common Neighbor
+1#float, optional (default = 0.001)#float|Literal[0.001]|None
+1#function, or dict or list of lists, tuples or sets#Callable|Mapping|ArrayLike|tuples
+1#Boolean function with two arguments#Boolean function with two arguments
+1#Boolean (default True)#bool|Literal[True]
+1#node in `G` or list of nodes in `G`#node in `G` or list of nodes in `G`
+1#the distance of the wanted nodes from `source`#the distance of the wanted nodes from `source`
+1#int (default = None)#int|None
+1#container of nodes, optional (default= all nodes in G)#container of nodes, optional (default= all nodes in G)
+1#container of nodes, optional (default=whole graph)#container of nodes, optional (default=whole graph)
+1#list or generator (optional#list or generator (optional
+1#NetworkX graph class or `None`#NetworkX graph class or `None`
+1#Bool (default=False)#bool|Literal[False]
+1#Bool (default=True)#bool|Literal[True]
+1#NetworkX graph container#NetworkX graph container
+1#Graph container, optional,#Graph container, optional,
+1#list or container  optional(default is all nodes)#list or container  optional(default is all nodes)
+1#string or None  optional (default = 'weight')#string or None  optional (default = 'weight')
+1#NetworkX graph instance, (default: nx.Graph)#NetworkX graph instance, (default: nx.Graph)
+1#container of nodes#container of nodes
+1#key,optional (default=None)#key|None
+1#Bool or None, optional (default: False)#bool|Literal[False]|None
+1#list or set or list of lists or list of sets#ArrayLike|set
+1#list or set, optional (default=None)#ArrayLike|set|None
+1#integer, optional (default=1000)#int|Literal[1000]|None
+1#dictionary, optional (default=None)#Mapping|None
+1#None or string, optional (default='percolation')#str|Literal['percolation']|None
+1#None or dict, optional (default=None)#Mapping|None
+1#integer (optional)#integer (optional)
+1#iterable of pairs of nodes, optional (default: all pairs)#iterable of pairs of nodes, optional (default: all pairs)
+1#NetworkX directed graph (must be a tree)#NetworkX directed graph (must be a tree)
+1#node, optional (default: None)#node|None
+1#iterable or iterator of pairs of nodes, optional (default: None)#iterable or iterator of pairs of nodes, optional (default: None)
+1#node (default=None)#node|None
+1#heuristic function#heuristic function
+1#string, optional (default = None)#str|None
+1#NetworkX graph or None (default: None)#NetworkX graph or None (default: None)
+1#collection of nodes (default=G.nodes)#collection of nodes (default=G.nodes)
+1#function (default: None)#Callable|None
+1#node label (default=`None`)#node label (default=`None`)
+1#nx.MultiGraph#MultiGraph
+1#list of all nodes or "greedy"#list of all nodes or "greedy"
+1#float between (0, 1), optional (default=0.01)#float between (0, 1), optional (default=0.01)
+1#float between (0, 1), optional (default=0.1)#float between (0, 1), optional (default=0.1)
+1#iterable container, optional (default=all nodes)#iterable container, optional (default=all nodes)
+1#networkx Graph#networkx Graph
+1#set of 2 or 3 tuples.#set of 2 or 3 tuples.
+1#NetworkX undirected graph#NetworkX undirected graph
+1#float (default = 0.5)#float|Literal[0.5]
+1#float (default = 0.1)#float|Literal[0.1]
+1#float or None (default = None)#float|None
+1#integer (default = 5)#int|Literal[5]
+1#positive integer#int
+1#list of graphs#ArrayLike
+1#numpy.array (optional#numpy.array (optional
+1#function, string or None (default: None)#Callable|str|None
+1#collections.abc.Iterable#Iterable
+1#collections.abc.Iterable[collections.abc.Hashable]#collections.abc.Iterable[collections.abc.Hashable]
+1#collections.abc.Callable[collections.abc.Hashable, collections.abc.Hashable]#collections.abc.Callable[collections.abc.Hashable, collections.abc.Hashable]
+1#collections.abc.Sequence[collections.abc.Iterable]#collections.abc.Sequence[collections.abc.Iterable]
+1#collections.abc.Collection[set]#collections.abc.Collection[set]
+1#collections.abc.Mapping#Mapping
+1#list of sets#ArrayLike
+1#dict mapping edges to their colors#dict mapping edges to their colors
+1#a node of `t1` which is the root of the tree#a node of `t1` which is the root of the tree
+1#a node of `t2` which is the root of the tree#a node of `t2` which is the root of the tree
+1#float (optional#float (optional
+1#string (default: None)#str|None
+1#object to be converted#object to be converted
+1#dictionary of lists#Mapping[lists, lists]
+1#list or iterator#ArrayLike|Iterator
+1#node, container of nodes or None (for all nodes)#node, container of nodes or None (for all nodes)
+1#node (any hashable)#node (any hashable)
+1#bool or node data key#bool or node data key
+1#bool or string (default=False)#bool|str|Literal[False]
+1#bool or string (default=None)#bool|str|None
+1#string or None (default=None)#str|None
+1#container of nodes, node or None (default None)#container of nodes, node or None (default None)
+1#False, True or string (default False)#str|Literal[False,True,False]
+1#default value (default None)#default value (default None)
+1#(default= all nodes in graph) only report edges with these nodes#(default= all nodes in graph) only report edges with these nodes
+1#(only for MultiGraph. default=False) report edge key in tuple#(only for MultiGraph. default=False) report edge key in tuple
+1#bool or string (default=False) see above#bool or string (default=False) see above
+1#Graph object, collection of edges, or None#Graph object, collection of edges, or None
+1#collection of nodes, or None#collection of nodes, or None
+1#int, optional (default=0)#int|Literal[0]|None
+1#string, optional (default=None)#str|None
+1#list, optional   (default= all nodes in G)#list, optional   (default= all nodes in G)
+1#list, optional (default= all edges in G)#list, optional (default= all edges in G)
+1#int or list (default=10)#int|ArrayLike|Literal[10]
+1#list (default=list(G))#list (default=list(G))
+1#list (default=list(G.edges()))#list (default=list(G.edges()))
+1#scalar or sequence (default=1.0)#Scalar|Sequence|Literal[1.0]
+1#string (default=solid line)#string (default=solid line)
+1#int (default=12 for nodes, 10 for edges)#int (default=12 for nodes, 10 for edges)
+1#list (default list(G))#list (default list(G))
+1#float or array of floats (default=None)#float|ArrayLike|None
+1#Matplotlib colormap (default=None)#Matplotlib colormap (default=None)
+1#[None | scalar | sequence] (default=1.0)#tuple[Sequence|Scalar|None]|Literal[1.0]
+1#[None | scalar | sequence] (default = node_color)#[None | scalar | sequence] (default = node_color)
+1#[None | string]#tuple[str|None]
+1#float or 2-tuple#float|tuple
+1#collection of edge tuples (default=G.edges())#collection of edge tuples (default=G.edges())
+1#string or array of strings (default='solid')#str|ArrayLike|Literal['solid']
+1#string (default="arc3")#str|Literal["arc3"]
+1#list, optional (default=G.nodes())#list, optional (default=G.nodes())
+1#dictionary (default={n: n for n in G})#dictionary (default={n: n for n in G})
+1#int (default=12)#int|Literal[12]
+1#Matplotlib bbox, (default is Matplotlib's ax.text default)#Matplotlib bbox, (default is Matplotlib's ax.text default)
+1#float (default=0.5)#float|Literal[0.5]
+1#Matplotlib bbox#Matplotlib bbox
+1#bool (deafult=True)#bool (deafult=True)
+1#list of list of nodes#ArrayLike
+1#color string or array of floats (default='r')#color string or array of floats (default='r')
+1#array of networkx objects#ArrayLike
+1#matplotlib colormap#matplotlib colormap
+1#PyGraphviz AGraph#PyGraphviz AGraph
+1#NetworkX graph constructor, optional (default=None)#NetworkX graph constructor, optional (default=None)
+1#filename#filename
+1#PyGraphviz graph#PyGraphviz graph
+1#file object#file
+1#str or file#str|file
+1#Pydot graph#Pydot graph
+1#string (default: 'neato')#str|Literal['neato']
+1#string  (default: 'neato')#str|Literal['neato']
+1#list of lists#ArrayLike
+1#angle in radians (default=pi/len(nlist))#angle in radians (default=pi/len(nlist))
+1#number (default=4/3):#number (default=4/3):
+1#float (default=None)#float|None
+1#list or None  optional (default=None)#list or None  optional (default=None)
+1#int  optional (default=50)#int  optional (default=50)
+1#float optional (default = 1e-4)#float optional (default = 1e-4)
+1#number or None (default: 1)#number|Literal[1]|None
+1#dict (default=None)#Mapping|None
+1#string (default='subset')#str|Literal['subset']
+1#numpy array#NDArray
+1#A dictionary of positions keyed by node#A dictionary of positions keyed by node
+1#nx.DiGraph | nx.Graph#Graph|DiGraph
+1#bytes#bytes
+1#file-like object#file-like
+1#JSON Graph Object#JSON Graph Object
+1#Networkx Graph, optional (default: Graph())#Networkx Graph, optional (default: Graph())
+1#Python type (default: None)#Python type (default: None)
