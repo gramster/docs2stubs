@@ -220,7 +220,7 @@ def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=Fals
     if isinstance(typ, UnionType):
         components = []
         for a in typ.__args__:
-            t, i = _get_repr(tlmodule, a)
+            t  = _get_repr(tlmodule, a)
             components.append(t)
         typ = '|'.join(components)
     elif isinstance(typ, GenericAlias) and typ._name and typ.__args__:
@@ -230,7 +230,7 @@ def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=Fals
         else:
             components = []
             for a in typ.__args__:
-                t, i = _get_repr(tlmodule, a)
+                t = _get_repr(tlmodule, a)
                 components.append(t)
             typ = f'{_adjust_name(typ._name)}[{", ".join(components)}]'
     elif arraylike and (typ == np.ndarray or typ == pd.Series):

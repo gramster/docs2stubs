@@ -2,6 +2,7 @@ from collections import Counter, namedtuple
 import glob
 import importlib
 import inspect
+import logging
 import os
 import pickle
 import re
@@ -67,7 +68,7 @@ def load_map(m: str, suffix: str|None = None) -> dict[str, str]:
                     map[parts[-2]] = parts[-1]
                     lnum += 1
             except Exception as e:
-                print(f'Error in {mapfile} line {lnum}: {e}')
+                logging.error(f'Error in {mapfile} line {lnum}: {e}')
     return map
 
 
@@ -92,7 +93,7 @@ def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str
         mod = importlib.import_module(m)
         file = inspect.getfile(mod)
     except Exception as e:
-        print(f'Could not import module {m}: {e}')
+        logging.error(f'Could not import module {m}: {e}')
         return None, None, []
 
     submodules = []
@@ -157,19 +158,19 @@ def process_module(taskname: str,
             with open(file) as f:
                 source = f.read()
         except Exception as e:
-            print(f"Failed to read {file}: {e}")
+            logging.error(f"Failed to read {file}: {e}")
             continue
 
         result = processor(mod, m, file, source, state, **kwargs)
         if post_processor is None:
             if result is None:
-                print(f"{taskname}: Failed to handle {file}")
+                logging.error(f"{taskname}: Failed to handle {file}")
                 continue
             else:
                 target = targeter(file)
                 save_result(target, result)
 
-        print(f"{taskname}: Done {file}")
+        logging.info(f"{taskname}: Done {file}")
 
     if post_processor:
         result = post_processor(orig_m, state, **kwargs)

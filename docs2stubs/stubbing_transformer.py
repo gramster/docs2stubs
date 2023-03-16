@@ -1,9 +1,10 @@
 from collections import Counter
 import inspect
+import logging
 import os
 import re
 from types import ModuleType
-from typing import Literal, cast
+from typing import Literal, cast, _type_repr
 
 import libcst as cst
 from black import format_str
@@ -31,8 +32,7 @@ def _get_code(n) -> str:
 
 class StubbingTransformer(BaseTransformer):
     def __init__(self, tlmodule: str, modname: str, fname: str, state: State,
-        strip_defaults=False, 
-        infer_types_from_defaults=True):
+        strip_defaults=False):
         super().__init__(modname, fname)
         self._state = state
         self._tlmodule = tlmodule
@@ -41,7 +41,6 @@ class StubbingTransformer(BaseTransformer):
         self._docstrings: Sections[dict[str,str]|dict[str,dict[str,str]]] = state.docstrings[modname]
         self._returnstrings = state.creturns
         self._strip_defaults: bool = strip_defaults
-        self._infer_types: bool = infer_types_from_defaults
         self._method_names = set()
         self._local_class_names = set()
         self._need_imports: dict[str, str] = {} # map class -> module to import from
@@ -141,7 +140,22 @@ class StubbingTransformer(BaseTransformer):
             'parameter': self._maps.params,
             'return': self._maps.returns,
         }[which]
-        trace_annotation = None
+
+        result: cst.Annotation|None = None # The annotation we return at the end of this
+        reason = ''                   # Reason we succeeded or failed
+
+        # A fair amount of the work here is giving good reasons for failure so we can
+        # act on them. We also keep the various types used at different points in distinct
+        # variables in case we want to leverage them in more detail later.
+        # We have a bunch of possible sources we use here:
+        # doctyp is the docstring type
+        # valtyp is the inferred type from a default parameter value or attribute assignment
+        maptyp: str|None = None       # mapped or trivially converted type from doctyp
+        trace_annotation: type|None = None # Python type from Monkeytype trace
+        tracetyp: str|None = None     # String representation of trace_annotation
+        usedtyp: str|None = None      # What did we end up using? 
+        is_warning = True
+
         if trace_context in self._trace_sigs:
             _trace_sig = self._trace_sigs[trace_context]
             if _trace_sig is not None:
@@ -152,49 +166,93 @@ class StubbingTransformer(BaseTransformer):
                 else:
                     trace_annotation = _trace_sig.return_annotation
 
-        typ = None
+                #if trace_annotation:
+                #    tracetyp = _type_repr(trace_annotation)
+
         if doctyp:
-            if which != 'return':  # Return types are already handled in leaveFunctionDef
-                typ, how = self.docstring2type(doctyp, map, which == 'parameter')
-                if typ:
+            if which == 'return':  # Return types are already mapped/converted in leaveFunctionDef
+                # TODO: see later if we can avoid special casing them here.
+                maptyp = doctyp
+            else:
+                # Get the mapped (or trivially converted) version of the docstring
+                maptyp, how = self.docstring2type(doctyp, map, which == 'parameter')
+                if maptyp:
                     # If the default value is None, make sure we include it in the type
-                    is_optional = 'None' in typ.split('|')
-                    if not is_optional and valtyp == 'None' and typ != 'Any' and typ != 'None':
-                        typ += '|None'
-            else:
-                typ = doctyp
-        n = None
+                    is_optional = 'None' in maptyp.split('|')
+                    if not is_optional and valtyp == 'None' and maptyp != 'Any' and maptyp != 'None':
+                        maptyp += '|None'
 
-        try:
-            typ, imports = combine_types(self._tlmodule, trace_annotation, typ, valtyp)
-            if typ is None or (which != 'return' and typ == 'None'):
-                if self._infer_types and valtyp and valtyp != 'None':
-                    # Use the inferred type from default value as long as it is not None
-                    if is_classvar:
-                        valtyp = f'ClassVar[{valtyp}]'
-                        self._need_imports['ClassVar'] = 'typing'
-                    typ = valtyp
-                    n = cst.Annotation(annotation=cst.parse_expression(typ))
-                    print(f'Annotated {which} {trace_context}.{nodename} with {typ} inferred from assignment')
-                elif which != 'return':
-                    print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping or default value')
-            elif typ:
-                self._need_imports.update(imports)
+        combtyp, imports = combine_types(self._tlmodule, trace_annotation, maptyp, valtyp)
+
+        if maptyp:
+            reason += "mapped docstring"
+        elif doctyp:
+            reason += f'unmapped docstring <{doctyp}>'
+        if trace_annotation:
+            if reason:
+                reason += " and "
+            reason += "execution trace"
+
+        if combtyp and (which == 'return' or combtyp != 'None'):
+            try:
                 if is_classvar:
-                    typ = f'ClassVar[{typ}]'
+                    combtyp = f'ClassVar[{combtyp}]'
                     self._need_imports['ClassVar'] = 'typing'
-                n = cst.Annotation(annotation=cst.parse_expression(typ))
-                print(f'Annotated {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}')
+                result = cst.Annotation(annotation=cst.parse_expression(combtyp))
+                usedtyp = combtyp
+                self._need_imports.update(imports)
+            except Exception as e:
+                reason = f"failed to parse type <{combtyp}> from {reason} ({e})"
+        elif which == 'return':
+            if reason:
+                if combtyp == 'None':
+                    if maptyp:
+                        if doctyp:
+                            reason = f"type from mapped type {doctyp} -> {maptyp} would be None"
+                        else:
+                            reason = f"type from trace type {tracetyp} -> {maptyp} would be None"
+                    elif doctyp:
+                        # Probably not possible
+                        reason = f"type from docstring {doctyp} would be None"
+                    else:
+                        reason = f"type from {reason} would be None"
+                else:
+                    reason = f"failed to combine {reason}" # I don't think this can happen
             else:
-                print(f'Could not annotate {which} {trace_context}.{nodename} from {doctyp}; no mapping')
-        except:
-            print(f'Could not annotate {which} {trace_context}.{nodename} with {typ} from {doctyp} and trace {trace_annotation}; fails to parse')
+                reason = "no docstring or trace"
+        elif valtyp == 'None':
+            reason = f"no mapping for <{doctyp}>, no trace, and assigned value is None"
+        elif valtyp:
+            try:
+                if is_classvar:
+                    valtyp = f'ClassVar[{valtyp}]'
+                    self._need_imports['ClassVar'] = 'typing'
+                maptyp = valtyp
+                result = cst.Annotation(annotation=cst.parse_expression(valtyp))
+                reason = "inferred from assignment"
+                usedtyp = valtyp
+            except Exception as e:
+                reason = f"failed to parse inferred type <{valtyp}> from assignment ({e})"  # I don't think this can happen
+        elif doctyp is None:
+            reason = "no docstring, trace or assigned value"
+            is_warning = False  # just log at info level
+        else:
+            reason = f"no mapping for <{doctyp}>, trace or assigned value"
 
-        if n and which == "return" and self._is_union(n):
+        # We put the reason before the context in the failed messages so we can sort these
+        #  messages and easily cluster reason types
+        if usedtyp:
+            logging.debug(f'Annotated {which} {trace_context}.{nodename} with {usedtyp}: {reason}')
+        elif is_warning:
+            logging.warning(f'Failed to annotate {which}: {reason} [{trace_context}.{nodename}]')
+        else:
+            logging.info(f'Failed to annotate {which}: {reason} [{trace_context}.{nodename}]')
+
+        if result and which == "return" and self._is_union(result):
             # Keep track of union returns as they are
             # problematic and may need rework; e.g. with overloads
-            _union_returns[f'{self._modname}.{trace_context}'] = typ 
-        return n
+            _union_returns[f'{self._modname}.{trace_context}'] = maptyp 
+        return result
 
     def leave_Assign(
         self, original_node: cst.Assign, updated_node: cst.Assign
@@ -293,18 +351,9 @@ class StubbingTransformer(BaseTransformer):
             # Clear the method name set
             self._method_names = set()
 
-            # Add base classes to needed imports
-            #for base in updated_node.bases:
-            #    if isinstance(base.value, cst.Name):
-            #        needed = base.value.value
-            #        # We have to figure out where this comes from.
-             #       # It could be in the existing imports, or the file
-             #       # itself.
-
             # See if there are documented attributes that we haven't seen yet,
             # and add them to the class body.
 
-            # TODO: is node cloning needed here?
             body = [n for n in updated_node.body.body if not isinstance(n, cst.Pass)]
             prefix = context + '.'  # Add '.' in case there are classes with same name prefix
             for attr, doctyp in self._docstrings.attrs.items():
@@ -428,7 +477,7 @@ class StubbingTransformer(BaseTransformer):
                     if typ:
                         v.append(typ)
                     else:
-                        print(f'Could not annotate {context}-> from {doctyp}')
+                        logging.warning(f'Could not annotate  {context}-> from {doctyp}')
                         v = None
                         break
                 if v:
@@ -441,9 +490,7 @@ class StubbingTransformer(BaseTransformer):
                 # TODO: maybe one day....
                 # Try to infer it from the body, or if this is an overload in a derived class,
                 # infer from the base class.
-                #rtntyp = self._infer_return_type(original_node.body)
-                #if rtntyp:
-                #    print(f'Inferred return type {rtntyp} for {context}')
+
                 
             annotation = self._get_new_annotation('return', '', context, rtntyp)
 
@@ -630,7 +677,7 @@ def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: 
     try:
         return format_str(code, mode=Mode()) 
     except Exception as e:
-        print(f'Error formatting stub of {fname}: {e}')
+        logging.error(f'Error formatting stub of {fname}: {e}')
         return code
 
 
@@ -646,6 +693,7 @@ def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = 
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     global _stub_folder
 
+    logging.basicConfig(level=logging.INFO)
     _stub_folder = stub_folder
     if m.find('.') < 0:
         tlmodule = m
@@ -664,7 +712,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
 
         process_module("Stubbing", m, state, _stub, _targeter, include_submodules=include_submodules,
             strip_defaults=strip_defaults)
-
+ 
     print(f'Annotated {_total_param_annotations} parameters, {_total_attr_annotations} attributes and {_total_return_annotations} returns')
     print(f'Failed to annotate {_total_param_annotations_missing} parameters, {_total_attr_annotations_missing} attributes and {_total_return_annotations_missing} returns')
 

@@ -347,7 +347,7 @@
 2#array, shape = [n_samples]#ArrayLike
 2#1d array-like#ArrayLike
 2#array-like of int of shape (n_features) or dict#ArrayLike|Mapping
-2#{"pairwise", "no_interaction"} or sequence of lists/tuples/sets             of int#{"pairwise", "no_interaction"} or sequence of lists/tuples/sets             of int
+2#{"pairwise", "no_interaction"} or sequence of lists/tuples/sets             of int#Literal["pairwise", "no_interaction"]|Sequence[list[int]|tuple[int,...]|set[int]]
 @2#{'friedman_mse', 'squared_error'}#Literal['friedman_mse','squared_error']
 @2#{"squared_error", "absolute_error", "friedman_mse", "poisson"}#Literal["squared_error","absolute_error","friedman_mse","poisson"]
 2#str, {'auto', 'parallel_on_X', 'parallel_on_Y'}#str|Literal['auto','parallel_on_X','parallel_on_Y']

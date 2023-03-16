@@ -1,6 +1,6 @@
 from collections import Counter
 import inspect
-import re
+import logging
 from types import ModuleType
 from typing import Any, cast
 import libcst as cst
@@ -125,7 +125,7 @@ class AnalyzingTransformer(BaseTransformer):
                 submod = fname[fname.rfind('/')+1:-3]
                 return mod.__dict__[submod].__dict__[oname]
             except Exception:
-                print(f'{fname}: Could not get obj for {oname}')
+                logging.error(f'{fname}: Could not get obj for {oname}')
                 return None
 
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:
@@ -161,7 +161,7 @@ class AnalyzingTransformer(BaseTransformer):
                     obj = parent.__dict__[name]
                     self._trace_sigs[context] = get_method_signature(self._modname, self._classname, name)
                 else:
-                    print(f'{self._fname}: Could not get obj for {context}')
+                    logging.warning(f'{self._fname}: Could not get obj for {context}')
 
         docs = self._analyze_obj(obj, context)
         self._docs[context] = docs
@@ -219,7 +219,7 @@ def _analyze(mod: ModuleType, m: str, fname: str, source: str, state: State, **k
 
 
 def _post_process(m: str, state: State, include_counts: bool = True, dump_all = True) -> Sections[str]:
-    print("Analyzing and normalizing types...")
+    logging.info("Analyzing and normalizing types...")
     maps = load_type_maps(m)
     results = [[], [], []]
     assert(state.counters is not None)
@@ -246,10 +246,10 @@ def _post_process(m: str, state: State, include_counts: bool = True, dump_all = 
                         result.append(f'{"@" if trivial else ""}{cnt}#{typ}#{normtype}\n')
                     else:
                         result.append(f'{"@" if trivial else ""}#{typ}#{normtype}\n')
-    print(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
-    print('\nTRIVIALS\n')
+    logging.info(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
+    logging.info('\nTRIVIALS\n')
     for k, v in trivials.items():
-        print(f'{k}#{v}')
+        logging.info(f'{k}#{v}')
 
     print_norm1()
 
@@ -266,7 +266,7 @@ def _targeter(m: str, suffix: str) -> str:
 
 
 def analyze_module(m: str, include_submodules: bool = True, include_counts = True, dump_all = True) -> None|State:
-    print("Gathering docstrings")
+    logging.info("Gathering docstrings")
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),
         {}, 
