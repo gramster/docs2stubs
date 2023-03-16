@@ -133,7 +133,7 @@ class StubbingTransformer(BaseTransformer):
             annotation.annotation.value.value == 'Union')
 
     def _get_new_annotation(self, which: Literal['attribute', 'parameter', 'return'], 
-                            nodename: str, trace_context: str, doctyp: str|None, \
+                            context: str, param_name: str = '', doctyp: str|None = None, \
                             valtyp: str|None = None, is_classvar: bool = False) -> cst.Annotation | None:
         map = {
             'attribute': self._maps.attrs,
@@ -156,11 +156,11 @@ class StubbingTransformer(BaseTransformer):
         usedtyp: str|None = None      # What did we end up using? 
         is_warning = True
 
-        if trace_context in self._trace_sigs:
-            _trace_sig = self._trace_sigs[trace_context]
+        if context in self._trace_sigs:
+            _trace_sig = self._trace_sigs[context]
             if _trace_sig is not None:
-                if nodename:
-                    p = _trace_sig.parameters.get(nodename, None)
+                if param_name:
+                    p = _trace_sig.parameters.get(param_name, None)
                     if p is not None and p.annotation != inspect._empty:
                         trace_annotation = p.annotation
                 else:
@@ -182,7 +182,8 @@ class StubbingTransformer(BaseTransformer):
                     if not is_optional and valtyp == 'None' and maptyp != 'Any' and maptyp != 'None':
                         maptyp += '|None'
 
-        combtyp, imports = combine_types(self._tlmodule, trace_annotation, maptyp, valtyp)
+        combtyp, imports = combine_types(self._tlmodule, context, 
+                                         tracetyp=trace_annotation, doctyp=maptyp, valtyp=valtyp)
 
         if maptyp:
             reason += "mapped docstring"
@@ -242,16 +243,16 @@ class StubbingTransformer(BaseTransformer):
         # We put the reason before the context in the failed messages so we can sort these
         #  messages and easily cluster reason types
         if usedtyp:
-            logging.debug(f'Annotated {which} {trace_context}.{nodename} with {usedtyp}: {reason}')
+            logging.debug(f'Annotated {which} {context}.{param_name} with {usedtyp}: {reason}')
         elif is_warning:
-            logging.warning(f'Failed to annotate {which}: {reason} [{trace_context}.{nodename}]')
+            logging.warning(f'Failed to annotate {which}: {reason} [{context}.{param_name}]')
         else:
-            logging.info(f'Failed to annotate {which}: {reason} [{trace_context}.{nodename}]')
+            logging.info(f'Failed to annotate {which}: {reason} [{context}.{param_name}]')
 
         if result and which == "return" and self._is_union(result):
             # Keep track of union returns as they are
             # problematic and may need rework; e.g. with overloads
-            _union_returns[f'{self._modname}.{trace_context}'] = maptyp 
+            _union_returns[f'{self._modname}.{context}'] = usedtyp 
         return result
 
     def leave_Assign(
@@ -278,21 +279,22 @@ class StubbingTransformer(BaseTransformer):
             return updated_node
         
         global _total_attr_annotations, _total_attr_annotations_missing
-        try:
-            attr_name: str = target.value # type: ignore
+        if isinstance(target, cst.Name):
+            attr_name: str = target.value
+            if not isinstance(target, cst.Name):
+                pass
             self._seen_attrs.add(attr_name)  # keep track of those we have seen
             context = f'{self.context()}.{attr_name}'
             is_classvar = self.at_top_level_class_level()
             doctyp = cast(str|None, self._docstrings.attrs.get(context)) if is_classvar else None
             valtyp = StubbingTransformer.get_value_type(original_node.value)
-            annotation = self._get_new_annotation('attribute', '', context, doctyp, valtyp, \
+            annotation = self._get_new_annotation('attribute', context, doctyp=doctyp, valtyp=valtyp, \
                                                   is_classvar = is_classvar)
             if annotation:
                 node = cst.AnnAssign(target=target, annotation=annotation, value=value)
                 _total_attr_annotations += 1
                 return node
-        except:
-            pass
+            
         _total_attr_annotations_missing += 1
         return updated_node.with_changes(value=value)
 
@@ -325,9 +327,9 @@ class StubbingTransformer(BaseTransformer):
                 default = cst.parse_expression("...")
 
         if not annotation:
-            annotation = self._get_new_annotation('parameter', original_node.name.value, function_context,
-                                                cast(str, self._docstrings.params.get(param_context)), 
-                                                defaultvaltyp)
+            annotation = self._get_new_annotation('parameter', function_context, param_name=original_node.name.value,
+                                                doctyp=cast(str, self._docstrings.params.get(param_context)), 
+                                                valtyp=defaultvaltyp)
             
         global _total_param_annotations, _total_param_annotations_missing
         if annotation:
@@ -363,7 +365,7 @@ class StubbingTransformer(BaseTransformer):
                         global _total_attr_annotations, _total_attr_annotations_missing
                         dtyp, _ = self.docstring2type(cast(str, doctyp), self._maps.attrs, False)
                         # Need this for further normalizing and getting the imports
-                        typ, imps = combine_types(self._tlmodule, None, dtyp, None)
+                        typ, imps = combine_types(self._tlmodule, context, doctyp=dtyp)
                         if typ:
                             self._need_imports.update(imps)
                             node = cst.parse_statement(f'{attr_name}: {typ} = ...')
@@ -424,7 +426,7 @@ class StubbingTransformer(BaseTransformer):
         if returnstring:
             doctyp = {"" : returnstring}
         else:
-            doctyp = cast(dict[str,str], self._docstrings.returns.get(context))
+            doctyp: dict[str, str]|None = cast(dict[str,str]|None, self._docstrings.returns.get(context))
         annotation = original_node.returns
         super().leave_FunctionDef(original_node, updated_node)
         if (name.startswith('_') and not name.startswith('__')) or self.in_function(): 
@@ -449,9 +451,10 @@ class StubbingTransformer(BaseTransformer):
                     if d.decorator.value in keep:
                         if d.decorator.value == 'property' and not doctyp:
                             # Property with no docstring; we may get it from class docstring
-                            doctyp = cast(dict[str,str], self._docstrings.attrs.get(context))
-                            if doctyp:
-                                doctyp = {"" : doctyp}
+                            attrtyp: str = cast(str, self._docstrings.attrs.get(context))
+                            assert(isinstance(attrtyp, str))
+                            if attrtyp:
+                                doctyp = {"" : attrtyp}
                         decorators.append(d.deep_clone())
                     else:
                         self._dropped_decorators.add(d.decorator.value)
@@ -466,18 +469,19 @@ class StubbingTransformer(BaseTransformer):
             pass
 
         if not annotation or name in StubbingTransformer.dunders:
-            rtntyp = None
+            rtntyp: str|None = None
             if name in StubbingTransformer.dunders:
                 rtntyp = StubbingTransformer.dunders[name]
             elif doctyp:
+                # We have the docstrings; still need to map them
                 map = self._maps.returns
                 v = []
                 for t in doctyp.values():
-                    typ, how = self.docstring2type(cast(str, t), map)
+                    typ, _ = self.docstring2type(cast(str, t), map)
                     if typ:
                         v.append(typ)
                     else:
-                        logging.warning(f'Could not annotate  {context}-> from {doctyp}')
+                        logging.warning(f'Could not get {context} return type from docstring {t}; no mapping and not trivial')
                         v = None
                         break
                 if v:
@@ -492,7 +496,7 @@ class StubbingTransformer(BaseTransformer):
                 # infer from the base class.
 
                 
-            annotation = self._get_new_annotation('return', '', context, rtntyp)
+            annotation = self._get_new_annotation('return', context, doctyp=rtntyp)
 
         global _total_return_annotations, _total_return_annotations_missing
         if annotation:
@@ -693,7 +697,7 @@ def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = 
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     global _stub_folder
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARNING)
     _stub_folder = stub_folder
     if m.find('.') < 0:
         tlmodule = m

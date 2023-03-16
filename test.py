@@ -5,7 +5,7 @@ from docs2stubs.traces import init_trace_loader
 
 
 def test_normalize():
-    from docs2stubs.type_normalizer import check_normalizer, load_map
+    from docs2stubs.type_normalizer import check_normalizer
     #x = 'iterator over dict of str to any'
     x = 'list of tuple'
     print(check_normalizer(x, False, 'sklearn'))

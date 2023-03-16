@@ -40,13 +40,13 @@
 @4#np.ndarray of shape (n_alphas,)#numpy.ndarray
 4#np.ndarray, shape (n_samples,)#numpy.ndarray
 @4#np.ndarray of shape (n_thresholds,)#numpy.ndarray
-@4#:class:`~sklearn.metrics.ConfusionMatrixDisplay`#ConfusionMatrixDisplay
-@4#:class:`~sklearn.metrics.PrecisionRecallDisplay`#PrecisionRecallDisplay
+@4#:class:`~sklearn.metrics.ConfusionMatrixDisplay`#sklearn.metrics.ConfusionMatrixDisplay
+@4#:class:`~sklearn.metrics.PrecisionRecallDisplay`#sklearn.metrics.PrecisionRecallDisplay
 4#float (if average is not None) or array of float, shape =        [n_unique_labels]#float|numpy.ndarray
 @3#array-like of shape (n_samples, n_features)#numpy.ndarray
 @3#array-like or tuple of array-like#numpy.ndarray|tuple[numpy.ndarray, ...]
 3#returns an instance of self.#Self
-@3#:class:`~sklearn.inspection.PartialDependenceDisplay`#PartialDependenceDisplay
+@3#:class:`~sklearn.inspection.PartialDependenceDisplay`#sklearn.inspection.PartialDependenceDisplay
 @3#np.ndarray of shape (n_classes,)#numpy.ndarray
 3#{ndarray, sparse matrix}#scipy.sparse.spmatrix|numpy.ndarray
 @3#np.ndarray of shape (n_features,), dtype=floating#numpy.ndarray
@@ -58,14 +58,14 @@
 @3#np.ndarray of shape (n_dims, 2)#numpy.ndarray
 @3#np.ndarray of shape (n_clusters, n_features)#numpy.ndarray
 3#array of integers, shape: n_samples#numpy.ndarray
-@3#:class:`~sklearn.metrics.DetCurveDisplay`#DetCurveDisplay
+@3#:class:`~sklearn.metrics.DetCurveDisplay`#sklearn.metrics.DetCurveDisplay
 2#sparse matrix of shape (n_samples_transform, n_samples_fit)#scipy.sparse.spmatrix
 @2#np.ndarray of shape (n_queries, n_neighbors)#numpy.ndarray
 2#sparse-matrix of shape (n_queries, n_samples_fit)#scipy.sparse.spmatrix
 2#np.ndarray of shape (n_samples,) of arrays#numpy.ndarray
 @2#np.ndarray of shape (n_queries,) or (n_queries, n_outputs)#numpy.ndarray
 2#np.ndarray of shape (n_bins,) or smaller#numpy.ndarray
-2#:class:`~sklearn.calibration.CalibrationDisplay`.#CalibrationDisplay
+2#:class:`~sklearn.calibration.CalibrationDisplay`.#sklearn.calibration.CalibrationDisplay
 2#np.ndarray of shape (n_components, n_features),#numpy.ndarray
 @2#array-like of shape (n_samples, n_components)#numpy.ndarray
 2#np.ndarray, dtype=np.intp#numpy.ndarray
@@ -123,7 +123,7 @@
 @2#np.ndarray of shape (n_nodes-1,)#numpy.ndarray
 @2#np.ndarray of shape (n_samples,) or (n_samples, n_output)#numpy.ndarray
 @2#np.ndarray of shape (n_samples, n_estimators)#numpy.ndarray
-@2#TreeNode#TreeNode
+@2#TreeNode#sklearn.tree.TreeNode
 2#sparse matrix of shape (n_samples, n_nodes)#scipy.sparse.spmatrix
 2#np.ndarray of shape (n_samples, n_classes), or a list of such arrays#numpy.ndarray
 2#sparse matrix of shape (n_samples, n_out)#scipy.sparse.spmatrix
@@ -131,24 +131,24 @@
 @2#np.ndarray of shape (>2,)#numpy.ndarray
 2#{array-like, sparse matrix} of shape (n_samples_X, n_features)#numpy.ndarray
 2#{array-like, sparse matrix} of shape (n_samples_Y, n_features)#numpy.ndarray
-@2#:class:`~sklearn.metrics.plot.RocCurveDisplay`#RocCurveDisplay
-@2#:class:`~sklearn.metrics.RocCurveDisplay`#RocCurveDisplay
+@2#:class:`~sklearn.metrics.plot.RocCurveDisplay`#sklearn.metrics.RocCurveDisplay
+@2#:class:`~sklearn.metrics.RocCurveDisplay`#sklearn.metrics.RocCurveDisplay
 2#np.ndarray of shape (n_samples, n_classes) or list of n_outputs             such arrays if n_outputs > 1#numpy.ndarray|list[numpy.ndarray]
-@1#LocalOutlierFactor#LocalOutlierFactor
-1#NearestNeighbors#NearestNeighbors
-@1#KNeighborsRegressor#KNeighborsRegressor
+@1#LocalOutlierFactor#sklearn.neighbors.LocalOutlierFactor
+1#NearestNeighbors#sklearn.neighbors.NearestNeighbors
+@1#KNeighborsRegressor#sklearn.neighbors.KNeighborsRegressor
 @1#np.ndarray of shape (n_queries,) or (n_queries, n_outputs), dtype=int#numpy.ndarray
-@1#RadiusNeighborsRegressor#RadiusNeighborsRegressor
+@1#RadiusNeighborsRegressor#sklearn.neighbors.RadiusNeighborsRegressor
 1#np.ndarray of shape (n_queries,) or (n_queries, n_outputs),                 dtype=double#numpy.ndarray
-@1#KNeighborsTransformer#KNeighborsTransformer
-@1#RadiusNeighborsTransformer#RadiusNeighborsTransformer
-@1#KNeighborsClassifier#KNeighborsClassifier
+@1#KNeighborsTransformer#sklearn.neighbors.KNeighborsTransformer
+@1#RadiusNeighborsTransformer#sklearn.neighbors.RadiusNeighborsTransformer
+@1#KNeighborsClassifier#sklearn.neighbors.KNeighborsClassifier
 1#np.ndarray of shape (n_queries, n_classes), or a list of n_outputs                 of such arrays if n_outputs > 1.#numpy.ndarray|list[numpy.ndarray]
 @1#RadiusNeighborsClassifier#RadiusNeighborsClassifier
 1#np.ndarray of shape (n_queries, n_classes), or a list of                 n_outputs of such arrays if n_outputs > 1.#numpy.ndarray|list[numpy.ndarray]
 @1#np.ndarray of shape (n_samples, n_targets)#numpy.ndarray
 1#array, shape (n_samples, n_classes)#numpy.ndarray
-@1#:class:`~sklearn.calibration.CalibrationDisplay`#CalibrationDisplay
+@1#:class:`~sklearn.calibration.CalibrationDisplay`#sklearn.calibration.CalibrationDisplay
 1#np.ndarray of shape (n_samples, n_components),#numpy.ndarray
 1#np.ndarray of shape (n_components, n_features) or None#numpy.ndarray|None
 @1#np.ndarray of shape (n_components, n_components)#numpy.ndarray
@@ -300,7 +300,7 @@
 @1#np.ndarray of shape (n_samples_X * n_samples_Y, n_features) or             (n_samples_X, n_samples_Y)#numpy.ndarray
 @1#np.ndarray of shape (n_samples_X, n_samples_X) or             (n_samples_X, n_samples_Y)#numpy.ndarray
 @1#np.ndarray of shape (n_samples_X, n_samples_X) or (n_samples_X, n_samples_Y)#numpy.ndarray
-@1#:class:`~sklearn.metrics.plot.DetCurveDisplay`#DetCurveDisplay
+@1#:class:`~sklearn.metrics.plot.DetCurveDisplay`#sklearn.metrics.plot.DetCurveDisplay
 1#{array-like, sparse}, shape=[n_classes_true, n_classes_pred]#scipy.sparse.spmatrix|numpy.ndarray
 @1#np.ndarray of shape (2, 2), dtype=np.int64#numpy.ndarray
 1#float (upperlimited by 1.0)#float
@@ -315,8 +315,8 @@
 @1#str or dict#str|str|dict
 @1#float or int#float|int
 @1#list of str#numpy.ndarray
-@1#DecisionTreeClassifier#DecisionTreeClassifier|ExtraTreeClassifier
-@1#DecisionTreeRegressor#ExtraTreeRegressor|DecisionTreeRegressor
+@1#DecisionTreeClassifier#sklearn.tree.DecisionTreeClassifier|sklearn.tree.ExtraTreeClassifier
+@1#DecisionTreeRegressor#sklearn.tree.ExtraTreeRegressor|sklearn.tree.DecisionTreeRegressor
 1#list of artists#list[Annotation]
 @1#ndarray of shape (n_samples, n_classifiers)#numpy.ndarray
 @1#ndarray of shape (n_estimators + 1,)#numpy.ndarray
@@ -448,10 +448,10 @@
 @1#ndarray of shape (select, n_samples)#numpy.ndarray
 @1#ndarray of shape (n_samples,) if n_classes == 2                else (n_samples, n_classes)#numpy.ndarray
 1#ndarray of shape (n_samples,), or, in the multilabel a list of#numpy.ndarray
-@2#:class:`~sklearn.model_selection.LearningCurveDisplay`#LearningCurveDisplay
+@2#:class:`~sklearn.model_selection.LearningCurveDisplay`#sklearn.model_selection.LearningCurveDisplay
 @2#ndarray of shape (n_features,) or (n_classes, n_features)#numpy.ndarray
 @2#float or ndarray of shape (n_classes,)#float|numpy.ndarray
-@2#:class:`~sklearn.metrics.PredictionErrorDisplay`#PredictionErrorDisplay
+@2#:class:`~sklearn.metrics.PredictionErrorDisplay`#sklearn.metrics.PredictionErrorDisplay
 2#ndarray of shape (n_samples, n_classes) or list of n_outputs             such arrays if n_outputs > 1#numpy.ndarray|list[numpy.ndarray]
 1#instance of _Constraint#_Constraint
 1#function or method#Callable
@@ -463,10 +463,19 @@
 1#:class:`Version` object or a :class:`LegacyVersion` object#Version|LegacyVersion
 1#ndarray of shape (n_samples,), or a list of tuples of length n_samples#numpy.ndarray
 1#list of arrays#list[numpy.ndarray]
-1#{ndarray, sparse matrix, dataframe}#pandas.DataFrame|numpy.ndarray|spmatrix
+1#{ndarray, sparse matrix, dataframe}#pandas.DataFrame|numpy.ndarray|scipy.sparse.spmatrix
 1#{ndarray, dataframe, series}#pandas.DataFrame|numpy.ndarray|pandas.Series
 1#dataframe or None#pandas.DataFrame|None
 1#list of str or None#list[str]|None
 1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_classes)#np.ndarray
 1#True if the dispatcher can be used, else False.#bool
-@1#:class:`~sklearn.metrics.plot.PredictionErrorDisplay`#PredictionErrorDisplay
+@1#:class:`~sklearn.metrics.plot.PredictionErrorDisplay`#sklearn.metrics.plot.PredictionErrorDisplay
+#csr_matrix#scipy.sparse.csr_matrix
+#numpy.ndarray|tuple[numpy.ndarray,numpy.ndarray]#numpy.ndarray|tuple[numpy.ndarray,numpy.ndarray]
+#RandomState instance#numpy.random.RandomState
+#tuple of (A, B) ndarrays#tuple[numpy.ndarray,numpy.ndarray]
+#dict[str,np.ndarray]#dict[str,numpy.ndarray]
+#`pytest.mark.parametrize`#pytest.mark.parameterize
+#sparse matrix of shape (n_features,) or             (n_targets, n_features)#scipy.sparse.spmatrix
+#kernel instance#sklearn.gaussian_process.kernels.Kernel
+#estimator#sklearn.base.BaseEstimator

@@ -159,7 +159,7 @@
 3#{array-like, sparse matrix} of shape (n_samples, n_outputs)#MatrixLike
 @3#array-like of shape (n_samples,) or (n_samples, 1)#ArrayLike
 @3#{'train', 'test', 'all'}#Literal['train','test','all']
-3#kernel instance#Kernel
+3#kernel instance#sklearn.gaussian_process.kernels.Kernel
 @3#{'knn', 'rbf'} or callable#Literal['knn','rbf']|Callable
 @3#{'filename', 'file', 'content'}#Literal['filename','file','content']
 @3#{'ascii', 'unicode'}#Literal['ascii','unicode']
@@ -388,7 +388,7 @@
 1#{ndarray, sparse matrix} of shape (n_samples, n_components)#MatrixLike
 @1#{'lapack', 'randomized'}#Literal['lapack','randomized']
 @1#{'varimax', 'quartimax'}#Literal['varimax','quartimax']
-1#{list, tuple, set} of estimator instance or a single             estimator instance#Iterable[sklearn.base.BaseEstimator]sklearn.base.BaseEstimator
+1#{list, tuple, set} of estimator instance or a single             estimator instance#Iterable[sklearn.base.BaseEstimator]|sklearn.base.BaseEstimator
 @1#{"most_frequent", "prior", "stratified", "uniform",             "constant"}#Literal["most_frequent","prior","stratified","uniform","constant"]
 @1#int or str or array-like of shape (n_outputs,)#int|str|ArrayLike
 1#{array-like, object with finite length or shape}#ArrayLike
@@ -405,7 +405,7 @@
 1#array-like of  shape (n_samples,)#ArrayLike
 @1#array-like of shape (n_ticks,)#ArrayLike
 @1#array-like of shape (n_values,)#ArrayLike
-1#dict of str to sequence, or sequence of such#Mapping[str,Sequence]|Sequence[Mapping[str Sequence]]
+1#dict of str to sequence, or sequence of such#Mapping[str,Sequence]|Sequence[Mapping[str,Sequence]]
 1#dict or list of dicts#Mapping|Sequence[Mapping]
 @1#callable, 'one-to-one' or None#Callable|Literal['one-to-one']|None
 1#{ndarray, sparse matrix} of shape (n_samples,) or                 (n_samples, n_classes)#ArrayLike|MatrixLike

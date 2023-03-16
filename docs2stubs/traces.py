@@ -250,16 +250,17 @@ def _get_repr(tlmodule: str, typ, arraylike: bool = False, matrixlike: bool=Fals
 qualname_re = re.compile(r'[A-Za-z_][A-Za-z0-9_\.]*[A-Za-z0-9_]*')
     
 
-def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: str|None) -> tuple[str, set[tuple[str, str]]]:
+def combine_types(tlmodule: str, context: str, tracetyp: type|None = None, doctyp: str|None = None,
+                   valtyp: str|None = None) -> tuple[str, set[tuple[str, str]]]:
 
-    arraylike = doctype is not None and doctype.find('ArrayLike') >= 0
-    matrixlike = doctype is not None and doctype.find('MatrixLike') >= 0
+    arraylike = doctyp is not None and doctyp.find('ArrayLike') >= 0
+    matrixlike = doctyp is not None and doctyp.find('MatrixLike') >= 0
     imports = set()
     components = []
 
     # This relies on typing module internals
-    if isinstance(sigtype, UnionType):
-        for a in sigtype.__args__:  # type: ignore
+    if isinstance(tracetyp, UnionType):
+        for a in tracetyp.__args__:  # type: ignore
             t = _get_repr(tlmodule, a, arraylike, matrixlike)
             components.append(t)
         if len(components) > 5:
@@ -268,8 +269,8 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
             # (e.g. dict[str, A] and dict[str, B] could be dict[str, A|B] and then dict[str, base(A, B)]).
             # For now we just make really long annotations into Any.
             pass
-    elif sigtype is not None:
-        t = _get_repr(tlmodule, sigtype, arraylike, matrixlike)
+    elif tracetyp is not None:
+        t = _get_repr(tlmodule, tracetyp, arraylike, matrixlike)
         components = [t]
     
     # Check how long this type is and if it's too long, just drop the trace part, as that
@@ -281,7 +282,7 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         components = []
         imports = set()
 
-    if doctype is not None:
+    if doctyp is not None:
         # Very simple parser to split apart the doctype union. If we find a '[' we
         # find and skip to closing ']', handling any nested '[' and ']' pairs.
         # Else we split on '|'.
@@ -289,22 +290,22 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         # don't need to do it here.
         i = 0
         start = 0
-        while i < len(doctype):
-            if doctype[i] == '[':
+        while i < len(doctyp):
+            if doctyp[i] == '[':
                 i += 1
                 depth = 1
-                while i < len(doctype) and depth > 0:
-                    if doctype[i] == '[':
+                while i < len(doctyp) and depth > 0:
+                    if doctyp[i] == '[':
                         depth += 1
-                    elif doctype[i] == ']':
+                    elif doctyp[i] == ']':
                         depth -= 1
                     i += 1
             else:
-                if doctype[i] == '|':
-                    components.append(doctype[start:i])
+                if doctyp[i] == '|':
+                    components.append(doctyp[start:i])
                     start = i + 1
                 i += 1
-        components.append(doctype[start:i])
+        components.append(doctyp[start:i])
 
     if 'Any' in components:
         components = ['Any']
@@ -322,7 +323,24 @@ def combine_types(tlmodule: str, sigtype: type|None, doctype: str|None, valtyp: 
         elif 'Int' in components:
             components = [c for c in components if c != 'int']
 
-        if 'str' in components and doctype and doctype.find('Literal') >= 0:
+        # This seems reasonable as you can't instantiate a spmatrix, so it must come from 
+        # docstring, and the intent is likely to include different concrete sparse matrix types.
+        if 'scipy.sparse.spmatrix' in components:
+            components = [c for c in components if not c.startswith('scipy.sparse.')]
+            components.append('scipy.sparse.spmatrix')
+        if 'sklearn.base.BaseEstimator' in components:
+            components = [c for c in components if c[c.rfind('.')+1:] not in [
+                # There are more; just add as they arise in union return types
+                'ColumnTransformer',
+                'FunctionTransformer',
+                'Pipeline',
+                ]
+            ]
+        if 'Self' in components:
+            # Remove the current class from the coponents; it waas probably added by tracing.
+            components = [c for c in components if not c.endswith(context[:context.find('.')])]
+
+        if 'str' in components and doctyp and doctyp.find('Literal') >= 0:
             # Remove str and fold in the literals into one
             newc = []
             lits = []
