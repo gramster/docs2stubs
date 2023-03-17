@@ -274,13 +274,13 @@
 2#ndarray, float32 or float64#ArrayLike|Float
 2#{dense matrix, sparse matrix, LinearOperator}#MatrixLike|scipy.sparse.linalg.LinearOperator
 @2#tuple#tuple
-2#numpy data type#np.dtype
+2#numpy data type#numpy.dtype
 @2#bool or "auto"#bool|Literal["auto"]
 2#tuple of slice#tuple[slice, ...]
 2#float, ndarray of shape (n_features,) or None#float|ArrayLike|None
 2#int or tuple of shape (2,), dtype=int#int|int|tuple[int,int]
 2#{'drop', 'passthrough'} or estimator#Literal['drop','passthrough']|sklearn.base.BaseEstimator
-2#column dtype or list of column dtypes#np.dtype|Sequence[np.dtype]
+2#column dtype or list of column dtypes#numpy.dtype|Sequence[numpy.dtype]
 2#function#Callable
 2#array-like of shape (n_samples_Y, n_features) or list of object#MatrixLike|Sequence
 @2#float or ndarray of shape (n_features,)#float|ArrayLike
@@ -562,7 +562,7 @@
 @1#{'auto', 'svd', 'eigen'}#Literal['auto','svd','eigen']
 1#{ndarray, sparse matrix} of (n_samples, n_features)#MatrixLike
 1#{ndarray, sparse matrix} of shape (n_samples,) or             (n_samples, n_targets)#ArrayLike|MatrixLike
-1#instance of class BaseLoss from sklearn._loss.#BaseLoss
+1#instance of class BaseLoss from sklearn._loss.#sklearn._loss.loss.BaseLoss
 @1#{'l2','l1','elasticnet'}#Literal['l2','l1','elasticnet']
 @1#ndarray of shape (n_features,) or (n_features, n_targets)#ArrayLike|MatrixLike
 @1#array-like of shape (n_targets,)#ArrayLike
@@ -642,7 +642,7 @@
 1#sparse matrix of shape n_samples, n_features)#MatrixLike
 1#sparse matrix of (n_samples, n_features)#MatrixLike
 1#Mapping or iterable over Mappings of shape (n_samples,)#Mapping[str,ArrayLike]|Iterator[Mapping[str,ArrayLike]]
-1#numpy dtype#np.dtype
+1#numpy dtype#numpy.dtype
 1#iterable over iterable over raw features, length = n_samples#Iterator[Iterator]
 1#list of collected items#Sequence
 1#array-like of shape (n_seeds, n_features) or None#MatrixLike
@@ -674,7 +674,7 @@
 @1#TreeNode#TreeNode
 @1#ndarray of shape (n_samples, n_features), dtype=np.uint8#MatrixLike
 1#ndarray, dtype=np.uint32#ArrayLike
-1#bool or ndarray, dtype=bool#np.ndarray|bool|ArrayLike
+1#bool or ndarray, dtype=bool#numpy.ndarray|bool|ArrayLike
 @1#array-like of shape (n_features,), dtype=int#ArrayLike
 @1#array-like of floats#ArrayLike
 @1#{'squared_error', 'absolute_error', 'poisson', 'quantile'}#Literal['squared_error','absolute_error','poisson','quantile']

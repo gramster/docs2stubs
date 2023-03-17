@@ -467,7 +467,7 @@
 1#{ndarray, dataframe, series}#pandas.DataFrame|numpy.ndarray|pandas.Series
 1#dataframe or None#pandas.DataFrame|None
 1#list of str or None#list[str]|None
-1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_classes)#np.ndarray
+1#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_classes)#numpy.ndarray
 1#True if the dispatcher can be used, else False.#bool
 @1#:class:`~sklearn.metrics.plot.PredictionErrorDisplay`#sklearn.metrics.plot.PredictionErrorDisplay
 #csr_matrix#scipy.sparse.csr_matrix

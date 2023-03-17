@@ -382,6 +382,9 @@ def combine_types(tlmodule: str, context: str, tracetyp: type|None = None, docty
 
     components = set()
     for c in set(newc):
+        if c.startswith('Literal['):
+            components.add(c)
+            continue
         # Now go through all the qualnames in the types, and replace with last part,
         # adding an import to the needed imports.
         typing = f'{tlmodule}._typing'

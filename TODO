@@ -4,6 +4,9 @@
 - [ ] save/restore the state object instead of multiple disparate files
 - [ ] add a way to support automated in insertion of signatures using overloads and TypeVars.
 - [ ] sklearn has two instances of LossFunction classes and the dosctrings don't disambiguate them. For now I am just annotating with LossFunction and need to fix them up by hand. In ./ensemble/_gb.pyi need "from ._gb_losses import LossFunction". In ./linear_model/_stochastic_gradient.pyi need "from ._sgd_fast import LossFunction".
-- [ ] if we have a union of Self with the actual classname, merge these. They're not the same if there are subclasses though so its a bit tricky picking which. Self is more likely to be right.
+- [ ] if an attribute or param is initialized via a function call and we know the return type of the function, we could use it. This would require us keeping track of all return types and maybe doing an extra path so probably not worth it computationally, but wouldn't be that hard.
+
+Literal "SAMME.R" is being turned into an import in parameter
+   algorithm : {'SAMME', 'SAMME.R'}, default='SAMME.R'
 
 

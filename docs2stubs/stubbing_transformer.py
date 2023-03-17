@@ -439,7 +439,8 @@ class StubbingTransformer(BaseTransformer):
 
         # Remove decorators that are not needed in stubs
         decorators = []
-        keep = ['abstractmethod', 'classmethod', 'dataclass_transform', 'deprecated', 'final', 'override', 'property', 'setter', 'staticmethod']
+        keep = ['abstractmethod', 'classmethod', 'dataclass_transform', 'deprecated', \
+                'final', 'override', 'property', 'setter', 'staticmethod']
         try:
             for d in original_node.decorators:
                 if isinstance(d.decorator, cst.Attribute):
@@ -721,7 +722,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     print(f'Failed to annotate {_total_param_annotations_missing} parameters, {_total_attr_annotations_missing} attributes and {_total_return_annotations_missing} returns')
 
     if _dropped_decorators:
-        print(f'Dropped decorators:')
+        print('Dropped decorators:')
         for d in _dropped_decorators:
             print(f'  {d}')
 

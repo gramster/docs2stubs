@@ -67,7 +67,7 @@
 @3#ndarray of shape (n_samples, n_samples)#numpy.ndarray
 @3#ndarray of shape (n_classes,), dtype=int32#numpy.ndarray
 @3#ndarray of shape (1, n_SV)#numpy.ndarray
-3#``Estimator`` instance#Basestimator
+3#``Estimator`` instance#sklearn.base.BaseEstimator
 3#list, length = len(params)#list
 @3#:class:`~sklearn.impute.MissingIndicator`#sklearn.impute._base.MissingIndicator
 @3#ndarray of shape (1, n_features) if n_classes == 2 else             (n_classes, n_features)#numpy.ndarray
@@ -181,7 +181,7 @@
 1#matplotlib `QuadContourSet` or `QuadMesh`#matplotlib.contour.QuadContourSet|matplotlib.collections.QuadMesh
 @1#ndarray of shape (n_features,), dtype=bool#numpy.ndarray
 @1#ndarray of shape (n_subsets_of_features,)#numpy.ndarray
-1#narray of shape (n_features,)#narray
+1#narray of shape (n_features,)#numpy.ndarray
 @1#array-like of shape (batch_size, n_components)#ArrayLike
 1#object of type :class:`~sklearn.impute.SimpleImputer`#SimpleImputer
 @1#list of tuples#list[tuple]
@@ -209,7 +209,7 @@
 1#array, shape = [1, n_features] if n_classes == 2 else [n_classes,            n_features]#numpy.ndarray
 1#array, shape = [1] if n_classes == 2 else [n_classes]#numpy.ndarray
 @1#BaseLoss#sklearn._loss.loss.BaseLoss
-1#list of shape (n_alphas,) or list of such lists#list|list[lists]
+1#list of shape (n_alphas,) or list of such lists#list|list[list]
 @1#array of shape (n_features, ) or (n_targets, n_features)#numpy.ndarray
 @1#array of shape (min(X, y),)#numpy.ndarray
 @1#float or array of shape (n_targets,)#float|numpy.ndarray
@@ -255,7 +255,7 @@
 1#array, shape = (n_classes,)#numpy.ndarray
 1#ndarray, dtype=np.uint32#numpy.ndarray
 @1#ndarray of shape (n_features,), dtype=np.uint8#numpy.ndarray
-1#np.uint8#np.uint8
+1#np.uint8#numpy.uint8
 1#ndarray of DecisionTreeRegressor of             shape (n_estimators, ``loss_.K``)#numpy.ndarray
 1#ndarray of DecisionTreeRegressor of shape (n_estimators, 1)#numpy.ndarray
 @1#:class:`~sklearn.preprocessing.LabelEncoder`#LabelEncoder
