@@ -336,9 +336,19 @@ def combine_types(tlmodule: str, context: str, tracetyp: type|None = None, docty
                 'Pipeline',
                 ]
             ]
-        if 'Self' in components:
-            # Remove the current class from the coponents; it waas probably added by tracing.
-            components = [c for c in components if not c.endswith(context[:context.find('.')])]
+
+        # The below is no longer used as we replace Self with TypeVars; commenting it out for now
+        # as it may come back
+        #if 'Self' in components:
+        #    # Remove the current class from the coponents; it waas probably added by tracing.
+        #    components = [c for c in components if not c.endswith(context[:context.find('.')])]
+        #
+        # Instead we look for components that end with _Self and remove their corresponding 
+        # matches.
+        typevars = [c for c in components if c.endswith('_Self')]
+        if typevars:
+            components = [c for c in components if not any(c.endswith(tv[:-5]) for tv in typevars)]
+        
 
         if 'str' in components and doctyp and doctyp.find('Literal') >= 0:
             # Remove str and fold in the literals into one

@@ -52,7 +52,11 @@ class StubbingTransformer(BaseTransformer):
         # We collect those just to log them in case we are missing something we should have kept.
         self._keep_imports = set()  # Things that were explicitly imported in the original source
         self._seen_attrs = set() # Attributes that were explicitly defined in the original source
+        self._typevars = set()  # Typevars needed for Self returns
 
+    def typevars(self) -> list[str]:
+        return self._typevars
+    
     @staticmethod
     def get_value_type(node: cst.CSTNode) -> str|None:
         typ: str|None= None
@@ -469,6 +473,8 @@ class StubbingTransformer(BaseTransformer):
         except:
             pass
 
+        self_annotation = None
+
         if not annotation or name in StubbingTransformer.dunders:
             rtntyp: str|None = None
             if name in StubbingTransformer.dunders:
@@ -477,11 +483,20 @@ class StubbingTransformer(BaseTransformer):
                 # We have the docstrings; still need to map them
                 map = self._maps.returns
                 v = []
-                for t in doctyp.values():
+                for n, t in doctyp.items():
                     typ, _ = self.docstring2type(cast(str, t), map)
+
                     if typ:
+                        if n == 'self':
+                            # if typ is Any (probably came from object) or the containing class, this
+                            # is almost certainly a Self return.
+                            if typ == 'Any' or context.split('.')[0] == typ.split('.')[-1]:
+                                typ = 'Self'
+                            # else TODO: see what other cases of Self we can catch here
                         v.append(typ)
                     else:
+                        if n == 'self':
+                            pass
                         logging.warning(f'Could not get {context} return type from docstring {t}; no mapping and not trivial')
                         v = None
                         break
@@ -496,12 +511,37 @@ class StubbingTransformer(BaseTransformer):
                 # Try to infer it from the body, or if this is an overload in a derived class,
                 # infer from the base class.
 
-                
+            # Special workaround for Self for now. Self is only in 3.11, and many people aren't using 3.11 yet. So we have to introduce 
+            # typevars instead for now. There's a slight risk of a name collision here.
+            if rtntyp == 'Self':
+                containing_class = context.split('.')[0]
+                if name == '__new__':
+                    # Don't use Self here anyway
+                    rtntyp = containing_class
+                else:
+                    # Create a typevar we can both return and use to annotate the self parameter.
+                    rtntyp = f'{containing_class}_Self'
+                    self_annotation = cst.Annotation(annotation=cst.parse_expression(rtntyp))
+                    typevar = f'{rtntyp} = TypeVar("{rtntyp}", bound="{containing_class}")'
+                    self._typevars.add(typevar)
+
             annotation = self._get_new_annotation('return', context, doctyp=rtntyp)
 
         global _total_return_annotations, _total_return_annotations_missing
         if annotation:
             _total_return_annotations += 1
+            if self_annotation:
+                # We have to change the annotation on self to be the typevar
+                newparams = []
+                for p in updated_node.params.params:
+                    if newparams:
+                        newparams.append(p)
+                    else:
+                        newparams.append(p.with_changes(annotation=self_annotation))
+                return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation, \
+                                                decorators=decorators, 
+                                                params=updated_node.params.with_changes(params=newparams))
+            
             return updated_node.with_changes(body=cst.parse_statement("..."), returns=annotation, \
                                                 decorators=decorators)
         _total_return_annotations_missing += 1    
@@ -675,10 +715,15 @@ def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: 
                       'Dict', 'List', 'Optional', 'Set', 'Tuple', 'Union']
                       
     need = [t for t in typing_imports if t in idents]
+    typevars = list(patcher.typevars())
+    if typevars:
+        need.append('TypeVar')
+        typevars.append('\n')  # make sure we have a \n after last typevar
+
     if need:
         import_statements = f'from typing import {", ".join(need)}\n' + import_statements
     
-    code = import_statements + modified.code
+    code = import_statements + '\n'.join(typevars) + modified.code
     try:
         return format_str(code, mode=Mode()) 
     except Exception as e:
