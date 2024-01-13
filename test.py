@@ -130,9 +130,10 @@ if __name__ == '__main__':
     #test_normalize()
     #test_type_parser()
     #test_get_package_files()
-    test_stubber('sklearn')
+    test_stubber('sklearn.ensemble._gradient_boosting')
     #from docs2stubs.normalize import _is_string
     #print(_is_string("'balanced'"))
     #test_get_signature_from_traces(pkg, 'sklearn.base', 'is_classifier')
     #from tests.test_scikit import test_sk_params
     #test_sk_params()
+

@@ -1,11 +1,10 @@
-from collections import Counter, namedtuple
+from collections import Counter
 import glob
 import importlib
 import inspect
 import logging
 import os
 import pickle
-import re
 from types import ModuleType
 from typing import Callable, Generator, Generic, NamedTuple, TypeVar, cast
 
@@ -43,7 +42,7 @@ class Sections(Generic[T]):
 # trace_types: dict mapping docstring types to sets of Python types derive from MonkeyType traces
 
 State = NamedTuple("State", [
-    ("counters", None|Sections[Counter[str]]), 
+    ("counters", Sections[Counter[str]]|None), 
     ("docstrings", dict[str, Sections[dict[str, str]|dict[str,dict[str,str]]]]), 
     ("maps", None|Sections[dict[str,str]]),
     ("trace_param_types", dict[str, set[type]]),
@@ -88,19 +87,19 @@ def load_docstrings(m:str) -> dict:
         return pickle.load(f)
 
      
-def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str]]:
+def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str], list[str]]:
     try:
         mod = importlib.import_module(m)
         file = inspect.getfile(mod)
     except Exception as e:
         logging.error(f'Could not import module {m}: {e}')
-        return None, None, []
+        return None, None, [], []
 
     submodules = []
+    native_submodules = []
     if file.endswith("/__init__.py"):
         # Get the parent directory and all the files in that directory
         folder = file[:-12]
-        files = []
         for f in glob.glob(folder + "/*"):
             if f == file:
                 continue
@@ -108,9 +107,11 @@ def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str
                 submodules.append(f'{m}.{f[f.rfind("/")+1:-3]}')
             # TODO: make this configureable. Right now it is geared 
             # to drop tests from sklearn.
+            elif any([f.endswith(f'/{x}') for x in ['.so', '.dll', '.dylib']]):
+                native_submodules.append(f'{m}.{f[f.rfind("/")+1:f[f.rfind(".")]]}')
             elif os.path.isdir(f) and not f.endswith('__pycache__') and not f.endswith('/tests'):
                 submodules.append(f'{m}.{f[f.rfind("/")+1:]}')
-    return mod, file, submodules
+    return mod, file, submodules, native_submodules
 
 
 def save_result(target: str, result: str) -> None:
@@ -122,92 +123,94 @@ def save_result(target: str, result: str) -> None:
     with open(target, "w") as f:
         f.write(result)
 
-# Returns None is no post-processor, else whatever tuple
-# the post-processor returns. I think this wrapper turned 
-# out to be a case of DRY-gone-wild and probably should
-# be replaced.
 
-def process_module(taskname: str,
-        m: str, 
+def process_module(
+        task_name: str,
+        module_name: str, 
         state: State,
-        processor: Callable, 
-        targeter: Callable,
-        post_processor: Callable|None = None, 
-        include_submodules: bool = True,
+        python_module_processor: Callable, 
+        native_module_processor: Callable,
+        output_filename_generator: Callable|None = None,
         **kwargs) -> None|State:
 
-    orig_m = m
-    modules = [m]
-    while modules:
-        m = modules.pop()
-        mod, file, submodules = get_module_and_children(m)
-        if include_submodules:
-            if not mod:
+    modules = [module_name]
+    native_modules = []
+    while modules or native_modules:
+        if modules:
+            module_name = modules.pop()
+            mod, file, submodules, native = get_module_and_children(module_name)
+            if file is None or mod is None:
+                logging.error(f"{task_name}: Failed to import {module_name}")
                 continue
             modules.extend(submodules)
-        else:
-            if not mod:
-                return state
-
-        result = None
-
-        if file is None:
-            continue
-
-        try:
-            with open(file) as f:
-                source = f.read()
-        except Exception as e:
-            logging.error(f"Failed to read {file}: {e}")
-            continue
-
-        result = processor(mod, m, file, source, state, **kwargs)
-        if post_processor is None:
-            if result is None:
-                logging.error(f"{taskname}: Failed to handle {file}")
-                continue
+            native_modules.extend(native)
+            if file.endswith('.py'):
+                try:
+                    with open(file) as f:
+                        source = f.read()
+                except Exception as e:
+                    logging.error(f"{task_name}: Failed to read {file}: {e}")
+                    continue
+                result = python_module_processor(mod, module_name, file, source, state, **kwargs)
             else:
-                target = targeter(file)
-                save_result(target, result)
-
-        logging.info(f"{taskname}: Done {file}")
-
-    if post_processor:
-        result = post_processor(orig_m, state, **kwargs)
-        if isinstance(result, str):
-            target = targeter(orig_m)
-            save_result(target, result)
-        elif isinstance(result, Sections):
-            save_result(targeter(orig_m, 'params'), result.params)
-            save_result(targeter(orig_m, 'returns'), result.returns)
-            save_result(targeter(orig_m, 'attrs'), result.attrs)
+                result = native_module_processor(mod, module_name, file, state, **kwargs)
+        else:
+            module_name = native_modules.pop()
+            mod, file, _, _ = get_module_and_children(module_name)
+            result = native_module_processor(mod, module_name, file, state, **kwargs)
+            
+        if result is None:
+            logging.error(f"{task_name}: Failed to handle {file}")
+        else:
+            logging.info(f"{task_name}: Done {file}")
+            if output_filename_generator is not None:
+                save_result(output_filename_generator(file), result)
 
     return state
 
 
-def save_fullmap(folder, module, fullmap: Sections[dict[str,str|dict[str,str]]]) -> None:
-    for section, sectionmap in zip(['params', 'returns', 'attrs'], fullmap):
+def get_top_level_obj(mod: ModuleType, fname: str, oname: str):
+    try:
+        return mod.__dict__[oname]
+    except KeyError:
+        try:
+            submod = fname[fname.rfind('/')+1:-3]
+            return mod.__dict__[submod].__dict__[oname]
+        except Exception:
+            logging.error(f'{fname}: Could not get obj for {oname}')
+            return None
 
-        with open(f'{folder}/{module}.{section}.full', 'w') as f:
-            if section == 'returns':
-                sectionmap = cast(dict[str,dict[str,str]], sectionmap)
-                pass
-            else:
-                sectionmap = cast(dict[str,str], sectionmap)
-                for k, v in sectionmap.items():
-                    f.write(f'{k}#{v}\n')
 
-                
-def load_fullmap(folder, module) -> Sections[dict[str, str]]:
-    rtn = Sections[dict[str, str]]({}, {}, {})
-    for section, fullmap in zip(['params', 'returns', 'attrs'], rtn):
-        fullmap = cast(dict[str, str], fullmap)
-        fname = f'{folder}/{module}.{section}.full'
-        if os.path.exists(fname):
-            with open(fname) as f:
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        k, v = line.strip().split('#')
-                        fullmap[k.strip()] = v.strip()
-    return rtn
+def analyze_object(obj, context: str, parser, 
+                    counters: Sections[Counter[str]], 
+                    attr_types: dict[str, str]|None=None) -> Sections[dict[str,str]|None]:
+    # This gets the docstring for a class, function or method, parses it, and returns
+    # the result. It also updates the counters for the types of docstrings found, and
+    # adds entries for encountered class  attributes to the attr_types dictionary.
+
+    doc = None
+    rtn = Sections(params=None, returns=None, attrs=None)
+
+    # Get and parse the docstring for the object. This uses inspect and so doesn't work for 
+    # attributes that are documented in the class docstring. We handle those at the end.
+    if obj:
+        doc = inspect.getdoc(obj)
+        if doc:
+            rtn = parser.parse(doc)
+    
+    # Update the counters for the docstrings we found
+    for section, counter in zip(rtn, counters):
+        if section:
+            section = cast(dict[str,str], section)
+            counter = cast(Counter[str], counter)
+            for typ in section.values():
+                counter[typ] += 1
+
+    # If we have attribute docstrings, we fake up the contexts and save them here.
+    if rtn.attrs and attr_types:
+        for k, v in rtn.attrs.items():
+            attr_types[f'{context}.{k}'] = v
+
+    return rtn # type: ignore
+
+

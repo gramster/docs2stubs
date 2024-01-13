@@ -30,6 +30,25 @@ _union_returns = {}
 def _get_code(n) -> str:
     return cst.Module(body=()).code_for_node(n)
 
+
+def docstring2type(modname: str, doctyp: str, map: dict[str, str], is_param: bool = False) -> \
+        tuple[str | None, Literal['mapped', 'trivial', '']]:
+    """
+    Convert a docstring to a type, either by getting it from the corresponding map (if
+    present), or by running it through the trivial type converter.
+    Returns None if the type is non-trivial and not in the map.
+    Also returns a label identifying how the conversion was done; useful for logging.
+    """
+    typ = None
+    how = ''
+    if doctyp in map:
+        typ = map[doctyp]
+        how = 'mapped'
+    elif is_trivial(doctyp, modname):
+        typ = normalize_type(doctyp, modname, is_param)
+        how = 'trivial'
+    return typ, how
+    
 class StubbingTransformer(BaseTransformer):
     def __init__(self, tlmodule: str, modname: str, fname: str, state: State,
         strip_defaults=False):
@@ -54,7 +73,7 @@ class StubbingTransformer(BaseTransformer):
         self._seen_attrs = set() # Attributes that were explicitly defined in the original source
         self._typevars = set()  # Typevars needed for Self returns
 
-    def typevars(self) -> list[str]:
+    def typevars(self) -> set[str]:
         return self._typevars
     
     @staticmethod
@@ -103,24 +122,6 @@ class StubbingTransformer(BaseTransformer):
         if new_value is None:
             new_value = cst.parse_expression("...")  
         return new_value
-
-    def docstring2type(self, doctyp: str, map: dict[str, str], is_param: bool = False) -> \
-            tuple[str | None, Literal['mapped', 'trivial', '']]:
-        """
-        Convert a docstring to a type, either by getting it from the corresponding map (if
-        present), or by running it through the trivial type converter.
-        Returns None if the type is non-trivial and not in the map.
-        Also returns a label identifying how the conversion was done; useful for logging.
-        """
-        typ = None
-        how = ''
-        if doctyp in map:
-            typ = map[doctyp]
-            how = 'mapped'
-        elif is_trivial(doctyp, self._modname):
-            typ = normalize_type(doctyp, self._modname, is_param)
-            how = 'trivial'
-        return typ, how
 
     def update_imports(self, imports: dict[str, list[str]]):
         # imports has file -> list of classes
@@ -179,7 +180,7 @@ class StubbingTransformer(BaseTransformer):
                 maptyp = doctyp
             else:
                 # Get the mapped (or trivially converted) version of the docstring
-                maptyp, how = self.docstring2type(doctyp, map, which == 'parameter')
+                maptyp, how = docstring2type(self._modname, doctyp, map, which == 'parameter')
                 if maptyp:
                     # If the default value is None, make sure we include it in the type
                     is_optional = 'None' in maptyp.split('|')
@@ -359,26 +360,27 @@ class StubbingTransformer(BaseTransformer):
 
             # See if there are documented attributes that we haven't seen yet,
             # and add them to the class body.
-
             body = [n for n in updated_node.body.body if not isinstance(n, cst.Pass)]
-            prefix = context + '.'  # Add '.' in case there are classes with same name prefix
+            global _total_attr_annotations, _total_attr_annotations_missing
+            prefix = context+'.'  # Add '.' in case there are classes with same name prefix
             for attr, doctyp in self._docstrings.attrs.items():
-                if attr.startswith(prefix):
-                    attr_name = attr[len(context)+1:]
-                    if attr_name not in self._seen_attrs:
-                        global _total_attr_annotations, _total_attr_annotations_missing
-                        dtyp, _ = self.docstring2type(cast(str, doctyp), self._maps.attrs, False)
-                        # Need this for further normalizing and getting the imports
-                        typ, imps = combine_types(self._tlmodule, context, doctyp=dtyp)
-                        if typ:
-                            self._need_imports.update(imps)
-                            node = cst.parse_statement(f'{attr_name}: {typ} = ...')
-                            _total_attr_annotations += 1
-                        else:
-                            node = cst.parse_statement(f'{attr_name} = ...')
-                            _total_attr_annotations_missing += 1
-                        
-                        body.insert(0, node)
+                if not attr.startswith(prefix):
+                    continue
+                attr_name = attr[len(context)+1:]
+                if attr_name in self._seen_attrs:
+                    continue
+                dtyp, _ = docstring2type(self._modname, cast(str, doctyp), self._maps.attrs, False)
+                # Need this for further normalizing and getting the imports
+                typ, imps = combine_types(self._tlmodule, context, doctyp=dtyp)
+                if typ:
+                    self._need_imports.update(imps)
+                    stmt = f'{attr}: {typ} = ...'
+                    _total_attr_annotations += 1
+                else:
+                    stmt = f'{attr} = ...'
+                    _total_attr_annotations_missing += 1
+                body.insert(0, cst.parse_statement(stmt))
+
             # If the class body is empty insert '...' statement
             if len(body) == 0:
                 body.append(cst.parse_statement('...'))
@@ -484,7 +486,7 @@ class StubbingTransformer(BaseTransformer):
                 map = self._maps.returns
                 v = []
                 for n, t in doctyp.items():
-                    typ, _ = self.docstring2type(cast(str, t), map)
+                    typ, _ = docstring2type(self._modname, cast(str, t), map)
 
                     if typ:
                         if n == 'self':
@@ -560,7 +562,7 @@ class StubbingTransformer(BaseTransformer):
         original_node: cst.SimpleStatementLine,
         updated_node: cst.SimpleStatementLine,
     ) -> cst.CSTNode:
-        # Save the "from foo impprt bar" imports for later use. We will remove them from
+        # Save the "from foo import bar" imports for later use. We will remove them from
         # the tree here and then re-inject them later when we add all the necessary imports. 
         # The aim is to remove unused or duplicate imports.
         keep = [] # for "from foo import *""
@@ -649,17 +651,13 @@ def make_imports_relative(m: str, module: str, fname: str) -> str:
     return rel
     
 
-def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
+def _stub_python_module(m: str, fname: str, source: str, state: State, strip_defaults: bool = False) -> str|None:
     try:
         cstree = cst.parse_module(source)
     except Exception as e:
         return None
 
-    if m.find('.') < 0:
-        tlmodule = m
-    else:
-        tlmodule = m[:m.find('.')]
-
+    tlmodule = m.split('.')[0]
     patcher = StubbingTransformer(tlmodule, m, fname, state, strip_defaults=strip_defaults)
     modified = cstree.visit(patcher)
     modified_code = modified.code
@@ -731,15 +729,87 @@ def patch_source(m: str, fname: str, source: str, state: State, strip_defaults: 
         return code
 
 
-def _stub(mod: ModuleType, m: str, fname: str, source: str, state: State, **kwargs) -> str|None:
-    return patch_source(m, fname, source, state, **kwargs)
+def _stub_native_module(mod: ModuleType, module_name: str, file_name: str, state: State, **kwargs) -> str|None:
+    # Right now this doesn't work so just return ''
+    # During analysis we get the docstrings by importing and then inspecting the module.
+    # That can't distinguish between imported functions/classes and those defined in the module.
+    # Plus we completely skip anything that doesn't have a docstring.
+    # There's probably no good alternative here to writing a parser for .pyx files.
+    return ''
+
+    tlmodule = module_name.split('.')[0]
+    result = []
+    docstrings: Sections[dict[str,str]|dict[str,dict[str,str]]] 
+    returnstrings = state.creturns
+
+    def _handle_native_func(func, context: str) -> None:
+        sig = inspect.signature(func)
+        return_type = returnstrings.get(context, '')
+        args = [f"{param.name}: {param.annotation.__name__ if hasattr(param.annotation, '__name__') else param.annotation}" 
+                for param in sig.parameters.values()]
+        if return_type:
+            result.append(f"def {name}({', '.join(args)}) -> {return_type}: ")
+        else:
+            result.append(f"def {name}({', '.join(args)}): ")
+        if func.__doc__ is not None:
+            result.append(f" # {func.__doc__}")
+        result.append("\n    ...\n\n")
+    
+
+    assert(state.maps is not None)
+    for name, obj in inspect.getmembers(mod):
+        if name.startswith('_'):
+            continue
+        if not inspect.isbuiltin(obj):
+            continue
+
+        if inspect.isclass(obj):
+            result.append(f"class {name}:\n") # TODO: base classes
+            body = '    ...\n'
+
+            # Collect this class's attributes from its docstring
+            attribs = {attr[len(name)+1:]: doctyp 
+                       for attr, doctyp in docstrings.attrs.items() 
+                       if attr.startswith(name+'.')}
+
+            for member_name, member in inspect.getmembers(obj):
+                if inspect.isfunction(member):
+                    _handle_native_func(member, f'{name}.{member_name}')
+                    body = ''
+                else:
+                    # Attribute
+                    doctyp = attribs.get(member_name, '')
+                    dtyp, _ = docstring2type(module_name, cast(str, doctyp), state.maps.attrs, False)
+                    # Need this for further normalizing and getting the imports
+                    typ, imps = combine_types(tlmodule, name, doctyp=dtyp)
+                    global _total_attr_annotations, _total_attr_annotations_missing
+                    if typ:
+                        result.append(f'    {member_name}: {typ} = ...')
+                        _total_attr_annotations += 1
+                    else:
+                        result.append(f"    {member_name}: {type(member).__name__} = ...")
+                        _total_attr_annotations_missing += 1
+                    body = ''
+            result.append(body)
+            
+        elif inspect.isfunction(obj):
+            # top-level function
+            _handle_native_func(obj, name)
+        elif obj:
+            # Global variable
+            result.append(f"{name}: {type(obj).__name__}")
+
+    # Insert imports
+
+    result.insert(0, f"# Type stub file for module {module_name}\n\n")
+    return ''.join(result)
 
 
 def _targeter(fname: str) -> str:
     return f'{_stub_folder}/{fname[fname.find("/site-packages/") + 15 :]}i'
 
 
-def stub_module(m: str, include_submodules: bool = True, strip_defaults: bool = False, skip_analysis: bool = False,
+def stub_module(m: str, strip_defaults: bool = False, skip_analysis: bool = False,
 stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     global _stub_folder
 
@@ -753,15 +823,15 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     if skip_analysis:
         state = State(None, load_docstrings(tlmodule), load_type_maps(tlmodule), {}, {}, {}, {})
     else:   
-        state = analyze_module(m, include_submodules=include_submodules)
+        state = analyze_module(m)
     if state is not None:
         state.creturns.update(load_map(tlmodule, 'creturns'))
         creturns = f'analysis/{tlmodule}.creturns.map.missing'
         if os.path.exists(creturns):
             os.remove(creturns)
 
-        process_module("Stubbing", m, state, _stub, _targeter, include_submodules=include_submodules,
-            strip_defaults=strip_defaults)
+        process_module("Stubbing", m, state, _stub_python_module, _stub_native_module, _targeter,
+                       strip_defaults=strip_defaults)
  
     print(f'Annotated {_total_param_annotations} parameters, {_total_attr_annotations} attributes and {_total_return_annotations} returns')
     print(f'Failed to annotate {_total_param_annotations_missing} parameters, {_total_attr_annotations_missing} attributes and {_total_return_annotations_missing} returns')
@@ -778,7 +848,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
         f.write('''
 # This file is generated by docs2stub. These types are intended
 # to simplify the stubs generated by docs2stub. They are not
-# intended to be used directly by other users.
+# intended to be used directly outside of this package.
 
 import decimal
 import io

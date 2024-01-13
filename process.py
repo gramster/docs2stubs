@@ -27,7 +27,7 @@ def main():
     arguments = docopt(__doc__, version=__version__)  # type: ignore
     package = arguments['<package>']
     if arguments['analyze'] or arguments['all']:
-        analyze_module(package, include_submodules=True, include_counts=True, dump_all=False)
+        analyze_module(package, include_submodules=True, output_frequency_counts=True, output_trivial_types=False)
     if arguments['stub'] or arguments['all']:
         stub_module(package, skip_analysis=True)
     if arguments['augment'] or arguments['all']:

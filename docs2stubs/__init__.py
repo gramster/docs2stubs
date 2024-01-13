@@ -1,10 +1,9 @@
-import os
-__doc__ = f"""
+__doc__ = """
 docs2stubs.
 
 Usage:
-  docs2stubs analyze (package|module) [--skip-trivial] [--trace_folder FOLDER] <name>...
-  docs2stubs stub (package|module) [--strip-defaults] [--skip-analysis] [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
+  docs2stubs analyze [--skip-trivial] [--trace_folder FOLDER] <name>...
+  docs2stubs stub [--strip-defaults] [--skip-analysis] [--stub_folder FOLDER] [--trace_folder FOLDER] <name>...
   docs2stubs test [<name>] <typestring>
   docs2stubs -h | --help
   docs2stubs --version
@@ -17,7 +16,7 @@ Options:
   --trace_folder FOLDER Folder where traces are stored [default: tracing].
   <name>                The target package or module (e.g. matplotlib.pyplot).
 
-The package/module needs to be installed in the environment from which
+The module needs to be importable in the environment from which
 you are running docs2stubs.
 
 The `analyze` command parses numpydoc-format docstrings in the target
@@ -49,7 +48,7 @@ contain just one entry per type, while a type can occur multiple
 times, so the output summary counts are typically much higher 
 than the count of lines in the mapfiles.
 
-The `stub` command will generate stubs for the module/package under a 
+The `stub` command will generate stubs for the module under a 
 'typings' folder. It will first run an analysis pass and
 then make use of the .map file produced by analysis to 
 determine types, and for assignments or default parameter values with
@@ -80,19 +79,18 @@ from .type_normalizer import check_normalizer
 def main():
     arguments = docopt(__doc__, version=__version__)  # type: ignore
     name = arguments['<name>']
-    include_submodules = False if arguments['module'] else True
     for n in name:
       if arguments['analyze']:
         dump_all = not arguments['--skip-trivial']
         trace_folder = arguments['--trace_folder']
-        analyze_module(n, include_submodules=include_submodules, dump_all=dump_all)
+        analyze_module(n, output_trivial_types=dump_all)
       elif arguments['stub']:
         strip_defaults = arguments['--strip-defaults']
         skip_analysis = arguments['--skip-analysis']
         stub_folder = arguments['--stub_folder']
         trace_folder = arguments['--trace_folder']
-        stub_module(n, include_submodules=include_submodules, \
-            strip_defaults=strip_defaults, skip_analysis=skip_analysis, stub_folder=stub_folder, trace_folder=trace_folder)
+        stub_module(n,  strip_defaults=strip_defaults, skip_analysis=skip_analysis, 
+                    stub_folder=stub_folder, trace_folder=trace_folder)
       elif arguments['test']:
         print(check_normalizer(arguments["<typestring>"], name))
 

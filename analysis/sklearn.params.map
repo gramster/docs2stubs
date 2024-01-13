@@ -27,7 +27,7 @@
 @19#ndarray#ArrayLike
 @19#array of shape (n_samples,)#ArrayLike
 @18#bool or int#bool|int
-18#int, cross-validation generator or an iterable#int|sklearn.model_selection.BaseCrossValidator|Iterable
+18#int, cross-validation generator or an iterable#int|sklearn.model_selection.BaseCrossValidator|sklearn.model_selection._split.BaseShuffleSplit|Iterable
 @18#array#ArrayLike
 17#array-like of shape (n_samples_X, n_features) or list of object#MatrixLike|ArrayLike
 @17#ndarray of shape (n_samples, K)#MatrixLike
@@ -61,7 +61,7 @@
 7#array-like of shape (n_queries, n_features),                 or (n_queries, n_indexed) if metric == 'precomputed'#MatrixLike
 @7#ndarray of shape (n_components, n_features)#MatrixLike
 @7#ndarray of shape (n_samples, n_components)#MatrixLike
-7#int, cross-validation generator or iterable#int|sklearn.model_selection.BaseCrossValidator|Iterable
+7#int, cross-validation generator or iterable#int|sklearn.model_selection.BaseCrossValidator|sklearn.model_selection._split.BaseShuffleSplit|Iterable
 6#indexable, length n_samples#ArrayLike
 @6#ndarray of shape (n_classes,)#ArrayLike
 6#{ndarray, sparse matrix} of shape (n_samples, n_features)#MatrixLike
@@ -316,7 +316,7 @@
 @2#array-like or callable#ArrayLike|Callable
 2#dict of str -> obj#Mapping[str, obj]
 2#list of (str, estimator)#Sequence[tuple[str, sklearn.base.BaseEstimator]]
-!2#int, cross-validation generator, iterable, or "prefit"#int|sklearn.model_selection.BaseCrossValidator|Iterable|Literal["prefit"]
+!2#int, cross-validation generator, iterable, or "prefit"#int|sklearn.model_selection.BaseCrossValidator|sklearn.model_selection._split.BaseShuffleSplit|Iterable|Literal["prefit"]
 2#tree.Tree#Tree
 2#int, optional.#int|None
 2#{array-like, sparse matrix} of shape (n_samples,) or (n_samples, n_classes)#ArrayLike|MatrixLike
@@ -371,7 +371,7 @@
 1#int or numpy.RandomState#int|numpy.random.RandomState
 !1#{manual label, 'most_frequent'}#str
 @1#{'nipals', 'svd'}#Literal['nipals','svd']
-1#int, cross-validation generator, iterable or "prefit"#int|sklearn.model_selection.BaseCrossValidator|Iterable|Literal["prefit"]
+1#int, cross-validation generator, iterable or "prefit"#int|sklearn.model_selection.BaseCrossValidator|sklearn.model_selection._split.BaseShuffleSplit|Iterable|Literal["prefit"]
 1#list of fitted estimator instances#list[IsotonicRegression|_SigmoidCalibration]|list[sklearn.base.BaseEstimator]
 @1#{'batch', 'online'}#Literal['batch','online']
 @1#ndarray of shape (n_components, n_samples)#MatrixLike
@@ -569,7 +569,7 @@
 @1#{'l1', 'l2', 'elasticnet', 'none'}#Literal['l1','l2','elasticnet','none']
 @1#{'auto', 'ovr', 'multinomial'}#Literal['auto','ovr','multinomial']
 @1#int or list of floats#int|Sequence[float]
-!1#int or cross-validation generator#int|sklearn.model_selection.BaseCrossValidator
+!1#int or cross-validation generator#int|sklearn.model_selection.BaseCrossValidator|sklearn.model_selection._split.BaseShuffleSplit
 @1#{'l1', 'l2', 'elasticnet'}#Literal['l1','l2','elasticnet']
 1#{'auto, 'ovr', 'multinomial'}#Literal['auto', 'ovr', 'multinomial']
 @1#list of float#Sequence[float]
