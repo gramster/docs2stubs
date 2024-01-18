@@ -830,7 +830,8 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
         if os.path.exists(creturns):
             os.remove(creturns)
 
-        process_module("Stubbing", m, state, _stub_python_module, _stub_native_module, _targeter,
+        process_module("Stubbing", m, state, _stub_python_module, _stub_native_module,
+                       output_filename_generator=_targeter,
                        strip_defaults=strip_defaults)
  
     print(f'Annotated {_total_param_annotations} parameters, {_total_attr_annotations} attributes and {_total_return_annotations} returns')

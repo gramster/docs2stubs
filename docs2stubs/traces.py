@@ -174,11 +174,14 @@ def _get_module_stubs(dbpath: str, pkg: str, module: str):
         raise Exception("get_module_traces called before init_trace_loader")
     if module not in _stubs:
         _stubs[module] = None
-        traces = _load_module_traces(f'{dbpath}/{pkg}.sqlite3', module, sys.stderr)
-        if traces:
-            stubs = build_module_stubs_from_traces(traces, MAX_TYPED_DICT_SIZE)
-            if stubs:
-                _stubs[module] = stubs[module]
+        try:
+            traces = _load_module_traces(f'{dbpath}/{pkg}.sqlite3', module, sys.stderr)
+            if traces:
+                stubs = build_module_stubs_from_traces(traces, MAX_TYPED_DICT_SIZE)
+                if stubs:
+                    _stubs[module] = stubs[module]
+        except:
+            pass
     return _stubs[module]
 
 
