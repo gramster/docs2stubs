@@ -87,16 +87,15 @@ def load_docstrings(m:str) -> dict:
         return pickle.load(f)
 
      
-def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str], list[str]]:
+def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str]]:
     try:
         mod = importlib.import_module(m)
         file = inspect.getfile(mod)
     except Exception as e:
         logging.error(f'Could not import module {m}: {e}')
-        return None, None, [], []
+        return None, None, []
 
     submodules = []
-    native_submodules = []
     if file.endswith("/__init__.py"):
         # Get the parent directory and all the files in that directory
         folder = file[:-12]
@@ -107,11 +106,9 @@ def get_module_and_children(m: str) -> tuple[ModuleType|None, str|None, list[str
                 submodules.append(f'{m}.{f[f.rfind("/")+1:-3]}')
             # TODO: make this configureable. Right now it is geared 
             # to drop tests from sklearn.
-            elif any([f.endswith(f'/{x}') for x in ['.so', '.dll', '.dylib']]):
-                native_submodules.append(f'{m}.{f[f.rfind("/")+1:f[f.rfind(".")]]}')
             elif os.path.isdir(f) and not f.endswith('__pycache__') and not f.endswith('/tests'):
                 submodules.append(f'{m}.{f[f.rfind("/")+1:]}')
-    return mod, file, submodules, native_submodules
+    return mod, file, submodules
 
 
 def save_result(target: str, result: str) -> None:
@@ -122,51 +119,6 @@ def save_result(target: str, result: str) -> None:
     os.makedirs(folder, exist_ok=True)
     with open(target, "w") as f:
         f.write(result)
-
-
-def process_module(
-        task_name: str,
-        module_name: str, 
-        state: State,
-        python_module_processor: Callable, 
-        native_module_processor: Callable,
-        output_filename_generator: Callable|None = None,
-        **kwargs) -> None|State:
-
-    modules = [module_name]
-    native_modules = []
-    while modules or native_modules:
-        if modules:
-            module_name = modules.pop()
-            mod, file, submodules, native = get_module_and_children(module_name)
-            if file is None or mod is None:
-                logging.error(f"{task_name}: Failed to import {module_name}")
-                continue
-            modules.extend(submodules)
-            native_modules.extend(native)
-            if file.endswith('.py'):
-                try:
-                    with open(file) as f:
-                        source = f.read()
-                except Exception as e:
-                    logging.error(f"{task_name}: Failed to read {file}: {e}")
-                    continue
-                result = python_module_processor(mod, module_name, file, source, state, **kwargs)
-            else:
-                result = native_module_processor(mod, module_name, file, state, **kwargs)
-        else:
-            module_name = native_modules.pop()
-            mod, file, _, _ = get_module_and_children(module_name)
-            result = native_module_processor(mod, module_name, file, state, **kwargs)
-            
-        if result is None:
-            logging.error(f"{task_name}: Failed to handle {file}")
-        else:
-            logging.info(f"{task_name}: Done {file}")
-            if output_filename_generator is not None:
-                save_result(output_filename_generator(file), result)
-
-    return state
 
 
 def get_top_level_obj(mod: ModuleType, fname: str, oname: str):
@@ -213,4 +165,27 @@ def analyze_object(obj, context: str, parser,
 
     return rtn # type: ignore
 
+
+ModuleMetadata = NamedTuple("ModuleMetadata", [
+    ("module", ModuleType), 
+    ("file_name", str), 
+    ("module_name", str),
+])
+
+def collect_modules(
+        phase: str,
+        module_name: str, 
+        state: State) -> list[ModuleMetadata]:
+
+    modules = [module_name]
+    result: list[ModuleMetadata] = []
+    while modules:
+        module_name = modules.pop()
+        mod, file_name, submodules = get_module_and_children(module_name)
+        if file_name is None or mod is None:
+            logging.error(f"{phase}: Failed to import {module_name}")
+            continue
+        result.append(ModuleMetadata(mod, file_name, module_name))
+        modules.extend(submodules)
+    return result
 

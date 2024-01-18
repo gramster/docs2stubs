@@ -1,13 +1,13 @@
 from collections import Counter
-import inspect
 import logging
 from types import ModuleType
-from typing import Any, cast
+from typing import  cast
 import libcst as cst
 
 
 from .base_transformer import BaseTransformer
-from .utils import Sections, State, analyze_object, get_top_level_obj, process_module, \
+from .utils import Sections, State, analyze_object, \
+    collect_modules, get_top_level_obj, \
     load_type_maps, save_docstrings, save_result
 from .docstring_parser import NumpyDocstringParser
 from .traces import get_method_signature, get_toplevel_function_signature
@@ -141,62 +141,7 @@ class AnalyzingTransformer(BaseTransformer):
         return rtn
 
 
-def _analyze_python_module(mod: ModuleType, module_name: str, file_name: str, 
-                           source_code: str, state: State) -> State:
-    try:
-        cstree = cst.parse_module(source_code)
-    except Exception as e:
-        raise Exception(f"Failed to parse file: {file_name}: {e}")
-    try:
-        cstree.visit(AnalyzingTransformer(mod, module_name, file_name, state))
-    except Exception as e:
-        raise Exception(f"Failed to analyze file: {file_name}: {e}")
-    return state
-
-
-def _analyze_native_module(mod: ModuleType, module_name: str, file_name: str, state: State) -> State:
-    assert(state.counters is not None)
-    parser = NumpyDocstringParser()
-    paramtyps: dict[str, str] = {}
-    returntyps: dict[str, dict[str, str]] = {}
-    attrtyps: dict[str, str] = {}
-    state.docstrings[module_name] = Sections(
-        params=paramtyps,
-        returns=returntyps,
-        attrs=attrtyps)
-    
-    def _handle_native_func(obj, context: str):
-        assert(state.counters is not None)
-        if obj.__doc__ is not None:
-            doc = analyze_object(obj, obj.__name__, parser, state.counters)
-            if doc:
-                if doc.returns is not None:
-                    returntyps[context] = doc.returns
-                if doc.params:
-                    sig = inspect.signature(obj)
-                    for param in sig.parameters.values():
-                        if param.name == 'self' or param.name == 'cls':
-                            continue
-                        if param.name in doc.params:
-                            paramtyps[f'{context}.{param.name}'] = doc.params[param.name]
-
-    for name, obj in inspect.getmembers(mod):
-        if name.startswith('_') and not name.startswith('__'):
-            continue
-
-        if inspect.isclass(obj):
-            analyze_object(obj, name, parser, state.counters, attrtyps)
-            for method_name, method in inspect.getmembers(obj, inspect.isfunction):
-                _handle_native_func(method, f'{name}.{method_name}')
-            
-        elif inspect.isfunction(obj):
-            # top-level function
-            _handle_native_func(obj, name)
-
-    return state
-
-
-def analyze_module(module_name: str, output_trivial_types: bool = True) -> None|State:
+def analyze_module(module_name: str, output_trivial_types: bool = True) -> State:
     logging.info("Gathering docstrings")
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),
@@ -207,44 +152,65 @@ def analyze_module(module_name: str, output_trivial_types: bool = True) -> None|
         {}, 
         {}
     )    
-    if process_module("Analyzing", module_name, state, _analyze_python_module, _analyze_native_module) is not None:
-        logging.info("Analyzing and normalizing types...")
-        maps = load_type_maps(module_name)
-        results = [[], [], []]
-        assert(state.counters is not None)
-        freqs: Sections[Counter[str]] = state.counters
-        total_trivial = 0
-        total_mapped = 0
-        total_missed = 0
-        trivials = {}
-        for section, result, freq, map in zip(['params', 'returns', 'attrs'], results, freqs, maps):
-            freq = cast(Counter[str], freq)
-            map = cast(dict[str, str], map)
-            # Output in descending order of frequency
-            for typ, cnt in freq.most_common():
-                if typ in map:  # We already have a mapping for this type
-                    total_mapped += cnt
+    module_metadata = collect_modules("Analyzing", module_name, state)
+    while module_metadata:
+        mod, file_name, module_name = module_metadata.pop()
+        if file_name.endswith('.py'):
+            try:
+                with open(file_name) as f:
+                    source_code = f.read()
+            except Exception as e:
+                logging.error(f"Analyzing: Failed to read {file_name}: {e}")
+                continue
+            try:
+                cstree = cst.parse_module(source_code)
+            except Exception as e:
+                logging.error(f"Failed to parse file: {file_name}: {e}")
+                continue
+            try:
+                cstree.visit(AnalyzingTransformer(mod, module_name, file_name, state))
+            except Exception as e:
+                logging.error(f"Failed to analyze file: {file_name}: {e}")
+                continue
+
+            logging.info(f"Analyzing: Done {file_name}")
+
+    logging.info("Analyzing and normalizing types...")
+    maps = load_type_maps(module_name)
+    results = [[], [], []]
+    assert(state.counters is not None)
+    freqs: Sections[Counter[str]] = state.counters
+    total_trivial = 0
+    total_mapped = 0
+    total_missed = 0
+    trivials = {}
+    for section, result, freq, map in zip(['params', 'returns', 'attrs'], results, freqs, maps):
+        freq = cast(Counter[str], freq)
+        map = cast(dict[str, str], map)
+        # Output in descending order of frequency
+        for typ, cnt in freq.most_common():
+            if typ in map:  # We already have a mapping for this type
+                total_mapped += cnt
+            else:
+                normtype = normalize_type(typ, module_name, section=='params')
+                trivial = is_trivial(typ, module_name)
+                if not output_trivial_types and trivial:
+                    # Just track this for logging below
+                    total_trivial += cnt
+                    trivials[typ] = normtype
                 else:
-                    normtype = normalize_type(typ, module_name, section=='params')
-                    trivial = is_trivial(typ, module_name)
-                    if not output_trivial_types and trivial:
-                        # Just track this for logging below
-                        total_trivial += cnt
-                        trivials[typ] = normtype
-                    else:
-                        # We don't have a mapping for this type. Add it to the missing types.
-                        total_missed += cnt
-                        result.append(f'{"@" if trivial else ""}{cnt}#{typ}#{normtype}\n')
+                    # We don't have a mapping for this type. Add it to the missing types.
+                    total_missed += cnt
+                    result.append(f'{"@" if trivial else ""}{cnt}#{typ}#{normtype}\n')
 
-        logging.info(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
-        logging.info('\nTRIVIALS\n')
-        for k, v in trivials.items():
-            logging.info(f'{k}#{v}')
-        print_norm1()
+    logging.info(f'Trivial: {total_trivial}, Mapped: {total_mapped}, Missed: {total_missed}')
+    logging.info('\nTRIVIALS\n')
+    for k, v in trivials.items():
+        logging.info(f'{k}#{v}')
+    print_norm1()
 
-        for i, section in enumerate(['params', 'returns', 'attrs']):
-            save_result(f"analysis/{module_name}.{section}.map.missing", ''.join(results[i]))
-        save_docstrings(module_name, state.docstrings)
-        return state
+    for i, section in enumerate(['params', 'returns', 'attrs']):
+        save_result(f"analysis/{module_name}.{section}.map.missing", ''.join(results[i]))
+    save_docstrings(module_name, state.docstrings)
+    return state
     
-    return None

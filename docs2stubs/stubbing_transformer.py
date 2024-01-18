@@ -1,10 +1,8 @@
-from collections import Counter
 import inspect
 import logging
 import os
 import re
-from types import ModuleType
-from typing import Literal, cast, _type_repr
+from typing import Literal, cast
 
 import libcst as cst
 from black import format_str
@@ -15,7 +13,8 @@ from .type_normalizer import is_trivial, normalize_type
 from .base_transformer import BaseTransformer
 from .sklearn_native import write_sklearn_native_stubs
 from .traces import combine_types, init_trace_loader
-from .utils import Sections, State, load_map, load_docstrings, load_type_maps, process_module
+from .utils import Sections, State, collect_modules, load_map, \
+    load_docstrings, load_type_maps, save_result
 
 
 _total_return_annotations = 0  
@@ -621,7 +620,6 @@ class StubbingTransformer(BaseTransformer):
             return updated_node
 
 
-_stub_folder = 'typings'
 _dropped_decorators = set()
 
 
@@ -729,110 +727,44 @@ def _stub_python_module(m: str, fname: str, source: str, state: State, strip_def
         return code
 
 
-def _stub_native_module(mod: ModuleType, module_name: str, file_name: str, state: State, **kwargs) -> str|None:
-    # Right now this doesn't work so just return ''
-    # During analysis we get the docstrings by importing and then inspecting the module.
-    # That can't distinguish between imported functions/classes and those defined in the module.
-    # Plus we completely skip anything that doesn't have a docstring.
-    # There's probably no good alternative here to writing a parser for .pyx files.
-    return ''
-
-    tlmodule = module_name.split('.')[0]
-    result = []
-    docstrings: Sections[dict[str,str]|dict[str,dict[str,str]]] 
-    returnstrings = state.creturns
-
-    def _handle_native_func(func, context: str) -> None:
-        sig = inspect.signature(func)
-        return_type = returnstrings.get(context, '')
-        args = [f"{param.name}: {param.annotation.__name__ if hasattr(param.annotation, '__name__') else param.annotation}" 
-                for param in sig.parameters.values()]
-        if return_type:
-            result.append(f"def {name}({', '.join(args)}) -> {return_type}: ")
-        else:
-            result.append(f"def {name}({', '.join(args)}): ")
-        if func.__doc__ is not None:
-            result.append(f" # {func.__doc__}")
-        result.append("\n    ...\n\n")
-    
-
-    assert(state.maps is not None)
-    for name, obj in inspect.getmembers(mod):
-        if name.startswith('_'):
-            continue
-        if not inspect.isbuiltin(obj):
-            continue
-
-        if inspect.isclass(obj):
-            result.append(f"class {name}:\n") # TODO: base classes
-            body = '    ...\n'
-
-            # Collect this class's attributes from its docstring
-            attribs = {attr[len(name)+1:]: doctyp 
-                       for attr, doctyp in docstrings.attrs.items() 
-                       if attr.startswith(name+'.')}
-
-            for member_name, member in inspect.getmembers(obj):
-                if inspect.isfunction(member):
-                    _handle_native_func(member, f'{name}.{member_name}')
-                    body = ''
-                else:
-                    # Attribute
-                    doctyp = attribs.get(member_name, '')
-                    dtyp, _ = docstring2type(module_name, cast(str, doctyp), state.maps.attrs, False)
-                    # Need this for further normalizing and getting the imports
-                    typ, imps = combine_types(tlmodule, name, doctyp=dtyp)
-                    global _total_attr_annotations, _total_attr_annotations_missing
-                    if typ:
-                        result.append(f'    {member_name}: {typ} = ...')
-                        _total_attr_annotations += 1
-                    else:
-                        result.append(f"    {member_name}: {type(member).__name__} = ...")
-                        _total_attr_annotations_missing += 1
-                    body = ''
-            result.append(body)
-            
-        elif inspect.isfunction(obj):
-            # top-level function
-            _handle_native_func(obj, name)
-        elif obj:
-            # Global variable
-            result.append(f"{name}: {type(obj).__name__}")
-
-    # Insert imports
-
-    result.insert(0, f"# Type stub file for module {module_name}\n\n")
-    return ''.join(result)
-
-
-def _targeter(fname: str) -> str:
-    return f'{_stub_folder}/{fname[fname.find("/site-packages/") + 15 :]}i'
-
-
-def stub_module(m: str, strip_defaults: bool = False, skip_analysis: bool = False,
-stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
-    global _stub_folder
-
+def stub_module(module_name: str, strip_defaults: bool = False, skip_analysis: bool = False,
+stub_folder: str = 'typings', trace_folder: str = 'tracing') -> None:
     logging.basicConfig(level=logging.WARNING)
-    _stub_folder = stub_folder
-    if m.find('.') < 0:
-        tlmodule = m
+    if module_name.find('.') < 0:
+        top_level_module_name = module_name
     else:
-        tlmodule = m[:m.find('.')]
-    init_trace_loader(trace_folder, tlmodule)
+        top_level_module_name = module_name[:module_name.find('.')]
+    init_trace_loader(trace_folder, top_level_module_name)
     if skip_analysis:
-        state = State(None, load_docstrings(tlmodule), load_type_maps(tlmodule), {}, {}, {}, {})
+        state = State(None, load_docstrings(top_level_module_name), \
+                      load_type_maps(top_level_module_name), {}, {}, {}, {})
     else:   
-        state = analyze_module(m)
+        state = analyze_module(module_name)
     if state is not None:
-        state.creturns.update(load_map(tlmodule, 'creturns'))
-        creturns = f'analysis/{tlmodule}.creturns.map.missing'
+        state.creturns.update(load_map(top_level_module_name, 'creturns'))
+        creturns = f'analysis/{top_level_module_name}.creturns.map.missing'
         if os.path.exists(creturns):
             os.remove(creturns)
 
-        process_module("Stubbing", m, state, _stub_python_module, _stub_native_module,
-                       output_filename_generator=_targeter,
-                       strip_defaults=strip_defaults)
+        module_metadata = collect_modules('Stubbing', module_name, state)
+        while module_metadata:
+            _, file_name, module_name = module_metadata.pop()
+
+            try:
+                with open(file_name) as f:
+                    source_code = f.read()
+            except Exception as e:
+                logging.error(f"Stubbing: Failed to read {file_name}: {e}")
+                continue
+            result = _stub_python_module(module_name, file_name, source_code, state,
+                                        strip_defaults=strip_defaults)
+                
+            if result is None:
+                logging.error(f"Stubbing: Failed to handle {file_name}")
+            else:
+                logging.info(f"Stubbing: Done {file_name}")
+                target = f'{stub_folder}/{file_name[file_name.find("/site-packages/") + 15 :]}i'
+                save_result(target, result)
  
     print(f'Annotated {_total_param_annotations} parameters, {_total_attr_annotations} attributes and {_total_return_annotations} returns')
     print(f'Failed to annotate {_total_param_annotations_missing} parameters, {_total_attr_annotations_missing} attributes and {_total_return_annotations_missing} returns')
@@ -845,7 +777,7 @@ stub_folder: str = _stub_folder, trace_folder: str = "tracing") -> None:
     print(f'{len(_union_returns)} functions had union returns')
     for f, r in _union_returns.items():
         print(f'    {f}: {r}')
-    with open(f'typings/{tlmodule}/_typing.pyi', 'w') as f:
+    with open(f'typings/{top_level_module_name}/_typing.pyi', 'w') as f:
         f.write('''
 # This file is generated by docs2stub. These types are intended
 # to simplify the stubs generated by docs2stub. They are not
@@ -881,5 +813,5 @@ Regressor: TypeAlias = RegressorMixin
 Color = tuple[float, float, float] | str
 
         ''')
-    if m == 'sklearn':
+    if module_name == 'sklearn':
         write_sklearn_native_stubs()

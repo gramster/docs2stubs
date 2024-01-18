@@ -20,19 +20,15 @@ __version__ = '0.1'
 from docopt import docopt
 from docs2stubs.analyzing_transformer import analyze_module
 from docs2stubs.stubbing_transformer import stub_module
-from docs2stubs.augmenting_transformer import augment_module
 
 
 def main():
     arguments = docopt(__doc__, version=__version__)  # type: ignore
     package = arguments['<package>']
     if arguments['analyze'] or arguments['all']:
-        analyze_module(package, include_submodules=True, output_frequency_counts=True, output_trivial_types=False)
+        analyze_module(package, output_trivial_types=False)
     if arguments['stub'] or arguments['all']:
         stub_module(package, skip_analysis=True)
-    if arguments['augment'] or arguments['all']:
-        augment_module(package, include_submodules=True, stub_folder='typings', trace_folder='tracing')
-
 
 if __name__ == '__main__':
     main()
