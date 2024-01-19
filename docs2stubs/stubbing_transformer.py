@@ -12,9 +12,9 @@ from .analyzing_transformer import analyze_module
 from .type_normalizer import is_trivial, normalize_type
 from .base_transformer import BaseTransformer
 from .sklearn_native import write_sklearn_native_stubs
-from .traces import combine_types, init_trace_loader
-from .utils import Sections, State, collect_modules, load_map, \
-    load_docstrings, load_type_maps, save_result
+from .traces import combine_types
+from .utils import Sections, State, collect_modules, get_top_level_module_name, \
+    load_map, load_docstrings, load_type_maps, save_result
 
 
 _total_return_annotations = 0  
@@ -727,14 +727,10 @@ def _stub_python_module(m: str, fname: str, source: str, state: State, strip_def
         return code
 
 
-def stub_module(module_name: str, strip_defaults: bool = False, skip_analysis: bool = False,
-stub_folder: str = 'typings', trace_folder: str = 'tracing') -> None:
+def stub_module(module_name: str, strip_defaults: bool = False, 
+                skip_analysis: bool = False, stub_folder: str = 'typings') -> None:
     logging.basicConfig(level=logging.WARNING)
-    if module_name.find('.') < 0:
-        top_level_module_name = module_name
-    else:
-        top_level_module_name = module_name[:module_name.find('.')]
-    init_trace_loader(trace_folder, top_level_module_name)
+    top_level_module_name = get_top_level_module_name(module_name)
     if skip_analysis:
         state = State(None, load_docstrings(top_level_module_name), \
                       load_type_maps(top_level_module_name), {}, {}, {}, {})

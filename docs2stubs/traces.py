@@ -30,6 +30,8 @@ import numpy as np
 import pandas as pd
 import scipy
 
+from .utils import get_top_level_module_name
+
 
 DEFAULT_TABLE = "monkeytype_call_traces"
 QueryValue = str|int
@@ -163,15 +165,15 @@ _dbpath = ''
 _pkg = ''
 
 
-def init_trace_loader(dbpath: str, pkg: str):
+def init_trace_loader(dbpath: str, module_name: str):
     global _dbpath, _pkg
     _dbpath = dbpath
-    _pkg = pkg
+    _pkg = get_top_level_module_name(module_name)
 
 
 def _get_module_stubs(dbpath: str, pkg: str, module: str):
     if _dbpath == '':
-        raise Exception("get_module_traces called before init_trace_loader")
+        raise Exception("_get_module_stubs called before init_trace_loader")
     if module not in _stubs:
         _stubs[module] = None
         try:

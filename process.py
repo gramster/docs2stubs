@@ -20,11 +20,13 @@ __version__ = '0.1'
 from docopt import docopt
 from docs2stubs.analyzing_transformer import analyze_module
 from docs2stubs.stubbing_transformer import stub_module
+from docs2stubs.traces import init_trace_loader
 
 
 def main():
     arguments = docopt(__doc__, version=__version__)  # type: ignore
     package = arguments['<package>']
+    init_trace_loader('tracing', package)
     if arguments['analyze'] or arguments['all']:
         analyze_module(package, output_trivial_types=False)
     if arguments['stub'] or arguments['all']:

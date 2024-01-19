@@ -10,7 +10,7 @@ from .utils import Sections, State, analyze_object, \
     collect_modules, get_top_level_obj, \
     load_type_maps, save_docstrings, save_result
 from .docstring_parser import NumpyDocstringParser
-from .traces import get_method_signature, get_toplevel_function_signature
+from .traces import init_trace_loader, get_method_signature, get_toplevel_function_signature
 from .type_normalizer import is_trivial, normalize_type, print_norm1
 
 
@@ -141,7 +141,7 @@ class AnalyzingTransformer(BaseTransformer):
         return rtn
 
 
-def analyze_module(module_name: str, output_trivial_types: bool = True) -> State:
+def analyze_module(module_name: str, output_trivial_types: bool = True, trace_folder='tracing') -> State:
     logging.info("Gathering docstrings")
     state = State(
         Sections[Counter[str]](params=Counter(), returns=Counter(), attrs=Counter()),

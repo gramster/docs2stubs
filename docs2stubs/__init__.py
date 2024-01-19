@@ -72,7 +72,7 @@ __version__ = '0.1'
 from docopt import docopt
 from .stubbing_transformer import stub_module
 from .analyzing_transformer import analyze_module
-
+from .traces import init_trace_loader
 from .type_normalizer import check_normalizer
 
 
@@ -82,15 +82,17 @@ def main():
     for n in name:
       if arguments['analyze']:
         dump_all = not arguments['--skip-trivial']
-        trace_folder = arguments['--trace_folder']
+        trace_folder = arguments['--trace_folder']  
+        init_trace_loader(trace_folder, n)
         analyze_module(n, output_trivial_types=dump_all)
       elif arguments['stub']:
         strip_defaults = arguments['--strip-defaults']
         skip_analysis = arguments['--skip-analysis']
         stub_folder = arguments['--stub_folder']
         trace_folder = arguments['--trace_folder']
-        stub_module(n,  strip_defaults=strip_defaults, skip_analysis=skip_analysis, 
-                    stub_folder=stub_folder, trace_folder=trace_folder)
+        init_trace_loader(trace_folder, n)
+        stub_module(n, strip_defaults=strip_defaults, skip_analysis=skip_analysis, 
+                    stub_folder=stub_folder)
       elif arguments['test']:
         print(check_normalizer(arguments["<typestring>"], name))
 

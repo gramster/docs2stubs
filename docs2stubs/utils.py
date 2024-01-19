@@ -189,3 +189,10 @@ def collect_modules(
         modules.extend(submodules)
     return result
 
+
+def get_top_level_module_name(module_name: str) -> str:
+    if module_name.find('.') < 0:
+        top_level_module_name = module_name
+    else:
+        top_level_module_name = module_name[:module_name.find('.')]
+    return top_level_module_name
