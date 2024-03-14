@@ -75,6 +75,12 @@ normalized by the program. A module or package name can optionally
 be specified in which case the `.imports.map` file for that module
 or package will be used (if it exists) to decide what are valid classnames.
 
+After the analysis phase but before the stub generation phase, MonkeyType
+can be used to generate traces for the target package, and this data can be
+used to supplement that information gained through analysis. This is still
+somewhat ad-hoc, but the necessary components are in the `tracings`
+folder. I have used the examples or the test cases from several scientific
+Python packages to generate traces for those packages.
 
 ## Adding a Supplementary Typing Module
 
